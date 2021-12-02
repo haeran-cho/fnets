@@ -1,13 +1,32 @@
 #' @title Nonparametric partial coherence matrix estimation
+#' @description Returns a non-parametric estimate of the partial coherence matrix, possibly using cross-validation
+#' @param object fnets object
+#' @param x input time series matrix, with each row representing a time series
+#' @param eta regularisation parameter, if NULL this selected by cross-validation
+#' @param symmetrix type of symmetry to enforce on output, one of 'min', 'max', 'avg', 'none'
+#' @param pcn.cv.args A list specifying arguments to the cross-validation (CV) procedure containing:
+#' \itemize{
+#'    \item{\code{'n.folds'}}{number of folds}
+#'    \item{\code{'path.length'}}{number of lambda values to consider}
+#' }
+#' @param n.cores number of cores to use for parallel computing
+#' @return A list containing
+#' \itemize{
+#' \item{Omega: Estimated partial coherence matrix}
+#' \item{eta: regularisation parameter}
+#' }
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
+#' @examples
+#' model <- fnets(sample.data, q=2, idio.method = "lasso")
+#' nonpar.pcn(model, sample.data, 1)
 #' @export
-nonpar.pcn <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg', 'none'), 
+nonpar.pcn <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg', 'none'),
                        pcn.cv.args = list(n.folds = 1, path.length = 10),
                        n.cores = min(parallel::detectCores() - 1, 3)){
-  
+
   xx <- x - object$mean.x
   p <- dim(x)[1]
-  
+
   symmetric <- match.arg(symmetric, c('min', 'max', 'avg', 'none'))
   GG <- Re(object$spec$Sigma_i[,, 1])
 
@@ -15,77 +34,97 @@ nonpar.pcn <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg',
     dcv <- direct.cv(object, xx, target = 'spec', path.length = pcn.cv.args$path.length, n.folds = pcn.cv.args$n.folds,
                      q = object$q, kern.bandwidth.const = object$kern.bandwidth.const, n.cores = n.cores)
     eta <- dcv$eta
-  } 
+  }
   DD <- direct.inv.est(GG, eta = eta, symmetric = symmetric, n.cores = n.cores)$DD
   out <- list(Omega = DD, eta = eta)
   attr(out, 'class') <- 'fnets.pcn'
-  
+
   return(out)
-  
+
 }
 
 #' @title Parametric partial coherence matrix estimation
+#' @description Returns a parametric estimate of the partial coherence matrix, possibly using cross-validation
+#' @param object fnets object
+#' @param x input time series matrix, with each row representing a time series
+#' @param eta regularisation parameter, if NULL this selected by cross-validation
+#' @param symmetrix type of symmetry to enforce on output, one of 'min', 'max', 'avg', 'none'
+#' @param pcn.cv.args A list specifying arguments to the cross-validation (CV) procedure containing:
+#' \itemize{
+#'    \item{\code{'n.folds'}}{number of folds}
+#'    \item{\code{'path.length'}}{number of lambda values to consider}
+#' }
+#' @param n.cores number of cores to use for parallel computing
+#' @return A list containing
+#' \itemize{
+#' \item{Omega: Estimated partial coherence matrix}
+#' \item{eta: regularisation parameter}
+#' }
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
+#' @examples
+#' model <- fnets(sample.data, q=2, idio.method = "lasso")
+#' param.pcn(model, sample.data, 1)
 #' @export
-param.pcn <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg', 'none'), 
+param.pcn <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg', 'none'),
                       pcn.cv.args = list(n.folds = 1, path.length = 10),
                       n.cores = min(parallel::detectCores() - 1, 3)){
-  
+
   xx <- x - object$mean.x
   p <- dim(x)[1]
-  
+
   symmetric <- match.arg(symmetric, c('min', 'max', 'avg', 'none'))
   GG <- object$idio.var$Gamma
   A <- t(object$idio.var$beta)
   d <- dim(A)[2]/p
-  
+
   A1 <- diag(1, p)
   for(ll in 1:d) A1 <- A1 - A[, (ll - 1) * p + 1:p]
-  
+
   if(is.null(eta)){
-    dcv <- direct.cv(object, xx, target = 'acv', 
+    dcv <- direct.cv(object, xx, target = 'acv',
                      path.length = pcn.cv.args$path.length, n.folds = pcn.cv.args$n.folds,
                      q = object$q, kern.bandwidth.const = object$kern.bandwidth.const, n.cores = n.cores)
     eta <- dcv$eta
-  } 
+  }
   Delta <- direct.inv.est(GG, eta = eta, symmetric = symmetric, n.cores = n.cores)$DD
   Omega <- 2 * pi * t(A1) %*% Delta %*% A1
-  
+
   out <- list(Delta = Delta, Omega = Omega, eta = eta)
   attr(out, 'class') <- 'fnets.pcn'
   return(out)
-  
+
 }
 
 #' @title Cross-validation for the constrained l1-minimisation problem for inverse matrix estimation
 #' @export
+#' @keywords internal
 direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min', 'max', 'avg', 'none'),
                       path.length = 10, n.folds = 1, q = 0, kern.bandwidth.const = 4, n.cores = min(parallel::detectCores() - 1, 3)){
-  
+
   n <- ncol(xx)
   p <- nrow(xx)
-  
+
   target <- match.arg(target, c('spec', 'acv'))
   if(target == 'spec'){
     GG <- Re(object$spec$Sigma_i[,, 1])
-    eta.max <- max(abs(GG)) 
+    eta.max <- max(abs(GG))
     eta.path <- round(exp(seq(log(eta.max), log(eta.max * .1), length.out = path.length)), digits = 10)
   }
   if(target == 'acv'){
     A <- t(object$idio.var$beta)
     d <- dim(A)[2]/p
     GG <- object$idio.var$Gamma
-    eta.max <- max(abs(GG)) 
+    eta.max <- max(abs(GG))
     eta.path <- round(exp(seq(log(eta.max), log(eta.max * .01), length.out = path.length)), digits = 10)
   }
-  
-  
+
+
   cv.err <- rep(0, length = path.length)
-  ind.list <- split(1:n, ceiling(n.folds*(1:n)/n)) 
-  for(fold in 1:n.folds){ 
+  ind.list <- split(1:n, ceiling(n.folds*(1:n)/n))
+  for(fold in 1:n.folds){
     train.ind <- 1:ceiling(length(ind.list[[fold]]) * .5)
     train.x <- xx[, ind.list[[fold]][train.ind]]
-    test.x  <- xx[, ind.list[[fold]][- train.ind]] 
+    test.x  <- xx[, ind.list[[fold]][- train.ind]]
     if(target == 'spec'){
       train.GG <- Re(dyn.pca(train.x, q = q, kern.bandwidth.const = kern.bandwidth.const)$spec$Sigma_i[,, 1])
       test.GG <- Re(dyn.pca(test.x, q = q, kern.bandwidth.const = kern.bandwidth.const)$spec$Sigma_i[,, 1])
@@ -111,31 +150,32 @@ direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min'
       cv.err[ii] <- cv.err[ii] + sum(sv$d) - sum(log(sv$d)) - p # sum(diag(DD %*% test.GG)) - log(det(DD)) # sum(diag(DD %*% test.GG)) - log(det(DD %*% test.GG)) - p
     }
   }
-  
-  cv.err 
+
+  cv.err
   eta.min <- eta.path[which.min(cv.err)]
 
   plot(eta.path, cv.err, type = 'b', col = 1, pch = 1, log = 'x', xlab = 'eta (log scale)', ylab = 'CV error')
   abline(v = eta.min)
   rp <- recordPlot()
-  
+
   out <- list(eta = eta.min, cv.error = cv.err, eta.path = eta.path)
-  return(out) 
-  
+  return(out)
+
 }
 
-#' @internal
+#' @export
+#' @keywords internal
 direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', 'none'), n.cores = min(parallel::detectCores() - 1, 3)){
-  
+
   p <- dim(GG)[1]
   f.obj <- rep(1, 2 * p)
   f.con <- rbind(-GG, GG)
   f.con <- cbind(f.con,-f.con)
   f.dir <- rep('<=', 2 * p)
-  
+
   cl <- parallel::makePSOCKcluster(n.cores)
   doParallel::registerDoParallel(cl)
-  
+
   DD <- foreach::foreach(ii = 1:p, .combine = 'cbind', .multicombine = TRUE, .export = c('lp')) %dopar% {
     ee <- rep(0, p)
     ee[ii] <- 1
@@ -146,15 +186,16 @@ direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', '
     lpout$solution[1:p] - lpout$solution[-(1:p)]
   }
   parallel::stopCluster(cl)
-  
+
   DD <- make.symmetric(DD, symmetric)
-  
+
   out <- list(DD = DD, eta = eta, symmetric = symmetric)
   return(out)
-  
+
 }
 
-#' @internal
+#' @export
+#' @keywords internal
 make.symmetric <- function(DD, symmetric){
   symmetric <- match.arg(symmetric, c('min', 'max', 'avg', 'none'))
   if(symmetric != 'none'){
@@ -181,7 +222,7 @@ make.symmetric <- function(DD, symmetric){
 plot.fnets.pcn <- function(object, names = NULL, groups = NULL, threshold = 0, size = NULL, ...){
   O <- object$Omega
   p <- dim(O)[1]
-  
+
   mark.groups <- list()
   perm <- c()
   if(!is.null(groups)){
@@ -193,14 +234,14 @@ plot.fnets.pcn <- function(object, names = NULL, groups = NULL, threshold = 0, s
     # perm <- Matrix::invPerm(perm)
   } else perm <- 1:p
   # Granger causal network
-  
+
   # Long-Run Partial Correlation network
   O <- O[perm,perm]
-  omega <- igraph::graph_from_adjacency_matrix(O, mode = "undirected", weighted=TRUE, diag = FALSE) 
+  omega <- igraph::graph_from_adjacency_matrix(O, mode = "undirected", weighted=TRUE, diag = FALSE)
   if(!is.null(size)) {degreeO <- igraph::degree(omega, mode = size, normalized = F)
   degreeO <- degreeO/max(degreeO)*15 }else degreeO <- rep(15, p)
   if(!is.null(names)) V(omega)$name <- names[perm]
-  l_omega <- igraph::layout_in_circle(omega) 
+  l_omega <- igraph::layout_in_circle(omega)
 
   # Contemporaneous
   if(!is.null(object$Delta)){
@@ -208,14 +249,14 @@ plot.fnets.pcn <- function(object, names = NULL, groups = NULL, threshold = 0, s
    if(!is.null(size)) {degreeC <- igraph::degree(contemp, mode = size, normalized = F)
    degreeC <- degreeC/max(degreeC)*15 }else degreeC <- rep(15, p)
    if(!is.null(names)) V(contemp)$name <- names[perm]
-   l_contemp <- igraph::layout_in_circle(contemp) 
+   l_contemp <- igraph::layout_in_circle(contemp)
 
    par(mfrow = c(1,2))
    plot.igraph(contemp, main = "Contemporaneous", vertex.label = V(contemp)$name, layout = l_contemp, vertex.label.font = 2,
                vertex.label.color = "black", edge.color = "gray40", edge.arrow.size = 0.1, vertex.size = degreeC,
                vertex.shape ="circle", vertex.color = groups[perm], vertex.label.cex = 0.8)
   } else par(mfrow = c(1,1))
-  if(!is.null(names)) V(omega)$name <- names 
+  if(!is.null(names)) V(omega)$name <- names
   plot.igraph(omega, main = "Long-Run Partial Correlation", vertex.label = V(omega)$name, layout = l_omega, vertex.label.font = 2,
               vertex.label.color = "black", edge.color = "gray40", edge.arrow.size = 0.1, vertex.size = degreeO,
               vertex.shape ="circle", vertex.color = groups[perm], vertex.label.cex = 0.8)
