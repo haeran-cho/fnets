@@ -45,10 +45,13 @@ A list which contains the following fields:
 }
 }
 \description{
-Cross-validation for l1-regularised VAR estimation
+selects the prediction-optimal regularisation parameter for the estimation of the idiosyncratic VAR
 }
 \details{
 Further information can be found in Barigozzi, Cho and Owens (2021).
+}
+\examples{
+idio.cv(sample.data, idio.method = "lasso", q=2)
 }
 \references{
 Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.

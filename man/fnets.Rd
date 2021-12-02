@@ -66,6 +66,9 @@ This function estimates the spectral density and autocovariance matrices of the 
 \details{
 Further information can be found in Barigozzi, Cho and Owens (2021).
 }
+\examples{
+fnets(sample.data, q=2, idio.method = "lasso")
+}
 \references{
 Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 }

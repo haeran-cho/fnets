@@ -175,7 +175,7 @@ var.dantzig <- function(GG, gg, lambda, symmetric = 'min', n.cores = min(paralle
 ####
 
 #' @title Cross-validation for l1-regularised VAR estimation
-#' @description
+#' @description selects the prediction-optimal regularisation parameter for the estimation of the idiosyncratic VAR
 #' @details
 #'  Further information can be found in Barigozzi, Cho and Owens (2021).
 #'
@@ -196,7 +196,8 @@ var.dantzig <- function(GG, gg, lambda, symmetric = 'min', n.cores = min(paralle
 #' \item{lambda.path: candidate lambda values}
 #' }
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
-#' @example idio.cv(sample.data, idio.method = "lasso", q=2)
+#' @examples
+#' idio.cv(sample.data, idio.method = "lasso", q=2)
 #' @export
 idio.cv <- function(xx, lambda.max = NULL, var.order = 1, idio.method = c('lasso', 'ds'),
                     path.length = 10, n.folds = 1,

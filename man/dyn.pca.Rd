@@ -27,3 +27,6 @@ A list containing
 \description{
 Performs principal components analysis of the autocovariance matrices.
 }
+\examples{
+dyn.pca(sample.data, q=2)
+}

@@ -40,6 +40,10 @@ A list containing
 \description{
 Returns a non-parametric estimate of the partial coherence matrix, possibly using cross-validation
 }
+\examples{
+model <- fnets(sample.data, q=2, idio.method = "lasso")
+nonpar.pcn(model, sample.data, 1)
+}
 \references{
 Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 }

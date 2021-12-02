@@ -95,7 +95,8 @@ fnets <- function(x, q = NULL, ic.op = 4, kern.bandwidth.const = 4,
 #' \item{acv: Autocovariance matrices}
 #' \item{kern.bandwidth.const: Constant to determine bandwidth size}
 #' }
-#' @example dyn.pca(sample.data, q=2)
+#' @examples
+#' dyn.pca(sample.data, q=2)
 #' @export
 dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.bandwidth.const = 4){
 
