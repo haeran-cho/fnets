@@ -20,6 +20,8 @@ nonpar.pcn(
 
 \item{eta}{regularisation parameter, if NULL this selected by cross-validation}
 
+\item{symmetric}{type of symmetry to enforce on output, one of 'min', 'max', 'avg', 'none'}
+
 \item{pcn.cv.args}{A list specifying arguments to the cross-validation (CV) procedure containing:
 \itemize{
    \item{\code{'n.folds'}}{number of folds}
@@ -27,8 +29,6 @@ nonpar.pcn(
 }}
 
 \item{n.cores}{number of cores to use for parallel computing}
-
-\item{symmetrix}{type of symmetry to enforce on output, one of 'min', 'max', 'avg', 'none'}
 }
 \value{
 A list containing
@@ -41,8 +41,12 @@ A list containing
 Returns a non-parametric estimate of the partial coherence matrix, possibly using cross-validation
 }
 \examples{
+#nonpar.pcn
+
+require(doParallel)
+require(lpSolve)
 model <- fnets(sample.data, q=2, idio.method = "lasso")
-nonpar.pcn(model, sample.data, 1)
+nonpar.pcn(model, sample.data, 1, n.cores = 1)
 }
 \references{
 Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.

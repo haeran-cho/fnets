@@ -11,7 +11,7 @@ sim.idio(
   cov = diag(1, p),
   prob = 1/p,
   two_norm = NULL,
-  do_scale = T
+  do.scale = T
 )
 }
 \arguments{
@@ -27,7 +27,7 @@ sim.idio(
 
 \item{two_norm}{target 2-norm to scale A by (default NULL)}
 
-\item{do_scale}{scale the output (default true)}
+\item{do.scale}{scale the output (default true)}
 }
 \value{
 A list containing
@@ -40,7 +40,7 @@ A list containing
 Simulate data from a (sparse) VAR(1) model
 }
 \examples{
-sim.idio(100,10, A=diag(0.3, 10))
+    sim.idio(100,10, A=diag(0.3, 10))
 }
 \references{
 Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.

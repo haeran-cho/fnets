@@ -95,22 +95,26 @@ var.lasso <- function(GG, gg, lambda, symmetric = 'min', niter = 100, tol = 0, d
 }
 
 #' @export
+#' @description internal function
 #' @keywords internal
 f.func <- function(GG, gg, A){
 return(0.5 * norm(   (GG %*% (A) - gg ) , "F")^2) ##
 }
 #' @export
+#' @description internal function
 #' @keywords internal
 gradf.func <- function(GtG, Gtg, A){
   return( (GtG %*% (A) - Gtg ) ) # GG %*% here??
 }
 #' @export
+#' @description internal function
 #' @keywords internal
 Q.func <- function(A, A.up, L, GG, gg, GtG, Gtg){
   Adiff <- (A - A.up)
   return(f.func(GG, gg, A.up) + sum(Adiff * gradf.func(GtG, Gtg,A.up)) + 0.5 * L * norm(Adiff, "F")^2 )
 }
 #' @export
+#' @description internal function
 #' @keywords internal
 fnsl.update <- function(B, B_md, lambda, eta, GtG, Gtg){
   b <- B - (1/eta) * (GtG %*% (B_md) - Gtg ) ##
@@ -256,6 +260,7 @@ idio.cv <- function(xx, lambda.max = NULL, var.order = 1, idio.method = c('lasso
 #' @description Predictsidiosyncratic components from a fnets object for new data
 #' @param object fnets object
 #' @param x input time series matrix, with each row representing a time series
+#' @param cpre estimated common component
 #' @param h forecast horizon
 #' @return A list containing
 #' \itemize{
@@ -290,6 +295,8 @@ idio.predict <- function(object, x, cpre, h = 1){
 
 
 #' @title Construct `gg` and `GG` matrices for Yule-Walker estimation
+#' @param acv autocovariance array
+#' @param d order of VAR
 #' @export
 # #' @keywords internal
 make.gg <- function(acv, d){

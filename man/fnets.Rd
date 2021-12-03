@@ -24,6 +24,8 @@ fnets(
 
 \item{ic.op}{an index number for the information criterion}
 
+\item{kern.bandwidth.const}{constant to determine bandwidth size}
+
 \item{common.var.args}{A list specifying the estimator for the common component. This contains:
 \itemize{
    \item{\code{'var.order'}}{the order of the VAR model, if NULL then selected blockwise by BIC}
@@ -31,6 +33,8 @@ fnets(
    \item{\code{'trunc.lags'}}{the order of the MA representation}
    \item{\code{'n.perm'}}{number of cross-sectional permutations}
 }}
+
+\item{idio.var.order}{order of idiosyncratic VAR model}
 
 \item{idio.method}{A string specifying the type of l1-regularised estimator for the idiosyncratic VAR matrix, possible values are:
 \itemize{

@@ -15,7 +15,7 @@ common.var.estimation(
 )
 }
 \description{
-Blockwise VAR estimation under GDFM
+internal function
 }
 \references{
 Forni, M., Hallin, M., Lippi, M., & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.

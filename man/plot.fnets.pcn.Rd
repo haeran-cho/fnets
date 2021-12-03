@@ -4,10 +4,34 @@
 \alias{plot.fnets.pcn}
 \title{Plot fnets.pcn object}
 \usage{
-\method{plot}{fnets.pcn}(object, names = NULL, groups = NULL, threshold = 0, size = NULL, ...)
+\method{plot}{fnets.pcn}(
+  object,
+  type = "network",
+  names = NULL,
+  groups = NULL,
+  threshold = 0,
+  size = NULL,
+  ...
+)
+}
+\arguments{
+\item{object}{fnets.pcn object}
+
+\item{type}{whether to plot a "network" or "heatmap"}
+
+\item{names}{character vector of node names}
+
+\item{groups}{integer vector denoting groups for "network" plots}
+
+\item{threshold}{sets all elements less than this in absolute value to 0}
+
+\item{size}{which type of degree to use for node size in "network" plots, one of "all", "out", "in", "total"}
+
+\item{...}{additional arguments}
 }
 \description{
-Plot fnets.pcn object
+plots the fnets.pcn object as a Long-Run Partial Correlation network, and if available as a Contemporaneous network,
+    either as a network graph or a heatmap
 }
 \references{
 Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.

@@ -7,8 +7,8 @@
 sim.factor.M2(
   n,
   p,
-  MA_lag = 20,
-  do_scale = T,
+  trunc.lags = 20,
+  do.scale = T,
   a1 = NULL,
   a2 = NULL,
   alpha1 = NULL,
@@ -20,9 +20,9 @@ sim.factor.M2(
 
 \item{p}{number of series}
 
-\item{MA_lag}{lag for MA representation}
+\item{trunc.lags}{lag for MA representation}
 
-\item{do_scale}{scale the ouptut (default true)}
+\item{do.scale}{scale the output (default true)}
 
 \item{a1, a2, alpha1, alpha2}{generative parameters (default null, see reference)}
 }
@@ -38,7 +38,7 @@ A list containing
 Simulate data from a static factor model (Model 2)
 }
 \examples{
-sim.factor.M2(100,10)
+    sim.factor.M2(100,10)
 }
 \references{
 Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.

@@ -6,7 +6,7 @@
 #' @param p number of series
 #' @param q dynamic dimension (default 2)
 #' @param r factor number (default 4)
-#' @param do_scale scale the output (default true)
+#' @param do.scale scale the output (default true)
 #' @param K  transition matrix, dimension r by q (default null)
 #' @param loadings  loading matrix, dimension p by r (default null)
 #'
@@ -15,14 +15,15 @@
 #' \item{data: generated series}
 #' \item{shocks: `q`-dimensional shock series}
 #' \item{factors: `r`-dimensional factor series}
-#' \item{loadings: factor loadings}
 #' \item{K: transition matrix}
+#' \item{loadings: factor loadings}
 #' }
 #' @export
 #'
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
-#' @examples sim.factor.M1(100,10)
-sim.factor.M1 <- function(n, p, q = 2, r = 4, do_scale = T, K = NULL, loadings=NULL){
+#' @examples
+#'     sim.factor.M1(100,10)
+sim.factor.M1 <- function(n, p, q = 2, r = 4, do.scale = T, loadings=NULL, K = NULL){
   stopifnot(r>=q)
   burnin <- 100
   u2 <- matrix(rnorm(q * (n + burnin)), nrow = q)
@@ -40,7 +41,7 @@ sim.factor.M1 <- function(n, p, q = 2, r = 4, do_scale = T, K = NULL, loadings=N
   if(is.null(loadings) )loadings <- matrix(runif(p * r, -1, 1), nrow = p)
   chi <- loadings %*% f
 
-  if(do_scale) chi <- chi/apply(chi, 1, sd)
+  if(do.scale) chi <- chi/apply(chi, 1, sd)
   return(list(data = chi, shocks = u2, factors = f, loadings = loadings, K=K))
 }
 
@@ -50,8 +51,8 @@ sim.factor.M1 <- function(n, p, q = 2, r = 4, do_scale = T, K = NULL, loadings=N
 #'
 #' @param n sample size
 #' @param p number of series
-#' @param MA_lag lag for MA representation
-#' @param do_scale scale the ouptut (default true)
+#' @param trunc.lags lag for MA representation
+#' @param do.scale scale the output (default true)
 #' @param a1,a2,alpha1,alpha2  generative parameters (default null, see reference)
 #'
 #' @return  A list containing
@@ -63,25 +64,26 @@ sim.factor.M1 <- function(n, p, q = 2, r = 4, do_scale = T, K = NULL, loadings=N
 #' @export
 #'
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
-#' @examples sim.factor.M2(100,10)
-sim.factor.M2 <- function(n, p, MA_lag = 20, do_scale = T, a1 = NULL, a2 = NULL, alpha1 = NULL, alpha2 = NULL){
-  stopifnot(n>=MA_lag)
+#' @examples
+#'     sim.factor.M2(100,10)
+sim.factor.M2 <- function(n, p, trunc.lags = 20, do.scale = T, a1 = NULL, a2 = NULL, alpha1 = NULL, alpha2 = NULL){
+  stopifnot(n>=trunc.lags)
   chi <- matrix(0, p, n)
-  u1 <- rnorm(n + MA_lag)
-  u2 <- rnorm(n + MA_lag)
+  u1 <- rnorm(n + trunc.lags)
+  u2 <- rnorm(n + trunc.lags)
   uu <- rbind(u1,u2)
   a1 <- runif(p , -1,1)
   a2 <- runif(p , -1,1)
   alpha1 <- runif(p, -.8,.8)
   alpha2 <- runif(p, -.8,.8)
   for (jj in 1:p) {
-    coeffs_1 <- alpha1[jj]*c(1,as.numeric( ARtoMA(array(a1[jj], c(1,1,1)), nlag = MA_lag))) #gdfm::
-    coeffs_2 <-  alpha2[jj]*c(1,as.numeric(ARtoMA(array(a2[jj], c(1,1,1)), nlag = MA_lag)))
+    coeffs_1 <- alpha1[jj]*c(1,as.numeric( var.to.vma(as.matrix(a1[jj]), trunc.lags))) #gdfm::
+    coeffs_2 <-  alpha2[jj]*c(1,as.numeric(var.to.vma(as.matrix(a2[jj]), trunc.lags)))
     for (t in 1:n) {
-      chi[jj,t] <-  coeffs_1 %*% u1[(t+MA_lag):t] + coeffs_2 %*% u2[(t+MA_lag):t]
+      chi[jj,t] <-  coeffs_1 %*% u1[(t+trunc.lags+1):t] + coeffs_2 %*% u2[(t+trunc.lags+1):t]
     }
   }
-  if(do_scale) chi <- chi/apply(chi, 1, sd)
+  if(do.scale) chi <- chi/apply(chi, 1, sd)
   return(list(data = chi, shocks = rbind(u1,u2),  a1 = a1, a2 = a2, alpha1 = alpha1, alpha2 = alpha2 ))
 }
 
@@ -95,7 +97,7 @@ sim.factor.M2 <- function(n, p, MA_lag = 20, do_scale = T, a1 = NULL, a2 = NULL,
 #' @param cov generative covariance matrix (default identity)
 #' @param prob edge probability
 #' @param two_norm target 2-norm to scale A by (default NULL)
-#' @param do_scale scale the output (default true)
+#' @param do.scale scale the output (default true)
 #'
 #' @return  A list containing
 #' \itemize{
@@ -105,8 +107,9 @@ sim.factor.M2 <- function(n, p, MA_lag = 20, do_scale = T, a1 = NULL, a2 = NULL,
 #' @export
 #'
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
-#' @examples sim.idio(100,10, A=diag(0.3, 10))
-sim.idio <- function(n, p, A = NULL, cov = diag(1,p), prob = 1/p, two_norm = NULL, do_scale = T){
+#' @examples
+#'     sim.idio(100,10, A=diag(0.3, 10))
+sim.idio <- function(n, p, A = NULL, cov = diag(1,p), prob = 1/p, two_norm = NULL, do.scale = T){
   burnin <-100
 
   vep <- t(mvtnorm::rmvnorm(n + burnin, sigma = cov))
@@ -118,7 +121,7 @@ sim.idio <- function(n, p, A = NULL, cov = diag(1,p), prob = 1/p, two_norm = NUL
   if(!is.null(two_norm) ) A <- two_norm * A/ norm(A,"2")
   for(tt in 2:(n + burnin)) vep[, tt] <- vep[, tt] + A %*% vep[, tt - 1]
   vep <- vep[, -(1:burnin)]
-  if(do_scale) vep <- vep/apply(vep, 1, sd)
+  if(do.scale) vep <- vep/apply(vep, 1, sd)
   return(list(data = vep, A = A ))
 }
 

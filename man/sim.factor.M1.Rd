@@ -4,7 +4,7 @@
 \alias{sim.factor.M1}
 \title{Simulate data from a dynamic factor model (Model 1)}
 \usage{
-sim.factor.M1(n, p, q = 2, r = 4, do_scale = T, K = NULL, loadings = NULL)
+sim.factor.M1(n, p, q = 2, r = 4, do.scale = T, loadings = NULL, K = NULL)
 }
 \arguments{
 \item{n}{sample size}
@@ -15,11 +15,11 @@ sim.factor.M1(n, p, q = 2, r = 4, do_scale = T, K = NULL, loadings = NULL)
 
 \item{r}{factor number (default 4)}
 
-\item{do_scale}{scale the output (default true)}
-
-\item{K}{transition matrix, dimension r by q (default null)}
+\item{do.scale}{scale the output (default true)}
 
 \item{loadings}{loading matrix, dimension p by r (default null)}
+
+\item{K}{transition matrix, dimension r by q (default null)}
 }
 \value{
 A list containing
@@ -27,15 +27,15 @@ A list containing
 \item{data: generated series}
 \item{shocks: `q`-dimensional shock series}
 \item{factors: `r`-dimensional factor series}
-\item{loadings: factor loadings}
 \item{K: transition matrix}
+\item{loadings: factor loadings}
 }
 }
 \description{
 Simulate data from a dynamic factor model (Model 1)
 }
 \examples{
-sim.factor.M1(100,10)
+    sim.factor.M1(100,10)
 }
 \references{
 Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.

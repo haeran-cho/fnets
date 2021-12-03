@@ -4,10 +4,33 @@
 \alias{plot.fnets}
 \title{Plot fnets object}
 \usage{
-\method{plot}{fnets}(object, names = NULL, groups = NULL, threshold = 0, size = NULL, ...)
+\method{plot}{fnets}(
+  object,
+  type = "network",
+  names = NULL,
+  groups = NULL,
+  threshold = 0,
+  size = NULL,
+  ...
+)
+}
+\arguments{
+\item{object}{fnets object}
+
+\item{type}{whether to plot a "network" or "heatmap"}
+
+\item{names}{character vector of node names}
+
+\item{groups}{integer vector denoting groups for "network" plots}
+
+\item{threshold}{sets all elements less than this in absolute value to 0}
+
+\item{size}{which type of degree to use for node size in "network" plots, one of "all", "out", "in", "total"}
+
+\item{...}{additional arguments}
 }
 \description{
-Plot fnets object
+plots the idiosyncratic component of the fnets object as a Granger causal network, either as a network graph or a heatmap
 }
 \references{
 Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.

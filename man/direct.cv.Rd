@@ -17,6 +17,6 @@ direct.cv(
 )
 }
 \description{
-Cross-validation for the constrained l1-minimisation problem for inverse matrix estimation
+internal function
 }
 \keyword{internal}

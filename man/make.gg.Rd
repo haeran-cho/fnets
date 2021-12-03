@@ -6,6 +6,11 @@
 \usage{
 make.gg(acv, d)
 }
+\arguments{
+\item{acv}{autocovariance array}
+
+\item{d}{order of VAR}
+}
 \description{
 Construct `gg` and `GG` matrices for Yule-Walker estimation
 }

@@ -11,6 +11,8 @@ idio.predict(object, x, cpre, h = 1)
 
 \item{x}{input time series matrix, with each row representing a time series}
 
+\item{cpre}{estimated common component}
+
 \item{h}{forecast horizon}
 }
 \value{

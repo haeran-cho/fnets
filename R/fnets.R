@@ -8,6 +8,7 @@ library(igraph)
 #' @param x input time series matrix, with each row representing a time series
 #' @param q the number of factors, if q=NULL this is selected by the information criterion-based estimator of Hallin and Liska (2007)
 #' @param ic.op an index number for the information criterion
+#' @param kern.bandwidth.const constant to determine bandwidth size
 #' @param common.var.args A list specifying the estimator for the common component. This contains:
 #' \itemize{
 #'    \item{\code{'var.order'}}{the order of the VAR model, if NULL then selected blockwise by BIC}
@@ -15,6 +16,7 @@ library(igraph)
 #'    \item{\code{'trunc.lags'}}{the order of the MA representation}
 #'    \item{\code{'n.perm'}}{number of cross-sectional permutations}
 #' }
+#' @param idio.var.order order of idiosyncratic VAR model
 #' @param idio.method A string specifying the type of l1-regularised estimator for the idiosyncratic VAR matrix, possible values are:
 #' \itemize{
 #'    \item{\code{'lasso'}}{Lasso estimator}
@@ -106,7 +108,7 @@ dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.bandwidth.const = 4){
   mm <- min(max(1, kern.bandwidth.const * floor((n/log(n))^(1/3))), floor(n/4) - 1)
   len <- 2 * mm
   thetas <- 2 * pi * (0:len)/(len + 1)
-  w <- weights.Bartlett(((-mm):mm)/mm)
+  w <- weights_Bartlett(((-mm):mm)/mm)
 
   # dynamic pca
 
@@ -281,9 +283,17 @@ predict.fnets <- function(object, x, h = 1, common.method = c('static', 'var'), 
 
 #' @title Plot fnets object
 #' @method plot fnets
+#' @description plots the idiosyncratic component of the fnets object as a Granger causal network, either as a network graph or a heatmap
+#' @param object fnets object
+#' @param type whether to plot a "network" or "heatmap"
+#' @param names character vector of node names
+#' @param groups integer vector denoting groups for "network" plots
+#' @param threshold sets all elements less than this in absolute value to 0
+#' @param size which type of degree to use for node size in "network" plots, one of "all", "out", "in", "total"
+#' @param ... additional arguments
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @export
-plot.fnets <- function(object, names = NULL, groups = NULL, threshold = 0, size = NULL, ...){
+plot.fnets <- function(object, type = "network",  names = NULL, groups = NULL, threshold = 0, size = NULL, ...){
   A <- abs(t(object$idio.var$beta)) ## absolute value graph
   A[A < threshold] <- 0
   p <- dim(A)[1]
@@ -299,26 +309,34 @@ plot.fnets <- function(object, names = NULL, groups = NULL, threshold = 0, size 
     }
    # perm <- Matrix::invPerm(perm)
   } else perm <- 1:p
+
   # Granger causal network
-
-
-
   granger.mat <- matrix(0, p, p)
   for(ll in 1:d) granger.mat <- granger.mat + A[, (ll - 1) * p + 1:p]
   granger.mat <- granger.mat[perm,perm]#granger <- permute(granger, perm) #
-  granger <- igraph::graph_from_adjacency_matrix(granger.mat, mode = "directed", weighted=TRUE, diag = FALSE)
-  if(!is.null(size)) {degree <- igraph::degree(granger, mode = size, normalized = F)
-  degree <- degree/max(degree)*15 }else degree <- rep(15, p)
-  if(!is.null(names)) V(granger)$name <- names[perm]
-  #if(length(perm) == p) granger <- permute(granger, perm) #granger.mat <- granger.mat[perm,perm]
-  l_granger <- igraph::layout_in_circle(granger)
 
-
-
-  par(mfrow = c(1,1))
-  plot.igraph(granger, main = "Granger", vertex.label = V(granger)$name, layout = l_granger, vertex.label.font = 2, #mark.groups = mark.groups,
+  if(type=="network"){
+    granger <- igraph::graph_from_adjacency_matrix(granger.mat, mode = "directed", weighted=TRUE, diag = FALSE)
+    if(!is.null(size)) {degree <- igraph::degree(granger, mode = size, normalized = F)
+    degree <- degree/max(degree)*15 }else degree <- rep(15, p)
+    if(!is.null(names)) V(granger)$name <- names[perm]
+    l_granger <- igraph::layout_in_circle(granger)
+    par(mfrow = c(1,1))
+    plot.igraph(granger, main = "Granger", vertex.label = V(granger)$name, layout = l_granger, vertex.label.font = 2, #mark.groups = mark.groups,
               vertex.label.color = "black", edge.color = "gray40", edge.arrow.size = 0.1, vertex.size = degree, #arrow.width = 5,
               vertex.shape ="circle", vertex.color = groups[perm], vertex.label.cex = 0.8) #"light blue"
+  }
+  else if(type=="heatmap"){
+    mv <- max(abs(granger.mat)) * 1.01
+    fields::imagePlot(granger.mat, axes = FALSE,
+                      col = (RColorBrewer::brewer.pal(9, 'Reds') ),
+                      breaks = seq(0, mv, length.out = 10),
+                      main = "Granger" )
+    if(is.null(names)) names <- 1:p
+    axis(1, at = (1:p - .5)/p, labels = names, las = 2, cex.axis = .6)
+    axis(2, at = (1:p - .5)/p, labels = names, las = 2, cex.axis = .6)
+  }
+  else warning(paste("type must be one of `network` or `heatmap`"))
 }
 
 
@@ -326,7 +344,8 @@ plot.fnets <- function(object, names = NULL, groups = NULL, threshold = 0, size 
 ##
 
 #' @export
+#' @description internal function
 #' @keywords internal
-weights.Bartlett <- function(x) 1 - abs(x)
+weights_Bartlett <- function(x) 1 - abs(x)
 
 

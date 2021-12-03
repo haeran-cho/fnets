@@ -3,7 +3,7 @@
 #' @param object fnets object
 #' @param x input time series matrix, with each row representing a time series
 #' @param eta regularisation parameter, if NULL this selected by cross-validation
-#' @param symmetrix type of symmetry to enforce on output, one of 'min', 'max', 'avg', 'none'
+#' @param symmetric type of symmetry to enforce on output, one of 'min', 'max', 'avg', 'none'
 #' @param pcn.cv.args A list specifying arguments to the cross-validation (CV) procedure containing:
 #' \itemize{
 #'    \item{\code{'n.folds'}}{number of folds}
@@ -16,10 +16,8 @@
 #' \item{eta: regularisation parameter}
 #' }
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
-#' @examples
-#' model <- fnets(sample.data, q=2, idio.method = "lasso")
-#' nonpar.pcn(model, sample.data, 1)
 #' @export
+#' @example examples/nonparpcn.R
 nonpar.pcn <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg', 'none'),
                        pcn.cv.args = list(n.folds = 1, path.length = 10),
                        n.cores = min(parallel::detectCores() - 1, 3)){
@@ -48,7 +46,7 @@ nonpar.pcn <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg',
 #' @param object fnets object
 #' @param x input time series matrix, with each row representing a time series
 #' @param eta regularisation parameter, if NULL this selected by cross-validation
-#' @param symmetrix type of symmetry to enforce on output, one of 'min', 'max', 'avg', 'none'
+#' @param symmetric type of symmetry to enforce on output, one of 'min', 'max', 'avg', 'none'
 #' @param pcn.cv.args A list specifying arguments to the cross-validation (CV) procedure containing:
 #' \itemize{
 #'    \item{\code{'n.folds'}}{number of folds}
@@ -61,10 +59,8 @@ nonpar.pcn <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg',
 #' \item{eta: regularisation parameter}
 #' }
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
-#' @examples
-#' model <- fnets(sample.data, q=2, idio.method = "lasso")
-#' param.pcn(model, sample.data, 1)
 #' @export
+#' @example examples/parampcn.R
 param.pcn <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg', 'none'),
                       pcn.cv.args = list(n.folds = 1, path.length = 10),
                       n.cores = min(parallel::detectCores() - 1, 3)){
@@ -96,6 +92,7 @@ param.pcn <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg', 
 }
 
 #' @title Cross-validation for the constrained l1-minimisation problem for inverse matrix estimation
+#' @description internal function
 #' @export
 #' @keywords internal
 direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min', 'max', 'avg', 'none'),
@@ -164,6 +161,7 @@ direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min'
 }
 
 #' @export
+#' @description internal function
 #' @keywords internal
 direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', 'none'), n.cores = min(parallel::detectCores() - 1, 3)){
 
@@ -195,6 +193,7 @@ direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', '
 }
 
 #' @export
+#' @description internal function
 #' @keywords internal
 make.symmetric <- function(DD, symmetric){
   symmetric <- match.arg(symmetric, c('min', 'max', 'avg', 'none'))
@@ -217,9 +216,18 @@ make.symmetric <- function(DD, symmetric){
 
 #' @title Plot fnets.pcn object
 #' @method plot fnets.pcn
+#' @description plots the fnets.pcn object as a Long-Run Partial Correlation network, and if available as a Contemporaneous network,
+#'     either as a network graph or a heatmap
+#' @param object fnets.pcn object
+#' @param type whether to plot a "network" or "heatmap"
+#' @param names character vector of node names
+#' @param groups integer vector denoting groups for "network" plots
+#' @param threshold sets all elements less than this in absolute value to 0
+#' @param size which type of degree to use for node size in "network" plots, one of "all", "out", "in", "total"
+#' @param ... additional arguments
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @export
-plot.fnets.pcn <- function(object, names = NULL, groups = NULL, threshold = 0, size = NULL, ...){
+plot.fnets.pcn <- function(object, type = "network", names = NULL, groups = NULL, threshold = 0, size = NULL, ...){
   O <- object$Omega
   p <- dim(O)[1]
 
@@ -237,27 +245,51 @@ plot.fnets.pcn <- function(object, names = NULL, groups = NULL, threshold = 0, s
 
   # Long-Run Partial Correlation network
   O <- O[perm,perm]
-  omega <- igraph::graph_from_adjacency_matrix(O, mode = "undirected", weighted=TRUE, diag = FALSE)
-  if(!is.null(size)) {degreeO <- igraph::degree(omega, mode = size, normalized = F)
-  degreeO <- degreeO/max(degreeO)*15 }else degreeO <- rep(15, p)
-  if(!is.null(names)) V(omega)$name <- names[perm]
-  l_omega <- igraph::layout_in_circle(omega)
+  if(type=="network"){
+    omega <- igraph::graph_from_adjacency_matrix(O, mode = "undirected", weighted=TRUE, diag = FALSE)
+    if(!is.null(size)) {degreeO <- igraph::degree(omega, mode = size, normalized = F)
+    degreeO <- degreeO/max(degreeO)*15 }else degreeO <- rep(15, p)
+    if(!is.null(names)) V(omega)$name <- names[perm]
+    l_omega <- igraph::layout_in_circle(omega)
+    # Contemporaneous
+    if(!is.null(object$Delta)){
+      Delta <- object$Delta[perm,perm]
+      contemp <- igraph::graph_from_adjacency_matrix(object$Delta, mode = "undirected", weighted=TRUE, diag = FALSE)
+      if(!is.null(size)) {degreeC <- igraph::degree(contemp, mode = size, normalized = F)
+      degreeC <- degreeC/max(degreeC)*15 }else degreeC <- rep(15, p)
+      if(!is.null(names)) V(contemp)$name <- names[perm]
+      l_contemp <- igraph::layout_in_circle(contemp)
 
-  # Contemporaneous
-  if(!is.null(object$Delta)){
-   contemp <- igraph::graph_from_adjacency_matrix(object$Delta, mode = "undirected", weighted=TRUE, diag = FALSE)
-   if(!is.null(size)) {degreeC <- igraph::degree(contemp, mode = size, normalized = F)
-   degreeC <- degreeC/max(degreeC)*15 }else degreeC <- rep(15, p)
-   if(!is.null(names)) V(contemp)$name <- names[perm]
-   l_contemp <- igraph::layout_in_circle(contemp)
+      par(mfrow = c(1,2))
+      plot.igraph(contemp, main = "Contemporaneous", vertex.label = V(contemp)$name, layout = l_contemp, vertex.label.font = 2,
+                  vertex.label.color = "black", edge.color = "gray40", edge.arrow.size = 0.1, vertex.size = degreeC,
+                  vertex.shape ="circle", vertex.color = groups[perm], vertex.label.cex = 0.8)
+    } else par(mfrow = c(1,1))
+    if(!is.null(names)) V(omega)$name <- names
+    plot.igraph(omega, main = "Long-Run Partial Correlation", vertex.label = V(omega)$name, layout = l_omega, vertex.label.font = 2,
+                vertex.label.color = "black", edge.color = "gray40", edge.arrow.size = 0.1, vertex.size = degreeO,
+                vertex.shape ="circle", vertex.color = groups[perm], vertex.label.cex = 0.8)
+  }
+  else if(type=="heatmap"){ ## HEATMAP
+    mv <- max(abs(O)) * 1.01
+    fields::imagePlot(O, axes = FALSE,
+                      col = rev(RColorBrewer::brewer.pal(11, 'RdBu')),
+                      breaks = seq(-mv, mv, length.out = 12),
+                      main = "Omega" )
+    if(is.null(names)) names <- 1:p
+    axis(1, at = (1:p - .5)/p, labels = names, las = 2, cex.axis = .6)
+    axis(2, at = (1:p - .5)/p, labels = names, las = 2, cex.axis = .6)
+    if(!is.null(object$Delta)){
+      Delta <- object$Delta[perm,perm]
+      mv <- max(abs(Delta)) * 1.01
+      fields::imagePlot(O, axes = FALSE,
+                        col = rev(RColorBrewer::brewer.pal(11, 'RdBu')),
+                        breaks = seq(-mv, mv, length.out = 12),
+                        main = "Delta" )
+      if(is.null(names)) names <- 1:p
+      axis(1, at = (1:p - .5)/p, labels = names, las = 2, cex.axis = .6)
+      axis(2, at = (1:p - .5)/p, labels = names, las = 2, cex.axis = .6)
+    }
+  } else  warning(paste("type must be one of `network` or `heatmap`"))
 
-   par(mfrow = c(1,2))
-   plot.igraph(contemp, main = "Contemporaneous", vertex.label = V(contemp)$name, layout = l_contemp, vertex.label.font = 2,
-               vertex.label.color = "black", edge.color = "gray40", edge.arrow.size = 0.1, vertex.size = degreeC,
-               vertex.shape ="circle", vertex.color = groups[perm], vertex.label.cex = 0.8)
-  } else par(mfrow = c(1,1))
-  if(!is.null(names)) V(omega)$name <- names
-  plot.igraph(omega, main = "Long-Run Partial Correlation", vertex.label = V(omega)$name, layout = l_omega, vertex.label.font = 2,
-              vertex.label.color = "black", edge.color = "gray40", edge.arrow.size = 0.1, vertex.size = degreeO,
-              vertex.shape ="circle", vertex.color = groups[perm], vertex.label.cex = 0.8)
 }

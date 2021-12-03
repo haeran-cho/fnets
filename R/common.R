@@ -1,4 +1,5 @@
 #' @title Blockwise VAR estimation under GDFM
+#' @description internal function
 #' @references Forni, M., Hallin, M., Lippi, M., & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @export
@@ -132,6 +133,7 @@ common.predict <- function(object, x, h = 1, common.method = c('static', 'var'),
 }
 
 #' @export
+#' @description internal function
 #' @keywords internal
 common.static.predict <- function(xx, Gamma_c, q, r = NULL, max.r = NULL, h = 1){
 
@@ -159,6 +161,7 @@ common.static.predict <- function(xx, Gamma_c, q, r = NULL, max.r = NULL, h = 1)
 }
 
 #' @export
+#' @description internal function
 #' @keywords internal
 common.var.predict <- function(xx, cve, h = 1){
   p <- dim(xx)[1]; n <- dim(xx)[2]
@@ -187,6 +190,7 @@ common.var.predict <- function(xx, cve, h = 1){
 }
 
 #' @export
+#' @description internal function
 #' @keywords internal
 var.to.vma <- function(A, trunc.lags){
 
@@ -202,6 +206,7 @@ var.to.vma <- function(A, trunc.lags){
 }
 
 #' @export
+#' @description internal function
 #' @keywords internal
 common.yw.est <- function(Gcp, block, var.order){
   nblock <- length(block)
@@ -221,6 +226,7 @@ common.yw.est <- function(Gcp, block, var.order){
 }
 
 #' @export
+#' @description internal function
 #' @keywords internal
 common.bic <- function(Gcp, block, len, max.var.order = 5){
 
