@@ -29,15 +29,15 @@
 #'    \item{\code{'symmetric'}}{ symmetrisation method for Gamma matrix}
 #'    \item{\code{'cv.plot'}}{ Boolean selecting whether to plot the CV curve}
 #' }
-#' @param center demean the input `x`
+#' @param center demean the input \code{x}
 #' @return An S3 object of class \code{fnets}, which contains the following fields:
 #' \itemize{
-#' \item{\code{'q'}}{ number of factors}
+#' \item{\code{'q'}}{ Number of factors}
 #' \item{\code{'spec'}}{ Spectral density matrices}
 #' \item{\code{'acv'}}{ Autocovariance matrices}
 #' \item{\code{'common.var'}}{ Estimated common component}
 #' \item{\code{'idio.var'}}{ Estimated idiosyncratic component}
-#' \item{\code{'mean.x'}}{ Removed means of x}
+#' \item{\code{'mean.x'}}{ Removed means of \code{x} }
 #' \item{\code{'kern.bandwidth.const'}}{ Constant to determine bandwidth size}
 #' }
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
@@ -88,7 +88,7 @@ fnets <- function(x, q = NULL, ic.op = 4, kern.bandwidth.const = 4,
 #' @description Performs principal components analysis of the autocovariance matrices.
 #' @param xx centred input time series matrix, with each row representing a time series
 #' @param q the number of factors, if q=NULL this is selected by the information criterion-based estimator of Hallin and Liska (2007)
-#' @param ic.op an index number for the information criterion
+#' @param ic.op an index number for the information criterion (1 to 6)
 #' @param kern.bandwidth.const constant to determine bandwidth size
 #' @return A list containing
 #' \itemize{
@@ -97,8 +97,7 @@ fnets <- function(x, q = NULL, ic.op = 4, kern.bandwidth.const = 4,
 #' \item{\code{'acv'}}{ Autocovariance matrices}
 #' \item{\code{'kern.bandwidth.const'}}{ Constant to determine bandwidth size}
 #' }
-#' @examples
-#' dyn.pca(sample.data, q=2)
+#' @examples dyn.pca(sample.data, q=2)
 #' @export
 dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.bandwidth.const = 4){
 
@@ -160,11 +159,11 @@ dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.bandwidth.const = 4){
 }
 
 #' @title Factor number estimator of Hallin and Liska (2011)
-#' @description Selects the factor number `q` based on 6 information criteria
+#' @description Selects the factor number \code{q} based on 6 information criteria
 #' @param xx centred input time series matrix, with each row representing a time series
 #' @param q.max the maximum number of factors to consider
-#' @param mm bandwidth
-#' @param w weights, defaults to Bartlett weights
+#' @param mm bandwidth scalar
+#' @param w weight vector, defaults to Bartlett weights determined by \code{mm}
 #' @param do.plot return a plot of the information criteria
 #' @return A list containing
 #' \itemize{
@@ -173,8 +172,7 @@ dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.bandwidth.const = 4){
 #' \item{\code{'Sigma_x'}}{ Spectral density of x}
 #' \item{\code{'sv'}}{ singular value decomposition of Sigma_x}
 #' }
-#' \examples
-#'     hl.factor.number(sample.data,6, 10)
+#' \examples hl.factor.number(sample.data,6, 10)
 #' @references Hallin, M., & Liška, R. (2007). Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 #' @export
 hl.factor.number <- function(xx, q.max, mm, w=NULL, do.plot = TRUE){
@@ -257,19 +255,19 @@ hl.factor.number <- function(xx, q.max, mm, w=NULL, do.plot = TRUE){
 
 #' @title Prediction by fnets
 #' @method predict fnets
-#' @description Predicts common and idiosyncratic components from a fnets object for new data
-#' @param object fnets object
+#' @description Predicts common and idiosyncratic components from a \code{fnets} object for new data
+#' @param object \code{fnets} object
 #' @param x input time series matrix, with each row representing a time series
 #' @param h forecast horizon
 #' @param common.method which of "static" or "var" to forecast the common component with
 #' @param r factor number, if r=NULL this is selected using the maximal eigenratio
 #' @return A list containing
 #' \itemize{
-#' \item{\code{'fitted'}}{ x in-sample estimation}
-#' \item{\code{'forecast'}}{ x forecast}
+#' \item{\code{'fitted'}}{ \code{x} in-sample estimation}
+#' \item{\code{'forecast'}}{ \code{x} forecast}
 #' \item{\code{'common.pred'}}{ Prediction for the factor-driven common component}
 #' \item{\code{'idio.pred'}}{ Prediction for the idiosyncratic component}
-#' \item{\code{'x.mean'}}{ removed mean of x}
+#' \item{\code{'x.mean'}}{ removed mean of \code{x} }
 #' }
 #' @example examples/predict.R
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.

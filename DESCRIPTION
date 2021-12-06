@@ -7,10 +7,8 @@ Authors@R: c(
     person("Haeran", "Cho", email = "haeran.cho@bristol.ac.uk", role = ),
     person("Dom", "Owens", email = "dom.owens@bristol.ac.uk", role = c("cre","aut")))
 Maintainer: Haeran Cho <haeran.cho@bristol.ac.uk>
-Description: Used for fitting the factor-adjusted VAR model proposed in Barigozzi, Cho and Owens (2021),
-    where strong cross-sectional dependence is accounted for by factors and the remaining idiosyncratic dependence
-    is modelled by a sparse vector autoregression. Methods for estimating the Granger, Contemporaneous, and Long-Run
-    Partial Correlation networks are provided, as well as forecasting methods for both components.
+Description: Used for fitting the factor-adjusted VAR model proposed in Barigozzi, Cho and Owens (2021),where strong cross-sectional dependence is accounted for by factors and the remaining idiosyncratic dependence
+    is modelled by a sparse vector autoregression. Methods for estimating the Granger, Contemporaneous, and Long-Run Partial Correlation networks are provided, as well as forecasting methods for both components.
 Depends: 
     R (>= 2.10)
 Imports: 

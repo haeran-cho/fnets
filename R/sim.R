@@ -6,15 +6,15 @@
 #' @param p number of series
 #' @param q dynamic dimension (default 2)
 #' @param r factor number (default 4)
-#' @param do.scale scale the output (default true)
+#' @param do.scale scale the output (default \code{TRUE} )
 #' @param K  transition matrix, dimension r by q (default null)
 #' @param loadings  loading matrix, dimension p by r (default null)
 #'
 #' @return  A list containing
 #' \itemize{
 #' \item{\code{'data'}}{ generated series}
-#' \item{\code{'shocks'}}{`q`-dimensional shock series}
-#' \item{\code{'factors'}}{ `r`-dimensional factor series}
+#' \item{\code{'shocks'}}{ \code{q}-dimensional shock series}
+#' \item{\code{'factors'}}{ \code{r}-dimensional factor series}
 #' \item{\code{'K'}}{ transition matrix}
 #' \item{\code{'loadings'}}{ factor loadings}
 #' }
@@ -51,15 +51,15 @@ sim.factor.M1 <- function(n, p, q = 2, r = 4, do.scale = T, loadings=NULL, K = N
 #'
 #' @param n sample size
 #' @param p number of series
-#' @param trunc.lags lag for MA representation
-#' @param do.scale scale the output (default true)
+#' @param trunc.lags lag for moving average representation
+#' @param do.scale scale the output (default \code{TRUE} )
 #' @param a1,a2,alpha1,alpha2  generative parameters (default null, see reference)
 #'
 #' @return  A list containing
 #' \itemize{
 #' \item{\code{'data'}}{ generated series}
 #' \item{\code{'shocks'}}{ 2-dimensional shock series}
-#' \item{\code{'a1,a2,alpha1,alpha2'}}{ generative parameters}
+#' \item{\code{'a1','a2','alpha1','alpha2'}}{ generative parameters}
 #' }
 #' @export
 #'
@@ -95,9 +95,9 @@ sim.factor.M2 <- function(n, p, trunc.lags = 20, do.scale = T, a1 = NULL, a2 = N
 #' @param p number of series
 #' @param A transition matrix, dimension p by p (default null)
 #' @param cov generative covariance matrix (default identity)
-#' @param prob edge probability
-#' @param two_norm target 2-norm to scale A by (default NULL)
-#' @param do.scale scale the output (default true)
+#' @param prob probability of an edge existing in the transition matrix, if \code{A} is \code{NULL}
+#' @param two.norm target 2-norm to scale A by (default NULL)
+#' @param do.scale scale the output (default \code{TRUE})
 #'
 #' @return  A list containing
 #' \itemize{
@@ -109,16 +109,16 @@ sim.factor.M2 <- function(n, p, trunc.lags = 20, do.scale = T, a1 = NULL, a2 = N
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @examples
 #'     sim.idio(100,10, A=diag(0.3, 10))
-sim.idio <- function(n, p, A = NULL, cov = diag(1,p), prob = 1/p, two_norm = NULL, do.scale = T){
+sim.idio <- function(n, p, A = NULL, cov = diag(1,p), prob = 1/p, two.norm = NULL, do.scale = T){
   burnin <-100
-
+  prob <- max(0, min(1,prob))
   vep <- t(mvtnorm::rmvnorm(n + burnin, sigma = cov))
   if(is.null(A)) {
     A <- matrix(0, p, p)
     index <- sample(c(0,1), p^2, T, prob = c(1-prob,prob))
     A[which(index==1)] <- .275
   }
-  if(!is.null(two_norm) ) A <- two_norm * A/ norm(A,"2")
+  if(!is.null(two.norm) ) A <- two.norm * A/ norm(A,"2")
   for(tt in 2:(n + burnin)) vep[, tt] <- vep[, tt] + A %*% vep[, tt - 1]
   vep <- vep[, -(1:burnin)]
   if(do.scale) vep <- vep/apply(vep, 1, sd)

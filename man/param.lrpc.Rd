@@ -14,11 +14,11 @@ param.lrpc(
 )
 }
 \arguments{
-\item{object}{fnets object}
+\item{object}{\code{fnets} object}
 
 \item{x}{input time series matrix, with each row representing a time series}
 
-\item{eta}{regularisation parameter, if NULL this selected by cross-validation}
+\item{eta}{regularisation parameter, if NULL this is selected by cross-validation}
 
 \item{symmetric}{type of symmetry to enforce on output, one of 'min', 'max', 'avg', 'none'}
 
@@ -33,7 +33,7 @@ param.lrpc(
 \value{
 A list containing
 \itemize{
-\item{\code{'Omega'}}{ Estimated partial coherence matrix}
+\item{\code{'Omega'}}{ estimated partial coherence matrix}
 \item{\code{'eta'}}{ regularisation parameter}
 }
 }

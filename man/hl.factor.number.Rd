@@ -11,9 +11,9 @@ hl.factor.number(xx, q.max, mm, w = NULL, do.plot = TRUE)
 
 \item{q.max}{the maximum number of factors to consider}
 
-\item{mm}{bandwidth}
+\item{mm}{bandwidth scalar}
 
-\item{w}{weights, defaults to Bartlett weights}
+\item{w}{weight vector, defaults to Bartlett weights determined by \code{mm}}
 
 \item{do.plot}{return a plot of the information criteria}
 }
@@ -25,11 +25,10 @@ A list containing
 \item{\code{'Sigma_x'}}{ Spectral density of x}
 \item{\code{'sv'}}{ singular value decomposition of Sigma_x}
 }
-\examples
-    hl.factor.number(sample.data,6, 10)
+\examples hl.factor.number(sample.data,6, 10)
 }
 \description{
-Selects the factor number `q` based on 6 information criteria
+Selects the factor number \code{q} based on 6 information criteria
 }
 \references{
 Hallin, M., & Liška, R. (2007). Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.

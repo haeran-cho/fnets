@@ -11,7 +11,7 @@ dyn.pca(xx, q = NULL, ic.op = 4, kern.bandwidth.const = 4)
 
 \item{q}{the number of factors, if q=NULL this is selected by the information criterion-based estimator of Hallin and Liska (2007)}
 
-\item{ic.op}{an index number for the information criterion}
+\item{ic.op}{an index number for the information criterion (1 to 6)}
 
 \item{kern.bandwidth.const}{constant to determine bandwidth size}
 }

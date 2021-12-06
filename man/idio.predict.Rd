@@ -7,7 +7,7 @@
 idio.predict(object, x, cpre, h = 1)
 }
 \arguments{
-\item{object}{fnets object}
+\item{object}{\code{fnets} object}
 
 \item{x}{input time series matrix, with each row representing a time series}
 
@@ -24,7 +24,7 @@ A list containing
 }
 }
 \description{
-Predictsidiosyncratic components from a fnets object for new data
+Predicts idiosyncratic components from a \code{fnets} object for new data
 }
 \examples{
 require(fnets)

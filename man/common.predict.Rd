@@ -7,7 +7,7 @@
 common.predict(object, x, h = 1, common.method = c("static", "var"), r = NULL)
 }
 \arguments{
-\item{object}{fnets object}
+\item{object}{\code{fnets} object}
 
 \item{x}{input time series matrix, with each row representing a time series}
 
@@ -27,7 +27,7 @@ A list containing
 }
 }
 \description{
-Predicts common component from a fnets object for new data
+Predicts common component from a \code{fnets} object for new data
 }
 \examples{
 require(fnets)

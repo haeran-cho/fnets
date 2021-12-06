@@ -50,17 +50,17 @@ fnets(
    \item{\code{'cv.plot'}}{ Boolean selecting whether to plot the CV curve}
 }}
 
-\item{center}{demean the input `x`}
+\item{center}{demean the input \code{x}}
 }
 \value{
 An S3 object of class \code{fnets}, which contains the following fields:
 \itemize{
-\item{\code{'q'}}{ number of factors}
+\item{\code{'q'}}{ Number of factors}
 \item{\code{'spec'}}{ Spectral density matrices}
 \item{\code{'acv'}}{ Autocovariance matrices}
 \item{\code{'common.var'}}{ Estimated common component}
 \item{\code{'idio.var'}}{ Estimated idiosyncratic component}
-\item{\code{'mean.x'}}{ Removed means of x}
+\item{\code{'mean.x'}}{ Removed means of \code{x} }
 \item{\code{'kern.bandwidth.const'}}{ Constant to determine bandwidth size}
 }
 }

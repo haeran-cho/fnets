@@ -2,7 +2,7 @@
 % Please edit documentation in R/idio.R
 \name{make.gg}
 \alias{make.gg}
-\title{Construct `gg` and `GG` matrices for Yule-Walker estimation}
+\title{Construct \code{gg} and \code{GG} matrices for Yule-Walker estimation}
 \usage{
 make.gg(acv, d)
 }
@@ -12,5 +12,14 @@ make.gg(acv, d)
 \item{d}{order of VAR}
 }
 \description{
-Construct `gg` and `GG` matrices for Yule-Walker estimation
+Construct \code{gg} and \code{GG} matrices for Yule-Walker estimation
+}
+\examples{
+require(fnets)
+require(doParallel)
+require(lpSolve)
+dpca <- dyn.pca(sample.data, q=2)
+mg <- make.gg(dpca$acv$Gamma_i,1)
+vl <- var.lasso(mg$GG,mg$gg, .1)
+vd <- var.dantzig(mg$GG,mg$gg, .1, n.cores = 1)
 }

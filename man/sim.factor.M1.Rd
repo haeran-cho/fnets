@@ -15,7 +15,7 @@ sim.factor.M1(n, p, q = 2, r = 4, do.scale = T, loadings = NULL, K = NULL)
 
 \item{r}{factor number (default 4)}
 
-\item{do.scale}{scale the output (default true)}
+\item{do.scale}{scale the output (default \code{TRUE} )}
 
 \item{loadings}{loading matrix, dimension p by r (default null)}
 
@@ -25,8 +25,8 @@ sim.factor.M1(n, p, q = 2, r = 4, do.scale = T, loadings = NULL, K = NULL)
 A list containing
 \itemize{
 \item{\code{'data'}}{ generated series}
-\item{\code{'shocks'}}{`q`-dimensional shock series}
-\item{\code{'factors'}}{ `r`-dimensional factor series}
+\item{\code{'shocks'}}{ \code{q}-dimensional shock series}
+\item{\code{'factors'}}{ \code{r}-dimensional factor series}
 \item{\code{'K'}}{ transition matrix}
 \item{\code{'loadings'}}{ factor loadings}
 }

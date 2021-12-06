@@ -19,18 +19,18 @@
 #' @details
 #'  Further information can be found in Barigozzi, Cho and Owens (2021).
 #'
-#' @param GG,gg output from `make.gg`
+#' @param GG,gg output from \code{make.gg}
 #' @param lambda regularisation parameter
-#' @param symmetric type of symmetry to enforce on `Gamma`, one of 'min', 'max', 'avg', 'none'
+#' @param symmetric type of symmetry to enforce on \code{Gamma}, one of 'min', 'max', 'avg', 'none'
 #' @param niter maximum number of descent steps
 #' @param tol numerical tolerance for increases in the loss function
 #' @param do.plot return a plot of the loss function against descent steps
 #' @return A list which contains the following fields:
 #' \itemize{
-#' \item{beta: VAR parameters}
-#' \item{lambda: regularisation parameter}
-#' \item{Gamma: Estimated noise covariance}
-#' \item{loss: Objective function value}
+#' \item{\code{beta}}{VAR parameters}
+#' \item{\code{lambda}}{ regularisation parameter}
+#' \item{\code{Gamma}}{ Estimated noise covariance}
+#' \item{\code{loss}}{ Objective function value}
 #' }
 #' @example examples/idio.R
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
@@ -133,9 +133,9 @@ fnsl.update <- function(B, B_md, lambda, eta, GtG, Gtg){
 #' @details
 #'  Further information can be found in Barigozzi, Cho and Owens (2021).
 #'
-#' @param GG,gg output from `make.gg`
+#' @param GG,gg output from \code{make.gg}
 #' @param lambda regularisation parameter
-#' @param symmetric type of symmetry to enforce on `Gamma`, one of 'min', 'max', 'avg', 'none'
+#' @param symmetric type of symmetry to enforce on \code{Gamma}, one of 'min', 'max', 'avg', 'none'
 #' @param n.cores number of cores to use for parallel computing
 #' @return A list which contains the following fields:
 #' \itemize{
@@ -181,7 +181,7 @@ var.dantzig <- function(GG, gg, lambda, symmetric = 'min', n.cores = min(paralle
 ####
 
 #' @title Cross-validation for l1-regularised VAR estimation
-#' @description selects the prediction-optimal regularisation parameter for the estimation of the idiosyncratic VAR
+#' @description Selects the prediction-optimal regularisation parameter for the estimation of the idiosyncratic VAR
 #' @details
 #'  Further information can be found in Barigozzi, Cho and Owens (2021).
 #'
@@ -259,8 +259,8 @@ idio.cv <- function(xx, lambda.max = NULL, var.order = 1, idio.method = c('lasso
 ####
 
 #' @title Prediction for the idiosyncratic VAR process
-#' @description Predictsidiosyncratic components from a fnets object for new data
-#' @param object fnets object
+#' @description Predicts idiosyncratic components from a \code{fnets} object for new data
+#' @param object \code{fnets} object
 #' @param x input time series matrix, with each row representing a time series
 #' @param cpre estimated common component
 #' @param h forecast horizon
@@ -297,9 +297,10 @@ idio.predict <- function(object, x, cpre, h = 1){
 ## misc
 
 
-#' @title Construct `gg` and `GG` matrices for Yule-Walker estimation
+#' @title Construct \code{gg} and \code{GG} matrices for Yule-Walker estimation
 #' @param acv autocovariance array
 #' @param d order of VAR
+#' @example examples/idio.R
 #' @export
 # #' @keywords internal
 make.gg <- function(acv, d){

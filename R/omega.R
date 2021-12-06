@@ -1,8 +1,8 @@
 #' @title Nonparametric partial coherence matrix estimation
 #' @description Returns a non-parametric estimate of the partial coherence matrix, possibly using cross-validation
-#' @param object fnets object
+#' @param object \code{fnets} object
 #' @param x input time series matrix, with each row representing a time series
-#' @param eta regularisation parameter, if NULL this selected by cross-validation
+#' @param eta regularisation parameter, if NULL this is selected by cross-validation
 #' @param symmetric type of symmetry to enforce on output, one of 'min', 'max', 'avg', 'none'
 #' @param lrpc.cv.args A list specifying arguments to the cross-validation (CV) procedure containing:
 #' \itemize{
@@ -12,7 +12,7 @@
 #' @param n.cores number of cores to use for parallel computing
 #' @return A list containing
 #' \itemize{
-#' \item{\code{'Omega'}}{ Estimated partial coherence matrix}
+#' \item{\code{'Omega'}}{ estimated partial coherence matrix}
 #' \item{\code{'eta'}}{ regularisation parameter}
 #' }
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
@@ -43,9 +43,9 @@ nonpar.lrpc <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg'
 
 #' @title Parametric partial coherence matrix estimation
 #' @description Returns a parametric estimate of the partial coherence matrix, possibly using cross-validation
-#' @param object fnets object
+#' @param object \code{fnets} object
 #' @param x input time series matrix, with each row representing a time series
-#' @param eta regularisation parameter, if NULL this selected by cross-validation
+#' @param eta regularisation parameter, if NULL this is selected by cross-validation
 #' @param symmetric type of symmetry to enforce on output, one of 'min', 'max', 'avg', 'none'
 #' @param lrpc.cv.args A list specifying arguments to the cross-validation (CV) procedure containing:
 #' \itemize{
@@ -55,7 +55,7 @@ nonpar.lrpc <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg'
 #' @param n.cores number of cores to use for parallel computing
 #' @return A list containing
 #' \itemize{
-#' \item{\code{'Omega'}}{ Estimated partial coherence matrix}
+#' \item{\code{'Omega'}}{ estimated partial coherence matrix}
 #' \item{\code{'eta'}}{ regularisation parameter}
 #' }
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.

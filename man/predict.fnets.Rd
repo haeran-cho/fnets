@@ -7,7 +7,7 @@
 \method{predict}{fnets}(object, x, h = 1, common.method = c("static", "var"), r = NULL)
 }
 \arguments{
-\item{object}{fnets object}
+\item{object}{\code{fnets} object}
 
 \item{x}{input time series matrix, with each row representing a time series}
 
@@ -20,15 +20,15 @@
 \value{
 A list containing
 \itemize{
-\item{\code{'fitted'}}{ x in-sample estimation}
-\item{\code{'forecast'}}{ x forecast}
+\item{\code{'fitted'}}{ \code{x} in-sample estimation}
+\item{\code{'forecast'}}{ \code{x} forecast}
 \item{\code{'common.pred'}}{ Prediction for the factor-driven common component}
 \item{\code{'idio.pred'}}{ Prediction for the idiosyncratic component}
-\item{\code{'x.mean'}}{ removed mean of x}
+\item{\code{'x.mean'}}{ removed mean of \code{x} }
 }
 }
 \description{
-Predicts common and idiosyncratic components from a fnets object for new data
+Predicts common and idiosyncratic components from a \code{fnets} object for new data
 }
 \examples{
 require(fnets)

@@ -98,8 +98,8 @@ common.var.estimation <- function(xx, Gamma_c, q, var.order = NULL, max.var.orde
 }
 
 #' @title Prediction for the factor-driven common component
-#' @description Predicts common component from a fnets object for new data
-#' @param object fnets object
+#' @description Predicts common component from a \code{fnets} object for new data
+#' @param object \code{fnets} object
 #' @param x input time series matrix, with each row representing a time series
 #' @param h forecast horizon
 #' @param common.method which of "static" or "var" to forecast the common component with

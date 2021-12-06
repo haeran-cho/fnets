@@ -45,7 +45,7 @@ A list which contains the following fields:
 }
 }
 \description{
-selects the prediction-optimal regularisation parameter for the estimation of the idiosyncratic VAR
+Selects the prediction-optimal regularisation parameter for the estimation of the idiosyncratic VAR
 }
 \details{
 Further information can be found in Barigozzi, Cho and Owens (2021).

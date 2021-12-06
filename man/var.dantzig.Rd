@@ -13,11 +13,11 @@ var.dantzig(
 )
 }
 \arguments{
-\item{GG, gg}{output from `make.gg`}
+\item{GG, gg}{output from \code{make.gg}}
 
 \item{lambda}{regularisation parameter}
 
-\item{symmetric}{type of symmetry to enforce on `Gamma`, one of 'min', 'max', 'avg', 'none'}
+\item{symmetric}{type of symmetry to enforce on \code{Gamma}, one of 'min', 'max', 'avg', 'none'}
 
 \item{n.cores}{number of cores to use for parallel computing}
 }

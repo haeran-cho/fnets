@@ -20,9 +20,9 @@ sim.factor.M2(
 
 \item{p}{number of series}
 
-\item{trunc.lags}{lag for MA representation}
+\item{trunc.lags}{lag for moving average representation}
 
-\item{do.scale}{scale the output (default true)}
+\item{do.scale}{scale the output (default \code{TRUE} )}
 
 \item{a1, a2, alpha1, alpha2}{generative parameters (default null, see reference)}
 }
@@ -31,7 +31,7 @@ A list containing
 \itemize{
 \item{\code{'data'}}{ generated series}
 \item{\code{'shocks'}}{ 2-dimensional shock series}
-\item{\code{'a1,a2,alpha1,alpha2'}}{ generative parameters}
+\item{\code{'a1','a2','alpha1','alpha2'}}{ generative parameters}
 }
 }
 \description{

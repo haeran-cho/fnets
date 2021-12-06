@@ -15,11 +15,11 @@ var.lasso(
 )
 }
 \arguments{
-\item{GG, gg}{output from `make.gg`}
+\item{GG, gg}{output from \code{make.gg}}
 
 \item{lambda}{regularisation parameter}
 
-\item{symmetric}{type of symmetry to enforce on `Gamma`, one of 'min', 'max', 'avg', 'none'}
+\item{symmetric}{type of symmetry to enforce on \code{Gamma}, one of 'min', 'max', 'avg', 'none'}
 
 \item{niter}{maximum number of descent steps}
 
@@ -30,10 +30,10 @@ var.lasso(
 \value{
 A list which contains the following fields:
 \itemize{
-\item{beta: VAR parameters}
-\item{lambda: regularisation parameter}
-\item{Gamma: Estimated noise covariance}
-\item{loss: Objective function value}
+\item{\code{beta}}{VAR parameters}
+\item{\code{lambda}}{ regularisation parameter}
+\item{\code{Gamma}}{ Estimated noise covariance}
+\item{\code{loss}}{ Objective function value}
 }
 }
 \description{

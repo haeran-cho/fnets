@@ -10,7 +10,7 @@ sim.idio(
   A = NULL,
   cov = diag(1, p),
   prob = 1/p,
-  two_norm = NULL,
+  two.norm = NULL,
   do.scale = T
 )
 }
@@ -23,11 +23,11 @@ sim.idio(
 
 \item{cov}{generative covariance matrix (default identity)}
 
-\item{prob}{edge probability}
+\item{prob}{probability of an edge existing in the transition matrix, if \code{A} is \code{NULL}}
 
-\item{two_norm}{target 2-norm to scale A by (default NULL)}
+\item{two.norm}{target 2-norm to scale A by (default NULL)}
 
-\item{do.scale}{scale the output (default true)}
+\item{do.scale}{scale the output (default \code{TRUE})}
 }
 \value{
 A list containing
