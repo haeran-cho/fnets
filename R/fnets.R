@@ -107,7 +107,7 @@ dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.bandwidth.const = 4){
 
   mm <- min(max(1, kern.bandwidth.const * floor((n/log(n))^(1/3))), floor(n/4) - 1)
   len <- 2 * mm
-  w <- weights_Bartlett(((-mm):mm)/mm)
+  w <- Bartlett.weights(((-mm):mm)/mm)
 
   # dynamic pca
 
@@ -178,7 +178,7 @@ dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.bandwidth.const = 4){
 #' @references Hallin, M., & Liška, R. (2007). Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 #' @export
 hl.factor.number <- function(xx, q.max, mm, w=NULL, do.plot = TRUE){
-  if(is.null(w)) w <- weights_Bartlett(((-mm):mm)/mm)
+  if(is.null(w)) w <- Bartlett.weights(((-mm):mm)/mm)
   p <- dim(xx)[1]; n <- dim(xx)[2]
 
   p.seq <- floor(3*p/4 + (1:10) * p/40)
@@ -350,6 +350,6 @@ plot.fnets <- function(object, type = "network",  names = NULL, groups = NULL, t
 # #' @export
 #' @description internal function
 #' @keywords internal
-weights_Bartlett <- function(x) 1 - abs(x)
+Bartlett.weights <- function(x) 1 - abs(x)
 
 
