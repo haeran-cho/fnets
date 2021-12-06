@@ -20,15 +20,22 @@
 \value{
 A list containing
 \itemize{
-\item{fitted: x in-sample estimation}
-\item{forecast: x forecast}
-\item{common.pred: Prediction for the factor-driven common component}
-\item{idio.pred: Prediction for the idiosyncratic component}
-\item{x.mean: removed mean of x}
+\item{\code{'fitted'}}{ x in-sample estimation}
+\item{\code{'forecast'}}{ x forecast}
+\item{\code{'common.pred'}}{ Prediction for the factor-driven common component}
+\item{\code{'idio.pred'}}{ Prediction for the idiosyncratic component}
+\item{\code{'x.mean'}}{ removed mean of x}
 }
 }
 \description{
 Predicts common and idiosyncratic components from a fnets object for new data
+}
+\examples{
+require(fnets)
+model <- fnets(sample.data, q=2, idio.method = "lasso")
+pr <- predict(model,sample.data, common.method = "static")
+cpre <- common.predict(model,sample.data, common.method = "static")
+ip <- idio.predict(model,sample.data, cpre)
 }
 \references{
 Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.

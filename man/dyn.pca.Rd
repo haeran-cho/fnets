@@ -18,10 +18,10 @@ dyn.pca(xx, q = NULL, ic.op = 4, kern.bandwidth.const = 4)
 \value{
 A list containing
 \itemize{
-\item{q: see Arguments}
-\item{spec: Spectral density matrices}
-\item{acv: Autocovariance matrices}
-\item{kern.bandwidth.const: Constant to determine bandwidth size}
+\item{\code{'q'}}{ number of factors}
+\item{\code{'spec'}}{ Spectral density matrices}
+\item{\code{'acv'}}{ Autocovariance matrices}
+\item{\code{'kern.bandwidth.const'}}{ Constant to determine bandwidth size}
 }
 }
 \description{

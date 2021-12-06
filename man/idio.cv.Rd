@@ -38,10 +38,10 @@ idio.cv(
 \value{
 A list which contains the following fields:
 \itemize{
-\item{lambda: minimising argument}
-\item{var.order: minimising order}
-\item{cv.error: matrix of errors}
-\item{lambda.path: candidate lambda values}
+\item{\code{'lambda'}}{ minimising argument}
+\item{\code{'var.order'}}{ minimising order}
+\item{\code{'cv.error'}}{ matrix of errors}
+\item{\code{'lambda.path'}}{ candidate lambda values}
 }
 }
 \description{

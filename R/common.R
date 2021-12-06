@@ -2,8 +2,8 @@
 #' @description internal function
 #' @references Forni, M., Hallin, M., Lippi, M., & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
-#' @export
 #' @keywords internal
+# #' @export
 common.var.estimation <- function(xx, Gamma_c, q, var.order = NULL, max.var.order = NULL, trunc.lags, n.perm){
 
   n <- dim(xx)[2]; p <- dim(xx)[1]
@@ -106,11 +106,12 @@ common.var.estimation <- function(xx, Gamma_c, q, var.order = NULL, max.var.orde
 #' @param r factor number, if r=NULL this is selected using the maximal eigenratio
 #' @return A list containing
 #' \itemize{
-#' \item{is: x in-sample estimation}
-#' \item{fc: x forecast}
-#' \item{r: factor number}
-#' \item{h: forecast horizon}
+#' \item{\code{'is'}}{ x in-sample estimation}
+#' \item{\code{'fc'}}{ x forecast}
+#' \item{\code{'r'}}{ factor number}
+#' \item{\code{'h'}}{ forecast horizon}
 #' }
+#' @example examples/predict.R
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @references Forni, M., Hallin, M., Lippi, M., & Reichlin, L. (2005). The generalized dynamic factor model: one-sided estimation and forecasting. Journal of the American Statistical Association, 100(471), 830--840.
 #' @references Forni, M., Hallin, M., Lippi, M., & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
@@ -132,7 +133,7 @@ common.predict <- function(object, x, h = 1, common.method = c('static', 'var'),
 
 }
 
-#' @export
+# #' @export
 #' @description internal function
 #' @keywords internal
 common.static.predict <- function(xx, Gamma_c, q, r = NULL, max.r = NULL, h = 1){
@@ -160,7 +161,7 @@ common.static.predict <- function(xx, Gamma_c, q, r = NULL, max.r = NULL, h = 1)
 
 }
 
-#' @export
+# #' @export
 #' @description internal function
 #' @keywords internal
 common.var.predict <- function(xx, cve, h = 1){
@@ -189,7 +190,7 @@ common.var.predict <- function(xx, cve, h = 1){
 
 }
 
-#' @export
+# #' @export
 #' @description internal function
 #' @keywords internal
 var.to.vma <- function(A, trunc.lags){
@@ -205,7 +206,7 @@ var.to.vma <- function(A, trunc.lags){
 
 }
 
-#' @export
+ # #' @export
 #' @description internal function
 #' @keywords internal
 common.yw.est <- function(Gcp, block, var.order){
@@ -225,7 +226,7 @@ common.yw.est <- function(Gcp, block, var.order){
   return(out)
 }
 
-#' @export
+# #' @export
 #' @description internal function
 #' @keywords internal
 common.bic <- function(Gcp, block, len, max.var.order = 5){

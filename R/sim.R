@@ -12,11 +12,11 @@
 #'
 #' @return  A list containing
 #' \itemize{
-#' \item{data: generated series}
-#' \item{shocks: `q`-dimensional shock series}
-#' \item{factors: `r`-dimensional factor series}
-#' \item{K: transition matrix}
-#' \item{loadings: factor loadings}
+#' \item{\code{'data'}}{ generated series}
+#' \item{\code{'shocks'}}{`q`-dimensional shock series}
+#' \item{\code{'factors'}}{ `r`-dimensional factor series}
+#' \item{\code{'K'}}{ transition matrix}
+#' \item{\code{'loadings'}}{ factor loadings}
 #' }
 #' @export
 #'
@@ -57,9 +57,9 @@ sim.factor.M1 <- function(n, p, q = 2, r = 4, do.scale = T, loadings=NULL, K = N
 #'
 #' @return  A list containing
 #' \itemize{
-#' \item{data: generated series}
-#' \item{shocks: 2-dimensional shock series}
-#' \item{a1,a2,alpha1,alpha2:  generative parameters}
+#' \item{\code{'data'}}{ generated series}
+#' \item{\code{'shocks'}}{ 2-dimensional shock series}
+#' \item{\code{'a1,a2,alpha1,alpha2'}}{ generative parameters}
 #' }
 #' @export
 #'
@@ -101,8 +101,8 @@ sim.factor.M2 <- function(n, p, trunc.lags = 20, do.scale = T, a1 = NULL, a2 = N
 #'
 #' @return  A list containing
 #' \itemize{
-#' \item{data: generated series}
-#' \item{A: transition matrix}
+#' \item{\code{'data'}}{ generated series}
+#' \item{\code{'A'}}{ transition matrix}
 #' }
 #' @export
 #'

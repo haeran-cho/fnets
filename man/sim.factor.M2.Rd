@@ -29,9 +29,9 @@ sim.factor.M2(
 \value{
 A list containing
 \itemize{
-\item{data: generated series}
-\item{shocks: 2-dimensional shock series}
-\item{a1,a2,alpha1,alpha2:  generative parameters}
+\item{\code{'data'}}{ generated series}
+\item{\code{'shocks'}}{ 2-dimensional shock series}
+\item{\code{'a1,a2,alpha1,alpha2'}}{ generative parameters}
 }
 }
 \description{

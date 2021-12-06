@@ -32,8 +32,8 @@ sim.idio(
 \value{
 A list containing
 \itemize{
-\item{data: generated series}
-\item{A: transition matrix}
+\item{\code{'data'}}{ generated series}
+\item{\code{'A'}}{ transition matrix}
 }
 }
 \description{

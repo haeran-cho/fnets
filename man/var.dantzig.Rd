@@ -35,6 +35,15 @@ Returns parameter estimates for the idiosyncratic VAR and the corresponding Gamm
 \details{
 Further information can be found in Barigozzi, Cho and Owens (2021).
 }
+\examples{
+require(fnets)
+require(doParallel)
+require(lpSolve)
+dpca <- dyn.pca(sample.data, q=2)
+mg <- make.gg(dpca$acv$Gamma_i,1)
+vl <- var.lasso(mg$GG,mg$gg, .1)
+vd <- var.dantzig(mg$GG,mg$gg, .1, n.cores = 1)
+}
 \references{
 Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 }

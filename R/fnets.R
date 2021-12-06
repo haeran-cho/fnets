@@ -1,4 +1,4 @@
-library(igraph)
+#library(igraph)
 
 #' @title Factor-adjusted network analysis
 #' @description This function estimates the spectral density and autocovariance matrices of the common and the idiosyncratic components, impulse response function and common shocks, and (sparse) VAR transition matrix and innovation covariance matrix.
@@ -11,34 +11,34 @@ library(igraph)
 #' @param kern.bandwidth.const constant to determine bandwidth size
 #' @param common.var.args A list specifying the estimator for the common component. This contains:
 #' \itemize{
-#'    \item{\code{'var.order'}}{the order of the VAR model, if NULL then selected blockwise by BIC}
-#'    \item{\code{'max.var.order'}}{the maximum order of the VAR model for the BIC to consider}
-#'    \item{\code{'trunc.lags'}}{the order of the MA representation}
-#'    \item{\code{'n.perm'}}{number of cross-sectional permutations}
+#'    \item{\code{'var.order'}}{ the order of the VAR model, if NULL then selected blockwise by BIC}
+#'    \item{\code{'max.var.order'}}{ the maximum order of the VAR model for the BIC to consider}
+#'    \item{\code{'trunc.lags'}}{ the order of the MA representation}
+#'    \item{\code{'n.perm'}}{ number of cross-sectional permutations}
 #' }
 #' @param idio.var.order order of idiosyncratic VAR model
 #' @param idio.method A string specifying the type of l1-regularised estimator for the idiosyncratic VAR matrix, possible values are:
 #' \itemize{
-#'    \item{\code{'lasso'}}{Lasso estimator}
-#'    \item{\code{'ds'}}{Dantzig Selector}
+#'    \item{\code{'lasso'}}{ Lasso estimator}
+#'    \item{\code{'ds'}}{ Dantzig Selector}
 #' }
 #' @param idio.cv.args  A list specifying arguments to the cross-validation (CV) procedure for the idiosyncratic VAR. This contains:
 #' \itemize{
-#'    \item{\code{'n.folds'}}{number of folds}
-#'    \item{\code{'path.length'}}{number of lambda values to consider}
-#'    \item{\code{'symmetric'}}{symmetrisation method for Gamma matrix}
-#'    \item{\code{'cv.plot'}}{Boolean selecting whether to plot the CV curve}
+#'    \item{\code{'n.folds'}}{ number of folds}
+#'    \item{\code{'path.length'}}{ number of lambda values to consider}
+#'    \item{\code{'symmetric'}}{ symmetrisation method for Gamma matrix}
+#'    \item{\code{'cv.plot'}}{ Boolean selecting whether to plot the CV curve}
 #' }
 #' @param center demean the input `x`
 #' @return An S3 object of class \code{fnets}, which contains the following fields:
 #' \itemize{
-#' \item{q: see Arguments}
-#' \item{spec: Spectral density matrices}
-#' \item{acv: Autocovariance matrices}
-#' \item{common.var: Estimated common component}
-#' \item{idio.var: Estimated idiosyncratic component}
-#' \item{mean.x: Removed means of x}
-#' \item{kern.bandwidth.const: Constant to determine bandwidth size}
+#' \item{\code{'q'}}{ number of factors}
+#' \item{\code{'spec'}}{ Spectral density matrices}
+#' \item{\code{'acv'}}{ Autocovariance matrices}
+#' \item{\code{'common.var'}}{ Estimated common component}
+#' \item{\code{'idio.var'}}{ Estimated idiosyncratic component}
+#' \item{\code{'mean.x'}}{ Removed means of x}
+#' \item{\code{'kern.bandwidth.const'}}{ Constant to determine bandwidth size}
 #' }
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @examples fnets(sample.data, q=2, idio.method = "lasso")
@@ -92,10 +92,10 @@ fnets <- function(x, q = NULL, ic.op = 4, kern.bandwidth.const = 4,
 #' @param kern.bandwidth.const constant to determine bandwidth size
 #' @return A list containing
 #' \itemize{
-#' \item{q: see Arguments}
-#' \item{spec: Spectral density matrices}
-#' \item{acv: Autocovariance matrices}
-#' \item{kern.bandwidth.const: Constant to determine bandwidth size}
+#' \item{\code{'q'}}{ number of factors}
+#' \item{\code{'spec'}}{ Spectral density matrices}
+#' \item{\code{'acv'}}{ Autocovariance matrices}
+#' \item{\code{'kern.bandwidth.const'}}{ Constant to determine bandwidth size}
 #' }
 #' @examples
 #' dyn.pca(sample.data, q=2)
@@ -107,7 +107,6 @@ dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.bandwidth.const = 4){
 
   mm <- min(max(1, kern.bandwidth.const * floor((n/log(n))^(1/3))), floor(n/4) - 1)
   len <- 2 * mm
-  thetas <- 2 * pi * (0:len)/(len + 1)
   w <- weights_Bartlett(((-mm):mm)/mm)
 
   # dynamic pca
@@ -161,22 +160,25 @@ dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.bandwidth.const = 4){
 }
 
 #' @title Factor number estimator of Hallin and Liska (2011)
-#' @description Selects the factor number `q` based on 6 information criteria.
+#' @description Selects the factor number `q` based on 6 information criteria
 #' @param xx centred input time series matrix, with each row representing a time series
 #' @param q.max the maximum number of factors to consider
 #' @param mm bandwidth
-#' @param w weights
+#' @param w weights, defaults to Bartlett weights
+#' @param do.plot return a plot of the information criteria
 #' @return A list containing
 #' \itemize{
-#' \item{q.hat: Estimated factor numbers corresponding to each criterion}
-#' \item{Gamma_x: Autocovariance of x}
-#' \item{Sigma_x: Spectral density of x}
-#' \item{sv: singular value decomposition of Sigma_x}
+#' \item{\code{'q.hat'}}{ Estimated factor numbers corresponding to each criterion}
+#' \item{\code{'Gamma_x'}}{ Autocovariance of x}
+#' \item{\code{'Sigma_x'}}{ Spectral density of x}
+#' \item{\code{'sv'}}{ singular value decomposition of Sigma_x}
 #' }
+#' \examples
+#'     hl.factor.number(sample.data,6, 10)
 #' @references Hallin, M., & Liška, R. (2007). Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 #' @export
-hl.factor.number <- function(xx, q.max, mm, w){
-
+hl.factor.number <- function(xx, q.max, mm, w=NULL, do.plot = TRUE){
+  if(is.null(w)) w <- weights_Bartlett(((-mm):mm)/mm)
   p <- dim(xx)[1]; n <- dim(xx)[2]
 
   p.seq <- floor(3*p/4 + (1:10) * p/40)
@@ -234,7 +236,7 @@ hl.factor.number <- function(xx, q.max, mm, w){
       q.hat[ii] <- q.mat[which(ss[-length(const.seq)] != 0 & ss[-1] == 0)[1] + 1, 10, ii] - 1
     }
   }
-
+  if(do.plot){
   par(mfrow = c(2, 3))
   for(ii in 1:6){
     plot(const.seq, q.mat[, 10, ii] - 1, type = 'b', pch = 1, col = 2, bty = 'n', axes = FALSE, xlab = 'constant', ylab = '', main = paste('IC ', ii))
@@ -245,6 +247,7 @@ hl.factor.number <- function(xx, q.max, mm, w){
     plot(const.seq, Sc[, ii], col = 4, pch = 2, type = 'b', bty = 'n', axes = FALSE, xlab = '', ylab = '')
     axis(4, at = pretty(range(Sc[, ii])), col = 4, col.ticks = 4, col.axis = 4)
     legend('topright', legend = c('q', 'Sc'), col = c(2, 4), lty = c(1, 1), pch = c(1, 2), bty = 'n')
+  }
   }
 
   ls <- list(q.hat = q.hat, Gamma_x = Gamma_x, Sigma_x = Sigma_x, sv = sv)
@@ -262,12 +265,13 @@ hl.factor.number <- function(xx, q.max, mm, w){
 #' @param r factor number, if r=NULL this is selected using the maximal eigenratio
 #' @return A list containing
 #' \itemize{
-#' \item{fitted: x in-sample estimation}
-#' \item{forecast: x forecast}
-#' \item{common.pred: Prediction for the factor-driven common component}
-#' \item{idio.pred: Prediction for the idiosyncratic component}
-#' \item{x.mean: removed mean of x}
+#' \item{\code{'fitted'}}{ x in-sample estimation}
+#' \item{\code{'forecast'}}{ x forecast}
+#' \item{\code{'common.pred'}}{ Prediction for the factor-driven common component}
+#' \item{\code{'idio.pred'}}{ Prediction for the idiosyncratic component}
+#' \item{\code{'x.mean'}}{ removed mean of x}
 #' }
+#' @example examples/predict.R
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @export
 predict.fnets <- function(object, x, h = 1, common.method = c('static', 'var'), r = NULL){
@@ -343,7 +347,7 @@ plot.fnets <- function(object, type = "network",  names = NULL, groups = NULL, t
 
 ##
 
-#' @export
+# #' @export
 #' @description internal function
 #' @keywords internal
 weights_Bartlett <- function(x) 1 - abs(x)

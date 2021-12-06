@@ -1,5 +1,5 @@
-library(lpSolve)
-library(foreach)
+#library(lpSolve)
+#library(foreach)
 
 
 # var.fit <- function(){
@@ -32,6 +32,7 @@ library(foreach)
 #' \item{Gamma: Estimated noise covariance}
 #' \item{loss: Objective function value}
 #' }
+#' @example examples/idio.R
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @export
 var.lasso <- function(GG, gg, lambda, symmetric = 'min', niter = 100, tol = 0, do.plot = FALSE){
@@ -94,26 +95,26 @@ var.lasso <- function(GG, gg, lambda, symmetric = 'min', niter = 100, tol = 0, d
   return(out)
 }
 
-#' @export
+# #' @export
 #' @description internal function
 #' @keywords internal
 f.func <- function(GG, gg, A){
 return(0.5 * norm(   (GG %*% (A) - gg ) , "F")^2) ##
 }
-#' @export
+# #' @export
 #' @description internal function
 #' @keywords internal
 gradf.func <- function(GtG, Gtg, A){
   return( (GtG %*% (A) - Gtg ) ) # GG %*% here??
 }
-#' @export
+# #' @export
 #' @description internal function
 #' @keywords internal
 Q.func <- function(A, A.up, L, GG, gg, GtG, Gtg){
   Adiff <- (A - A.up)
   return(f.func(GG, gg, A.up) + sum(Adiff * gradf.func(GtG, Gtg,A.up)) + 0.5 * L * norm(Adiff, "F")^2 )
 }
-#' @export
+# #' @export
 #' @description internal function
 #' @keywords internal
 fnsl.update <- function(B, B_md, lambda, eta, GtG, Gtg){
@@ -142,6 +143,7 @@ fnsl.update <- function(B, B_md, lambda, eta, GtG, Gtg){
 #' \item{lambda: regularisation parameter}
 #' \item{Gamma: Estimated noise covariance}
 #' }
+#' @example examples/idio.R
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @export
 var.dantzig <- function(GG, gg, lambda, symmetric = 'min', n.cores = min(parallel::detectCores() - 1, 3)){
@@ -194,10 +196,10 @@ var.dantzig <- function(GG, gg, lambda, symmetric = 'min', n.cores = min(paralle
 #' @param cv.plot return a plot of the CV error against regularisation parameters, stratified by VAR order
 #' @return A list which contains the following fields:
 #' \itemize{
-#' \item{lambda: minimising argument}
-#' \item{var.order: minimising order}
-#' \item{cv.error: matrix of errors}
-#' \item{lambda.path: candidate lambda values}
+#' \item{\code{'lambda'}}{ minimising argument}
+#' \item{\code{'var.order'}}{ minimising order}
+#' \item{\code{'cv.error'}}{ matrix of errors}
+#' \item{\code{'lambda.path'}}{ candidate lambda values}
 #' }
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @examples
@@ -264,10 +266,11 @@ idio.cv <- function(xx, lambda.max = NULL, var.order = 1, idio.method = c('lasso
 #' @param h forecast horizon
 #' @return A list containing
 #' \itemize{
-#' \item{is: in-sample estimation}
-#' \item{fc: forecast}
-#' \item{h: forecast horizon}
+#' \item{\code{'is'}}{ in-sample estimation}
+#' \item{\code{'fc'}}{ forecast}
+#' \item{\code{'h'}}{ forecast horizon}
 #' }
+#' @example examples/predict.R
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @export
 idio.predict <- function(object, x, cpre, h = 1){

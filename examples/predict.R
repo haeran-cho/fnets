@@ -1,0 +1,5 @@
+require(fnets)
+model <- fnets(sample.data, q=2, idio.method = "lasso")
+pr <- predict(model,sample.data, common.method = "static")
+cpre <- common.predict(model,sample.data, common.method = "static")
+ip <- idio.predict(model,sample.data, cpre)

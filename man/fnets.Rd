@@ -28,26 +28,26 @@ fnets(
 
 \item{common.var.args}{A list specifying the estimator for the common component. This contains:
 \itemize{
-   \item{\code{'var.order'}}{the order of the VAR model, if NULL then selected blockwise by BIC}
-   \item{\code{'max.var.order'}}{the maximum order of the VAR model for the BIC to consider}
-   \item{\code{'trunc.lags'}}{the order of the MA representation}
-   \item{\code{'n.perm'}}{number of cross-sectional permutations}
+   \item{\code{'var.order'}}{ the order of the VAR model, if NULL then selected blockwise by BIC}
+   \item{\code{'max.var.order'}}{ the maximum order of the VAR model for the BIC to consider}
+   \item{\code{'trunc.lags'}}{ the order of the MA representation}
+   \item{\code{'n.perm'}}{ number of cross-sectional permutations}
 }}
 
 \item{idio.var.order}{order of idiosyncratic VAR model}
 
 \item{idio.method}{A string specifying the type of l1-regularised estimator for the idiosyncratic VAR matrix, possible values are:
 \itemize{
-   \item{\code{'lasso'}}{Lasso estimator}
-   \item{\code{'ds'}}{Dantzig Selector}
+   \item{\code{'lasso'}}{ Lasso estimator}
+   \item{\code{'ds'}}{ Dantzig Selector}
 }}
 
 \item{idio.cv.args}{A list specifying arguments to the cross-validation (CV) procedure for the idiosyncratic VAR. This contains:
 \itemize{
-   \item{\code{'n.folds'}}{number of folds}
-   \item{\code{'path.length'}}{number of lambda values to consider}
-   \item{\code{'symmetric'}}{symmetrisation method for Gamma matrix}
-   \item{\code{'cv.plot'}}{Boolean selecting whether to plot the CV curve}
+   \item{\code{'n.folds'}}{ number of folds}
+   \item{\code{'path.length'}}{ number of lambda values to consider}
+   \item{\code{'symmetric'}}{ symmetrisation method for Gamma matrix}
+   \item{\code{'cv.plot'}}{ Boolean selecting whether to plot the CV curve}
 }}
 
 \item{center}{demean the input `x`}
@@ -55,13 +55,13 @@ fnets(
 \value{
 An S3 object of class \code{fnets}, which contains the following fields:
 \itemize{
-\item{q: see Arguments}
-\item{spec: Spectral density matrices}
-\item{acv: Autocovariance matrices}
-\item{common.var: Estimated common component}
-\item{idio.var: Estimated idiosyncratic component}
-\item{mean.x: Removed means of x}
-\item{kern.bandwidth.const: Constant to determine bandwidth size}
+\item{\code{'q'}}{ number of factors}
+\item{\code{'spec'}}{ Spectral density matrices}
+\item{\code{'acv'}}{ Autocovariance matrices}
+\item{\code{'common.var'}}{ Estimated common component}
+\item{\code{'idio.var'}}{ Estimated idiosyncratic component}
+\item{\code{'mean.x'}}{ Removed means of x}
+\item{\code{'kern.bandwidth.const'}}{ Constant to determine bandwidth size}
 }
 }
 \description{

@@ -20,14 +20,21 @@ common.predict(object, x, h = 1, common.method = c("static", "var"), r = NULL)
 \value{
 A list containing
 \itemize{
-\item{is: x in-sample estimation}
-\item{fc: x forecast}
-\item{r: factor number}
-\item{h: forecast horizon}
+\item{\code{'is'}}{ x in-sample estimation}
+\item{\code{'fc'}}{ x forecast}
+\item{\code{'r'}}{ factor number}
+\item{\code{'h'}}{ forecast horizon}
 }
 }
 \description{
 Predicts common component from a fnets object for new data
+}
+\examples{
+require(fnets)
+model <- fnets(sample.data, q=2, idio.method = "lasso")
+pr <- predict(model,sample.data, common.method = "static")
+cpre <- common.predict(model,sample.data, common.method = "static")
+ip <- idio.predict(model,sample.data, cpre)
 }
 \references{
 Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.

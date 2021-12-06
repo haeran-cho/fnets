@@ -18,13 +18,20 @@ idio.predict(object, x, cpre, h = 1)
 \value{
 A list containing
 \itemize{
-\item{is: in-sample estimation}
-\item{fc: forecast}
-\item{h: forecast horizon}
+\item{\code{'is'}}{ in-sample estimation}
+\item{\code{'fc'}}{ forecast}
+\item{\code{'h'}}{ forecast horizon}
 }
 }
 \description{
 Predictsidiosyncratic components from a fnets object for new data
+}
+\examples{
+require(fnets)
+model <- fnets(sample.data, q=2, idio.method = "lasso")
+pr <- predict(model,sample.data, common.method = "static")
+cpre <- common.predict(model,sample.data, common.method = "static")
+ip <- idio.predict(model,sample.data, cpre)
 }
 \references{
 Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.

@@ -1,0 +1,7 @@
+require(fnets)
+require(doParallel)
+require(lpSolve)
+dpca <- dyn.pca(sample.data, q=2)
+mg <- make.gg(dpca$acv$Gamma_i,1)
+vl <- var.lasso(mg$GG,mg$gg, .1)
+vd <- var.dantzig(mg$GG,mg$gg, .1, n.cores = 1)

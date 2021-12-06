@@ -4,22 +4,22 @@
 #' @param x input time series matrix, with each row representing a time series
 #' @param eta regularisation parameter, if NULL this selected by cross-validation
 #' @param symmetric type of symmetry to enforce on output, one of 'min', 'max', 'avg', 'none'
-#' @param pcn.cv.args A list specifying arguments to the cross-validation (CV) procedure containing:
+#' @param lrpc.cv.args A list specifying arguments to the cross-validation (CV) procedure containing:
 #' \itemize{
-#'    \item{\code{'n.folds'}}{number of folds}
-#'    \item{\code{'path.length'}}{number of lambda values to consider}
+#'    \item{\code{'n.folds'}}{ number of folds}
+#'    \item{\code{'path.length'}}{ number of lambda values to consider}
 #' }
 #' @param n.cores number of cores to use for parallel computing
 #' @return A list containing
 #' \itemize{
-#' \item{Omega: Estimated partial coherence matrix}
-#' \item{eta: regularisation parameter}
+#' \item{\code{'Omega'}}{ Estimated partial coherence matrix}
+#' \item{\code{'eta'}}{ regularisation parameter}
 #' }
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @export
-#' @example examples/nonparpcn.R
-nonpar.pcn <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg', 'none'),
-                       pcn.cv.args = list(n.folds = 1, path.length = 10),
+#' @example examples/nonparlrpc.R
+nonpar.lrpc <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg', 'none'),
+                       lrpc.cv.args = list(n.folds = 1, path.length = 10),
                        n.cores = min(parallel::detectCores() - 1, 3)){
 
   xx <- x - object$mean.x
@@ -29,13 +29,13 @@ nonpar.pcn <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg',
   GG <- Re(object$spec$Sigma_i[,, 1])
 
   if(is.null(eta)){
-    dcv <- direct.cv(object, xx, target = 'spec', path.length = pcn.cv.args$path.length, n.folds = pcn.cv.args$n.folds,
+    dcv <- direct.cv(object, xx, target = 'spec', path.length = lrpc.cv.args$path.length, n.folds = lrpc.cv.args$n.folds,
                      q = object$q, kern.bandwidth.const = object$kern.bandwidth.const, n.cores = n.cores)
     eta <- dcv$eta
   }
   DD <- direct.inv.est(GG, eta = eta, symmetric = symmetric, n.cores = n.cores)$DD
   out <- list(Omega = DD, eta = eta)
-  attr(out, 'class') <- 'fnets.pcn'
+  attr(out, 'class') <- 'fnets.lrpc'
 
   return(out)
 
@@ -47,7 +47,7 @@ nonpar.pcn <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg',
 #' @param x input time series matrix, with each row representing a time series
 #' @param eta regularisation parameter, if NULL this selected by cross-validation
 #' @param symmetric type of symmetry to enforce on output, one of 'min', 'max', 'avg', 'none'
-#' @param pcn.cv.args A list specifying arguments to the cross-validation (CV) procedure containing:
+#' @param lrpc.cv.args A list specifying arguments to the cross-validation (CV) procedure containing:
 #' \itemize{
 #'    \item{\code{'n.folds'}}{number of folds}
 #'    \item{\code{'path.length'}}{number of lambda values to consider}
@@ -55,14 +55,14 @@ nonpar.pcn <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg',
 #' @param n.cores number of cores to use for parallel computing
 #' @return A list containing
 #' \itemize{
-#' \item{Omega: Estimated partial coherence matrix}
-#' \item{eta: regularisation parameter}
+#' \item{\code{'Omega'}}{ Estimated partial coherence matrix}
+#' \item{\code{'eta'}}{ regularisation parameter}
 #' }
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @export
-#' @example examples/parampcn.R
-param.pcn <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg', 'none'),
-                      pcn.cv.args = list(n.folds = 1, path.length = 10),
+#' @example examples/paramlrpc.R
+param.lrpc <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg', 'none'),
+                      lrpc.cv.args = list(n.folds = 1, path.length = 10),
                       n.cores = min(parallel::detectCores() - 1, 3)){
 
   xx <- x - object$mean.x
@@ -78,7 +78,7 @@ param.pcn <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg', 
 
   if(is.null(eta)){
     dcv <- direct.cv(object, xx, target = 'acv',
-                     path.length = pcn.cv.args$path.length, n.folds = pcn.cv.args$n.folds,
+                     path.length = lrpc.cv.args$path.length, n.folds = lrpc.cv.args$n.folds,
                      q = object$q, kern.bandwidth.const = object$kern.bandwidth.const, n.cores = n.cores)
     eta <- dcv$eta
   }
@@ -86,15 +86,15 @@ param.pcn <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg', 
   Omega <- 2 * pi * t(A1) %*% Delta %*% A1
 
   out <- list(Delta = Delta, Omega = Omega, eta = eta)
-  attr(out, 'class') <- 'fnets.pcn'
+  attr(out, 'class') <- 'fnets.lrpc'
   return(out)
 
 }
 
 #' @title Cross-validation for the constrained l1-minimisation problem for inverse matrix estimation
 #' @description internal function
-#' @export
 #' @keywords internal
+  # #' @export
 direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min', 'max', 'avg', 'none'),
                       path.length = 10, n.folds = 1, q = 0, kern.bandwidth.const = 4, n.cores = min(parallel::detectCores() - 1, 3)){
 
@@ -160,7 +160,7 @@ direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min'
 
 }
 
-#' @export
+# #' @export
 #' @description internal function
 #' @keywords internal
 direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', 'none'), n.cores = min(parallel::detectCores() - 1, 3)){
@@ -192,7 +192,7 @@ direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', '
 
 }
 
-#' @export
+# #' @export
 #' @description internal function
 #' @keywords internal
 make.symmetric <- function(DD, symmetric){
@@ -214,11 +214,11 @@ make.symmetric <- function(DD, symmetric){
 }
 
 
-#' @title Plot fnets.pcn object
-#' @method plot fnets.pcn
-#' @description plots the fnets.pcn object as a Long-Run Partial Correlation network, and if available as a Contemporaneous network,
+#' @title Plot fnets.lrpc object
+#' @method plot fnets.lrpc
+#' @description plots the fnets.lrpc object as a Long-Run Partial Correlation network, and if available as a Contemporaneous network,
 #'     either as a network graph or a heatmap
-#' @param object fnets.pcn object
+#' @param object fnets.lrpc object
 #' @param type whether to plot a "network" or "heatmap"
 #' @param names character vector of node names
 #' @param groups integer vector denoting groups for "network" plots
@@ -227,7 +227,7 @@ make.symmetric <- function(DD, symmetric){
 #' @param ... additional arguments
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @export
-plot.fnets.pcn <- function(object, type = "network", names = NULL, groups = NULL, threshold = 0, size = NULL, ...){
+plot.fnets.lrpc <- function(object, type = "network", names = NULL, groups = NULL, threshold = 0, size = NULL, ...){
   O <- object$Omega
   p <- dim(O)[1]
 
