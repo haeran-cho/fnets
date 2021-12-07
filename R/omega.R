@@ -2,12 +2,12 @@
 #' @description Returns a non-parametric estimate of the partial coherence matrix, possibly using cross-validation
 #' @param object \code{fnets} object
 #' @param x input time series matrix, with each row representing a time series
-#' @param eta regularisation parameter, if NULL this is selected by cross-validation
+#' @param eta regularisation parameter, if \code{eta = NULL} this is selected by cross-validation
 #' @param symmetric type of symmetry to enforce on output, one of 'min', 'max', 'avg', 'none'
 #' @param lrpc.cv.args A list specifying arguments to the cross-validation (CV) procedure containing:
 #' \itemize{
-#'    \item{\code{'n.folds'}}{ number of folds}
-#'    \item{\code{'path.length'}}{ number of lambda values to consider}
+#'    \item{n.folds}{number of folds}
+#'    \item{path.length}{number of lambda values to consider}
 #' }
 #' @param n.cores number of cores to use for parallel computing
 #' @return A list containing
@@ -94,7 +94,6 @@ param.lrpc <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg',
 #' @title Cross-validation for the constrained l1-minimisation problem for inverse matrix estimation
 #' @description internal function
 #' @keywords internal
-  # #' @export
 direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min', 'max', 'avg', 'none'),
                       path.length = 10, n.folds = 1, q = 0, kern.bandwidth.const = 4, n.cores = min(parallel::detectCores() - 1, 3)){
 
@@ -114,7 +113,6 @@ direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min'
     eta.max <- max(abs(GG))
     eta.path <- round(exp(seq(log(eta.max), log(eta.max * .01), length.out = path.length)), digits = 10)
   }
-
 
   cv.err <- rep(0, length = path.length)
   ind.list <- split(1:n, ceiling(n.folds*(1:n)/n))
@@ -136,19 +134,15 @@ direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min'
         test.GG <- test.GG - A[, (ll - 1) * p + 1:p] %*% test.G0[,, ll + 1]
       }
     }
-    # sv <- svd(test.GG)
-    # test.GG0 <- sv$u %*% diag((sv$d - 1e-10) * (sv$d > 1e-10) + 1e-10) %*% t(sv$u)
+    
     for(ii in 1:path.length){
       DD <- direct.inv.est(train.GG, eta = eta.path[ii], symmetric = symmetric, n.cores = n.cores)$DD
-      # sv <- svd(DD)
-      # DD <- sv$u %*% diag((sv$d - 1e-10) * (sv$d > 1e-10) + 1e-10) %*% t(sv$u)
       DG <- DD %*% test.GG
       sv <- svd(DG, nu = 0, nv = 0)
       cv.err[ii] <- cv.err[ii] + sum(sv$d) - sum(log(sv$d)) - p # sum(diag(DD %*% test.GG)) - log(det(DD)) # sum(diag(DD %*% test.GG)) - log(det(DD %*% test.GG)) - p
     }
   }
-
-  cv.err
+  
   eta.min <- eta.path[which.min(cv.err)]
 
   plot(eta.path, cv.err, type = 'b', col = 1, pch = 1, log = 'x', xlab = 'eta (log scale)', ylab = 'CV error')
@@ -160,8 +154,6 @@ direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min'
 
 }
 
-# #' @export
-#' @description internal function
 #' @keywords internal
 direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', 'none'), n.cores = min(parallel::detectCores() - 1, 3)){
 
@@ -192,8 +184,6 @@ direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', '
 
 }
 
-# #' @export
-#' @description internal function
 #' @keywords internal
 make.symmetric <- function(DD, symmetric){
   symmetric <- match.arg(symmetric, c('min', 'max', 'avg', 'none'))
