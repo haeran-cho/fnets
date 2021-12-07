@@ -112,7 +112,7 @@ sim.factor.M2 <- function(n, p, trunc.lags = 20, do.scale = T, a1 = NULL, a2 = N
 sim.idio <- function(n, p, A = NULL, cov = diag(1,p), prob = 1/p, two.norm = NULL, do.scale = T){
   burnin <-100
   prob <- max(0, min(1,prob))
-  vep <- t(mvtnorm::rmvnorm(n + burnin, sigma = cov))
+  vep <- t(MASS::mvrnorm(n + burnin, mu = rep(0,p) , Sigma = cov))
   if(is.null(A)) {
     A <- matrix(0, p, p)
     index <- sample(c(0,1), p^2, T, prob = c(1-prob,prob))
