@@ -3,7 +3,6 @@
 #' @references Forni, M., Hallin, M., Lippi, M., & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @keywords internal
-# #' @export
 common.var.estimation <- function(xx, Gamma_c, q, var.order = NULL, max.var.order = NULL, trunc.lags, n.perm){
 
   n <- dim(xx)[2]; p <- dim(xx)[1]
@@ -103,13 +102,13 @@ common.var.estimation <- function(xx, Gamma_c, q, var.order = NULL, max.var.orde
 #' @param x input time series matrix, with each row representing a time series
 #' @param h forecast horizon
 #' @param common.method which of "static" or "var" to forecast the common component with
-#' @param r factor number, if r=NULL this is selected using the maximal eigenratio
+#' @param r factor number, if \code{r = NULL} this is selected using the maximal eigenratio
 #' @return A list containing
 #' \itemize{
-#' \item{\code{'is'}}{ x in-sample estimation}
-#' \item{\code{'fc'}}{ x forecast}
-#' \item{\code{'r'}}{ factor number}
-#' \item{\code{'h'}}{ forecast horizon}
+#' \item{is}{in-sample estimator of the common component}
+#' \item{fc}{forecasts of the common component for a given forecasting horizon \code{h}}
+#' \item{r}{factor number}
+#' \item{h}{forecast horizon}
 #' }
 #' @example examples/predict.R
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
@@ -133,8 +132,6 @@ common.predict <- function(object, x, h = 1, common.method = c('static', 'var'),
 
 }
 
-# #' @export
-#' @description internal function
 #' @keywords internal
 common.static.predict <- function(xx, Gamma_c, q, r = NULL, max.r = NULL, h = 1){
 
@@ -161,8 +158,6 @@ common.static.predict <- function(xx, Gamma_c, q, r = NULL, max.r = NULL, h = 1)
 
 }
 
-# #' @export
-#' @description internal function
 #' @keywords internal
 common.var.predict <- function(xx, cve, h = 1){
   p <- dim(xx)[1]; n <- dim(xx)[2]
@@ -190,8 +185,6 @@ common.var.predict <- function(xx, cve, h = 1){
 
 }
 
-# #' @export
-#' @description internal function
 #' @keywords internal
 var.to.vma <- function(A, trunc.lags){
 
@@ -206,8 +199,6 @@ var.to.vma <- function(A, trunc.lags){
 
 }
 
- # #' @export
-#' @description internal function
 #' @keywords internal
 common.yw.est <- function(Gcp, block, var.order){
   nblock <- length(block)
@@ -226,8 +217,6 @@ common.yw.est <- function(Gcp, block, var.order){
   return(out)
 }
 
-# #' @export
-#' @description internal function
 #' @keywords internal
 common.bic <- function(Gcp, block, len, max.var.order = 5){
 

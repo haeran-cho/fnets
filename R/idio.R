@@ -95,26 +95,25 @@ var.lasso <- function(GG, gg, lambda, symmetric = 'min', niter = 100, tol = 0, d
   return(out)
 }
 
-# #' @export
 #' @description internal function
 #' @keywords internal
 f.func <- function(GG, gg, A){
 return(0.5 * norm(   (GG %*% (A) - gg ) , "F")^2) ##
 }
-# #' @export
+
 #' @description internal function
 #' @keywords internal
 gradf.func <- function(GtG, Gtg, A){
   return( (GtG %*% (A) - Gtg ) ) # GG %*% here??
 }
-# #' @export
+
 #' @description internal function
 #' @keywords internal
 Q.func <- function(A, A.up, L, GG, gg, GtG, Gtg){
   Adiff <- (A - A.up)
   return(f.func(GG, gg, A.up) + sum(Adiff * gradf.func(GtG, Gtg,A.up)) + 0.5 * L * norm(Adiff, "F")^2 )
 }
-# #' @export
+
 #' @description internal function
 #' @keywords internal
 fnsl.update <- function(B, B_md, lambda, eta, GtG, Gtg){
@@ -177,8 +176,6 @@ var.dantzig <- function(GG, gg, lambda, symmetric = 'min', n.cores = min(paralle
   out <- list(beta = (beta), lambda = lambda, Gamma = Gamma)
   return(out)
 }
-
-####
 
 #' @title Cross-validation for l1-regularised VAR estimation
 #' @description Selects the prediction-optimal regularisation parameter for the estimation of the idiosyncratic VAR
@@ -295,14 +292,11 @@ idio.predict <- function(object, x, cpre, h = 1){
 }
 
 ## misc
-
-
 #' @title Construct \code{gg} and \code{GG} matrices for Yule-Walker estimation
 #' @param acv autocovariance array
 #' @param d order of VAR
 #' @example examples/idio.R
-#' @export
-# #' @keywords internal
+#' @keywords internal
 make.gg <- function(acv, d){
 
   p <- dim(acv)[1]
