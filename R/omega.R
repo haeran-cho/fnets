@@ -19,22 +19,23 @@
 #' @export
 #' @seealso \link{param.lrpc}
 #' @example R/examples/nonparlrpc.R
-nonpar.lrpc <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg', 'none'),
-                       lrpc.cv.args = list(n.folds = 1, path.length = 10),
+nonpar.lrpc <- function(object, x, eta = NULL,
+                       lrpc.cv.args = list(n.folds = 1, path.length = 10, symmetric = 'min'),
+                       correct.zero.diag = FALSE,
                        n.cores = min(parallel::detectCores() - 1, 3)){
-
+  
   xx <- x - object$mean.x
   p <- dim(x)[1]
-
-  symmetric <- match.arg(symmetric, c('min', 'max', 'avg', 'none'))
   GG <- Re(object$spec$Sigma_i[,, 1])
 
   if(is.null(eta)){
-    dcv <- direct.cv(object, xx, target = 'spec', path.length = lrpc.cv.args$path.length, n.folds = lrpc.cv.args$n.folds,
-                     q = object$q, kern.const = object$kern.const, n.cores = n.cores)
+    dcv <- direct.cv(object, xx, target = 'spec', symmetric = lrpc.cv.args$symmetric, 
+                     path.length = lrpc.cv.args$path.length, n.folds = lrpc.cv.args$n.folds,
+                     q = object$q, kern.bandwidth.const = object$kern.bandwidth.const, n.cores = n.cores)
     eta <- dcv$eta
-  }
-  DD <- direct.inv.est(GG, eta = eta, symmetric = symmetric, n.cores = n.cores)$DD
+  } 
+  DD <- direct.inv.est(GG, eta = eta, symmetric = lrpc.cv.args$symmetric, 
+                       correct.zero.diag = correct.zero.diag, n.cores = n.cores)$DD
   out <- list(Omega = DD, eta = eta)
   attr(out, 'class') <- 'fnets.lrpc'
 
@@ -63,30 +64,31 @@ nonpar.lrpc <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg'
 #' @export
 #' @seealso \link{nonpar.lrpc}
 #' @example R/examples/paramlrpc.R
-param.lrpc <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg', 'none'),
-                      lrpc.cv.args = list(n.folds = 1, path.length = 10),
+param.lrpc <- function(object, x, eta = NULL, 
+                      lrpc.cv.args = list(n.folds = 1, path.length = 10, symmetric = 'min'),
+                      correct.zero.diag = FALSE,
                       n.cores = min(parallel::detectCores() - 1, 3)){
-
+  
   xx <- x - object$mean.x
   p <- dim(x)[1]
-
-  symmetric <- match.arg(symmetric, c('min', 'max', 'avg', 'none'))
+  
   GG <- object$idio.var$Gamma
   A <- t(object$idio.var$beta)
   d <- dim(A)[2]/p
-
+  
   A1 <- diag(1, p)
   for(ll in 1:d) A1 <- A1 - A[, (ll - 1) * p + 1:p]
-
+  
   if(is.null(eta)){
-    dcv <- direct.cv(object, xx, target = 'acv',
+    dcv <- direct.cv(object, xx, target = 'acv', symmetric = lrpc.cv.args$symmetric,
                      path.length = lrpc.cv.args$path.length, n.folds = lrpc.cv.args$n.folds,
-                     q = object$q, kern.const = object$kern.const, n.cores = n.cores)
+                     q = object$q, kern.bandwidth.const = object$kern.bandwidth.const, n.cores = n.cores)
     eta <- dcv$eta
-  }
-  Delta <- direct.inv.est(GG, eta = eta, symmetric = symmetric, n.cores = n.cores)$DD
+  } 
+  Delta <- direct.inv.est(GG, eta = eta, symmetric = lrpc.cv.args$symmetric, 
+                          correct.zero.diag = correct.zero.diag, n.cores = n.cores)$DD
   Omega <- 2 * pi * t(A1) %*% Delta %*% A1
-
+  
   out <- list(Delta = Delta, Omega = Omega, eta = eta)
   attr(out, 'class') <- 'fnets.lrpc'
   return(out)
@@ -157,17 +159,19 @@ direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min'
 }
 
 #' @keywords internal
-direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', 'none'), n.cores = min(parallel::detectCores() - 1, 3)){
-
+direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', 'none'), 
+                           correct.zero.diag = FALSE,
+                           n.cores = min(parallel::detectCores() - 1, 3)){
+  
   p <- dim(GG)[1]
   f.obj <- rep(1, 2 * p)
   f.con <- rbind(-GG, GG)
   f.con <- cbind(f.con,-f.con)
   f.dir <- rep('<=', 2 * p)
-
+  
   cl <- parallel::makePSOCKcluster(n.cores)
   doParallel::registerDoParallel(cl)
-
+  
   DD <- foreach::foreach(ii = 1:p, .combine = 'cbind', .multicombine = TRUE, .export = c('lp')) %dopar% {
     ee <- rep(0, p)
     ee[ii] <- 1
@@ -178,12 +182,18 @@ direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', '
     lpout$solution[1:p] - lpout$solution[-(1:p)]
   }
   parallel::stopCluster(cl)
-
+  
   DD <- make.symmetric(DD, symmetric)
-
+  
+  if(correct.zero.diag){
+    tmp <- gen.inverse(GG)
+    ind <- which(diag(DD) == 0)
+    diag(DD)[ind] <- tmp[ind] 
+  }
+  
   out <- list(DD = DD, eta = eta, symmetric = symmetric)
   return(out)
-
+  
 }
 
 #' @keywords internal
@@ -203,6 +213,17 @@ make.symmetric <- function(DD, symmetric){
     if(symmetric == 'avg') DD <- (DD + t(DD))/2
   }
   DD
+}
+
+#' @keywords internal
+gen.inverse <- function(GG){
+  
+  p <- dim(GG)[1]
+  sv <- svd(GG)
+  L <- GG * 0
+  diag(L)[sv$d > 0] <- sv$d[sv$d > 0]
+  return(diag(sv$u %*% L %*% t(sv$u)))
+  
 }
 
 
