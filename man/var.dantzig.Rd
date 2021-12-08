@@ -39,10 +39,13 @@ Further information can be found in Barigozzi, Cho and Owens (2021).
 require(fnets)
 require(doParallel)
 require(lpSolve)
-dpca <- dyn.pca(sample.data, q=2)
-mg <- make.gg(dpca$acv$Gamma_i,1)
-vl <- var.lasso(mg$GG,mg$gg, .1)
-vd <- var.dantzig(mg$GG,mg$gg, .1, n.cores = 1)
+set.seed(222)
+n <- 200
+p<- 100
+chi <- sim.factor.M1(n,p)
+xi <- sim.idio(n,p)
+sample.data <- chi$data + xi$data
+fit.var(sample.data, .1, idio.method = "lasso")
 }
 \references{
 Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.

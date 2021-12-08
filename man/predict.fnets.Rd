@@ -4,7 +4,7 @@
 \alias{predict.fnets}
 \title{Prediction by fnets}
 \usage{
-\method{predict}{fnets}(object, x, h = 1, common.method = c("static", "var"), r = NULL)
+\method{predict}{fnets}(object, x, h = 1, common.method = c("static", "var"), r = NULL, ...)
 }
 \arguments{
 \item{object}{\code{fnets} object}
@@ -16,6 +16,8 @@
 \item{common.method}{which of "static" or "var" to forecast the common component with}
 
 \item{r}{factor number, if r=NULL this is selected using the maximal eigenratio}
+
+\item{...}{further arguments}
 }
 \value{
 A list containing
@@ -32,6 +34,12 @@ Predicts common and idiosyncratic components from a \code{fnets} object for new 
 }
 \examples{
 require(fnets)
+set.seed(222)
+n <- 200
+p<- 100
+chi <- sim.factor.M1(n,p)
+xi <- sim.idio(n,p)
+sample.data <- chi$data + xi$data
 model <- fnets(sample.data, q=2, idio.method = "lasso")
 pr <- predict(model,sample.data, common.method = "static")
 cpre <- common.predict(model,sample.data, common.method = "static")

@@ -17,7 +17,8 @@
 #' }
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @export
-#' @example examples/nonparlrpc.R
+#' @seealso \link{param.lrpc}
+#' @example R/examples/nonparlrpc.R
 nonpar.lrpc <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg', 'none'),
                        lrpc.cv.args = list(n.folds = 1, path.length = 10),
                        n.cores = min(parallel::detectCores() - 1, 3)){
@@ -30,7 +31,7 @@ nonpar.lrpc <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg'
 
   if(is.null(eta)){
     dcv <- direct.cv(object, xx, target = 'spec', path.length = lrpc.cv.args$path.length, n.folds = lrpc.cv.args$n.folds,
-                     q = object$q, kern.bandwidth.const = object$kern.bandwidth.const, n.cores = n.cores)
+                     q = object$q, kern.const = object$kern.const, n.cores = n.cores)
     eta <- dcv$eta
   }
   DD <- direct.inv.est(GG, eta = eta, symmetric = symmetric, n.cores = n.cores)$DD
@@ -60,7 +61,8 @@ nonpar.lrpc <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg'
 #' }
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @export
-#' @example examples/paramlrpc.R
+#' @seealso \link{nonpar.lrpc}
+#' @example R/examples/paramlrpc.R
 param.lrpc <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg', 'none'),
                       lrpc.cv.args = list(n.folds = 1, path.length = 10),
                       n.cores = min(parallel::detectCores() - 1, 3)){
@@ -79,7 +81,7 @@ param.lrpc <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg',
   if(is.null(eta)){
     dcv <- direct.cv(object, xx, target = 'acv',
                      path.length = lrpc.cv.args$path.length, n.folds = lrpc.cv.args$n.folds,
-                     q = object$q, kern.bandwidth.const = object$kern.bandwidth.const, n.cores = n.cores)
+                     q = object$q, kern.const = object$kern.const, n.cores = n.cores)
     eta <- dcv$eta
   }
   Delta <- direct.inv.est(GG, eta = eta, symmetric = symmetric, n.cores = n.cores)$DD
@@ -95,7 +97,7 @@ param.lrpc <- function(object, x, eta = NULL, symmetric = c('min', 'max', 'avg',
 #' @description internal function
 #' @keywords internal
 direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min', 'max', 'avg', 'none'),
-                      path.length = 10, n.folds = 1, q = 0, kern.bandwidth.const = 4, n.cores = min(parallel::detectCores() - 1, 3)){
+                      path.length = 10, n.folds = 1, q = 0, kern.const = 4, n.cores = min(parallel::detectCores() - 1, 3)){
 
   n <- ncol(xx)
   p <- nrow(xx)
@@ -121,12 +123,12 @@ direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min'
     train.x <- xx[, ind.list[[fold]][train.ind]]
     test.x  <- xx[, ind.list[[fold]][- train.ind]]
     if(target == 'spec'){
-      train.GG <- Re(dyn.pca(train.x, q = q, kern.bandwidth.const = kern.bandwidth.const)$spec$Sigma_i[,, 1])
-      test.GG <- Re(dyn.pca(test.x, q = q, kern.bandwidth.const = kern.bandwidth.const)$spec$Sigma_i[,, 1])
+      train.GG <- Re(dyn.pca(train.x, q = q, kern.const = kern.const)$spec$Sigma_i[,, 1])
+      test.GG <- Re(dyn.pca(test.x, q = q, kern.const = kern.const)$spec$Sigma_i[,, 1])
     }
     if(target == 'acv'){
-      train.G0 <- dyn.pca(train.x, q = q, kern.bandwidth.const = kern.bandwidth.const)$acv$Gamma_i
-      test.G0 <- dyn.pca(test.x, q = q, kern.bandwidth.const = kern.bandwidth.const)$acv$Gamma_i
+      train.G0 <- dyn.pca(train.x, q = q, kern.const = kern.const)$acv$Gamma_i
+      test.G0 <- dyn.pca(test.x, q = q, kern.const = kern.const)$acv$Gamma_i
       train.GG <- train.G0[,, 1]
       test.GG <- test.G0[,, 1]
       for(ll in 1:d){
@@ -134,15 +136,15 @@ direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min'
         test.GG <- test.GG - A[, (ll - 1) * p + 1:p] %*% test.G0[,, ll + 1]
       }
     }
-    
+
     for(ii in 1:path.length){
       DD <- direct.inv.est(train.GG, eta = eta.path[ii], symmetric = symmetric, n.cores = n.cores)$DD
       DG <- DD %*% test.GG
       sv <- svd(DG, nu = 0, nv = 0)
-      cv.err[ii] <- cv.err[ii] + sum(sv$d) - sum(log(sv$d)) - p # sum(diag(DD %*% test.GG)) - log(det(DD)) # sum(diag(DD %*% test.GG)) - log(det(DD %*% test.GG)) - p
+      cv.err[ii] <- cv.err[ii] + sum(sv$d) - sum(log(sv$d)) - p
     }
   }
-  
+
   eta.min <- eta.path[which.min(cv.err)]
 
   plot(eta.path, cv.err, type = 'b', col = 1, pch = 1, log = 'x', xlab = 'eta (log scale)', ylab = 'CV error')
@@ -208,7 +210,7 @@ make.symmetric <- function(DD, symmetric){
 #' @method plot fnets.lrpc
 #' @description plots the fnets.lrpc object as a Long-Run Partial Correlation network, and if available as a Contemporaneous network,
 #'     either as a network graph or a heatmap
-#' @param object fnets.lrpc object
+#' @param x fnets.lrpc object
 #' @param type whether to plot a "network" or "heatmap"
 #' @param names character vector of node names
 #' @param groups integer vector denoting groups for "network" plots
@@ -217,8 +219,8 @@ make.symmetric <- function(DD, symmetric){
 #' @param ... additional arguments
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @export
-plot.fnets.lrpc <- function(object, type = "network", names = NULL, groups = NULL, threshold = 0, size = NULL, ...){
-  O <- object$Omega
+plot.fnets.lrpc <- function(x, type = "network", names = NULL, groups = NULL, threshold = 0, size = NULL, ...){
+  O <- x$Omega
   p <- dim(O)[1]
 
   mark.groups <- list()
@@ -229,7 +231,6 @@ plot.fnets.lrpc <- function(object, type = "network", names = NULL, groups = NUL
       mark.groups[[ii]] <- permii
       perm <- c(perm, permii)
     }
-    # perm <- Matrix::invPerm(perm)
   } else perm <- 1:p
   # Granger causal network
 
@@ -242,9 +243,9 @@ plot.fnets.lrpc <- function(object, type = "network", names = NULL, groups = NUL
     if(!is.null(names)) V(omega)$name <- names[perm]
     l_omega <- igraph::layout_in_circle(omega)
     # Contemporaneous
-    if(!is.null(object$Delta)){
-      Delta <- object$Delta[perm,perm]
-      contemp <- igraph::graph_from_adjacency_matrix(object$Delta, mode = "undirected", weighted=TRUE, diag = FALSE)
+    if(!is.null(x$Delta)){
+      Delta <- x$Delta[perm,perm]
+      contemp <- igraph::graph_from_adjacency_matrix(x$Delta, mode = "undirected", weighted=TRUE, diag = FALSE)
       if(!is.null(size)) {degreeC <- igraph::degree(contemp, mode = size, normalized = F)
       degreeC <- degreeC/max(degreeC)*15 }else degreeC <- rep(15, p)
       if(!is.null(names)) V(contemp)$name <- names[perm]
@@ -269,8 +270,8 @@ plot.fnets.lrpc <- function(object, type = "network", names = NULL, groups = NUL
     if(is.null(names)) names <- 1:p
     axis(1, at = (1:p - .5)/p, labels = names, las = 2, cex.axis = .6)
     axis(2, at = (1:p - .5)/p, labels = names, las = 2, cex.axis = .6)
-    if(!is.null(object$Delta)){
-      Delta <- object$Delta[perm,perm]
+    if(!is.null(x$Delta)){
+      Delta <- x$Delta[perm,perm]
       mv <- max(abs(Delta)) * 1.01
       fields::imagePlot(O, axes = FALSE,
                         col = rev(RColorBrewer::brewer.pal(11, 'RdBu')),

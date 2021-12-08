@@ -12,7 +12,7 @@ direct.cv(
   path.length = 10,
   n.folds = 1,
   q = 0,
-  kern.bandwidth.const = 4,
+  kern.const = 4,
   n.cores = min(parallel::detectCores() - 1, 3)
 )
 }

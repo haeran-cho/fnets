@@ -15,15 +15,15 @@ common.predict(object, x, h = 1, common.method = c("static", "var"), r = NULL)
 
 \item{common.method}{which of "static" or "var" to forecast the common component with}
 
-\item{r}{factor number, if r=NULL this is selected using the maximal eigenratio}
+\item{r}{factor number, if \code{r = NULL} this is selected using the maximal eigenratio}
 }
 \value{
 A list containing
 \itemize{
-\item{\code{'is'}}{ x in-sample estimation}
-\item{\code{'fc'}}{ x forecast}
-\item{\code{'r'}}{ factor number}
-\item{\code{'h'}}{ forecast horizon}
+\item{is}{in-sample estimator of the common component}
+\item{fc}{forecasts of the common component for a given forecasting horizon \code{h}}
+\item{r}{factor number}
+\item{h}{forecast horizon}
 }
 }
 \description{
@@ -31,6 +31,12 @@ Predicts common component from a \code{fnets} object for new data
 }
 \examples{
 require(fnets)
+set.seed(222)
+n <- 200
+p<- 100
+chi <- sim.factor.M1(n,p)
+xi <- sim.idio(n,p)
+sample.data <- chi$data + xi$data
 model <- fnets(sample.data, q=2, idio.method = "lasso")
 pr <- predict(model,sample.data, common.method = "static")
 cpre <- common.predict(model,sample.data, common.method = "static")

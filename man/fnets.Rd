@@ -8,7 +8,7 @@ fnets(
   x,
   q = NULL,
   ic.op = 4,
-  kern.bandwidth.const = 4,
+  kern.const = 4,
   common.var.args = list(var.order = 1, max.var.order = NULL, trunc.lags = 20, n.perm =
     10),
   idio.var.order = 1,
@@ -24,7 +24,7 @@ fnets(
 
 \item{ic.op}{an index number for the information criterion}
 
-\item{kern.bandwidth.const}{constant to determine bandwidth size}
+\item{kern.const}{constant to determine bandwidth size}
 
 \item{common.var.args}{A list specifying the estimator for the common component. This contains:
 \itemize{
@@ -61,7 +61,7 @@ An S3 object of class \code{fnets}, which contains the following fields:
 \item{\code{'common.var'}}{ Estimated common component}
 \item{\code{'idio.var'}}{ Estimated idiosyncratic component}
 \item{\code{'mean.x'}}{ Removed means of \code{x} }
-\item{\code{'kern.bandwidth.const'}}{ Constant to determine bandwidth size}
+\item{\code{'kern.const'}}{ Constant to determine bandwidth size}
 }
 }
 \description{
@@ -71,6 +71,12 @@ This function estimates the spectral density and autocovariance matrices of the 
 Further information can be found in Barigozzi, Cho and Owens (2021).
 }
 \examples{
+set.seed(222)
+n <- 200
+p<- 100
+chi <- sim.factor.M1(n,p)
+xi <- sim.idio(n,p)
+sample.data <- chi$data + xi$data
 fnets(sample.data, q=2, idio.method = "lasso")
 }
 \references{

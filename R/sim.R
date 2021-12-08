@@ -21,6 +21,7 @@
 #' @export
 #'
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
+#' @seealso \link{sim.factor.M2}
 #' @examples
 #'     sim.factor.M1(100,10)
 sim.factor.M1 <- function(n, p, q = 2, r = 4, do.scale = T, loadings=NULL, K = NULL){
@@ -64,6 +65,7 @@ sim.factor.M1 <- function(n, p, q = 2, r = 4, do.scale = T, loadings=NULL, K = N
 #' @export
 #'
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
+#' @seealso \link{sim.factor.M1}
 #' @examples
 #'     sim.factor.M2(100,10)
 sim.factor.M2 <- function(n, p, trunc.lags = 20, do.scale = T, a1 = NULL, a2 = NULL, alpha1 = NULL, alpha2 = NULL){
@@ -77,7 +79,7 @@ sim.factor.M2 <- function(n, p, trunc.lags = 20, do.scale = T, a1 = NULL, a2 = N
   alpha1 <- runif(p, -.8,.8)
   alpha2 <- runif(p, -.8,.8)
   for (jj in 1:p) {
-    coeffs_1 <- alpha1[jj]*c(1,as.numeric( var.to.vma(as.matrix(a1[jj]), trunc.lags))) #gdfm::
+    coeffs_1 <- alpha1[jj]*c(1,as.numeric( var.to.vma(as.matrix(a1[jj]), trunc.lags)))
     coeffs_2 <-  alpha2[jj]*c(1,as.numeric(var.to.vma(as.matrix(a2[jj]), trunc.lags)))
     for (t in 1:n) {
       chi[jj,t] <-  coeffs_1 %*% u1[(t+trunc.lags+1):t] + coeffs_2 %*% u2[(t+trunc.lags+1):t]

@@ -5,7 +5,7 @@
 \title{Plot fnets object}
 \usage{
 \method{plot}{fnets}(
-  object,
+  x,
   type = "network",
   names = NULL,
   groups = NULL,
@@ -15,7 +15,7 @@
 )
 }
 \arguments{
-\item{object}{fnets object}
+\item{x}{fnets object}
 
 \item{type}{whether to plot a "network" or "heatmap"}
 
@@ -31,6 +31,23 @@
 }
 \description{
 plots the idiosyncratic component of the fnets object as a Granger causal network, either as a network graph or a heatmap
+}
+\examples{
+require(igraph)
+require(doParallel)
+require(lpSolve)
+set.seed(222)
+n <- 200
+p<- 100
+chi <- sim.factor.M1(n,p)
+xi <- sim.idio(n,p)
+sample.data <- chi$data + xi$data
+# model
+model <- fnets(sample.data, q=2, idio.method = "lasso")
+plot(model)
+# long-run partial correlation network
+net <- param.lrpc(model, sample.data, 1, n.cores = 1)
+plot(net)
 }
 \references{
 Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.

@@ -4,7 +4,7 @@
 \alias{dyn.pca}
 \title{Dynamic PCA}
 \usage{
-dyn.pca(xx, q = NULL, ic.op = 4, kern.bandwidth.const = 4)
+dyn.pca(xx, q = NULL, ic.op = 4, kern.const = 4)
 }
 \arguments{
 \item{xx}{centred input time series matrix, with each row representing a time series}
@@ -13,7 +13,7 @@ dyn.pca(xx, q = NULL, ic.op = 4, kern.bandwidth.const = 4)
 
 \item{ic.op}{an index number for the information criterion (1 to 6)}
 
-\item{kern.bandwidth.const}{constant to determine bandwidth size}
+\item{kern.const}{constant to determine bandwidth size}
 }
 \value{
 A list containing
@@ -21,12 +21,9 @@ A list containing
 \item{\code{'q'}}{ number of factors}
 \item{\code{'spec'}}{ Spectral density matrices}
 \item{\code{'acv'}}{ Autocovariance matrices}
-\item{\code{'kern.bandwidth.const'}}{ Constant to determine bandwidth size}
+\item{\code{'kern.const'}}{ Constant to determine bandwidth size}
 }
 }
 \description{
 Performs principal components analysis of the autocovariance matrices.
-}
-\examples{
-dyn.pca(sample.data, q=2)
 }

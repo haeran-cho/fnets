@@ -12,7 +12,7 @@ idio.cv(
   path.length = 10,
   n.folds = 1,
   q = 0,
-  kern.bandwidth.const = 4,
+  kern.const = 4,
   cv.plot = TRUE
 )
 }
@@ -31,7 +31,7 @@ idio.cv(
 
 \item{q}{factor number}
 
-\item{kern.bandwidth.const}{constant to determine bandwidth size}
+\item{kern.const}{constant to determine bandwidth size}
 
 \item{cv.plot}{return a plot of the CV error against regularisation parameters, stratified by VAR order}
 }
@@ -51,6 +51,12 @@ Selects the prediction-optimal regularisation parameter for the estimation of th
 Further information can be found in Barigozzi, Cho and Owens (2021).
 }
 \examples{
+set.seed(222)
+n <- 200
+p<- 100
+chi <- sim.factor.M1(n,p)
+xi <- sim.idio(n,p)
+sample.data <- chi$data + xi$data
 idio.cv(sample.data, idio.method = "lasso", q=2)
 }
 \references{

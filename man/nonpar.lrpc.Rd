@@ -18,14 +18,14 @@ nonpar.lrpc(
 
 \item{x}{input time series matrix, with each row representing a time series}
 
-\item{eta}{regularisation parameter, if NULL this is selected by cross-validation}
+\item{eta}{regularisation parameter, if \code{eta = NULL} this is selected by cross-validation}
 
 \item{symmetric}{type of symmetry to enforce on output, one of 'min', 'max', 'avg', 'none'}
 
 \item{lrpc.cv.args}{A list specifying arguments to the cross-validation (CV) procedure containing:
 \itemize{
-   \item{\code{'n.folds'}}{ number of folds}
-   \item{\code{'path.length'}}{ number of lambda values to consider}
+   \item{n.folds}{number of folds}
+   \item{path.length}{number of lambda values to consider}
 }}
 
 \item{n.cores}{number of cores to use for parallel computing}
@@ -44,9 +44,18 @@ Returns a non-parametric estimate of the partial coherence matrix, possibly usin
 #nonpar.lrpc
 require(doParallel)
 require(lpSolve)
+set.seed(222)
+n <- 200
+p<- 100
+chi <- sim.factor.M1(n,p)
+xi <- sim.idio(n,p)
+sample.data <- chi$data + xi$data
 model <- fnets(sample.data, q=2, idio.method = "lasso")
 nonpar.lrpc(model, sample.data, 1, n.cores = 1)
 }
 \references{
 Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
+}
+\seealso{
+\link{param.lrpc}
 }

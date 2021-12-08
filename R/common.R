@@ -14,14 +14,11 @@ common.var.estimation <- function(xx, Gamma_c, q, var.order = NULL, max.var.orde
   if(q < 1) warning(paste0('There should be at least one factor for common component estimation!'))
 
   if(q >= 1){
-    # approach 1: for each permutation, obtain IRF and u (with cholesky identification), average the output, what FHLZ 2017 do
+    # for each permutation, obtain IRF and u (with cholesky identification), average the output, what FHLZ 2017 do
     irf.array <- array(0, dim = c(p, q, trunc.lags + 2, n.perm))
     u.array <- array(0, dim = c(q, n, n.perm))
 
-    # # approach 2: average A^(-1), average Z, obtain IRF and u (with cholesky identification)
-    # inv.var.est <- array(0, dim = c(p, p, trunc.lags + 2))
-    # res <- array(0, dim = c(p, n))
-    # res[, 1:var.order] <- NA
+
 
     for(ii in 1:n.perm){
       if(ii == 1) perm.index <- 1:p else perm.index <- sample(p, p)
@@ -37,17 +34,15 @@ common.var.estimation <- function(xx, Gamma_c, q, var.order = NULL, max.var.orde
         if(is.null(var.order)){
           bic <- common.bic(Gamma_c_perm, block, n, max.var.order)
           s <- which.min(bic[-1])
-          # print(s)
         } else s <- var.order
 
         tmp <- common.yw.est(Gamma_c_perm, block, s)$A
         A <- c(A, list(tmp))
         for(ll in 1:s) z[block, (max.var.order + 1):n] <- z[block, (max.var.order + 1):n] - tmp[, nblock * (ll - 1) + 1:nblock] %*% xx[pblock, (max.var.order + 1):n - ll]
       }
-      # res[perm.index, (var.order + 1):n] <- res[perm.index, (var.order + 1):n] + z[, (var.order + 1):n]/n.perm
 
       zz <- z[, (max.var.order + 1):n] %*% t(z[, (max.var.order + 1):n]) / (n - max.var.order)
-      svz <- svd(zz, nu = q, nv = 0) # plot(svz$d)
+      svz <- svd(zz, nu = q, nv = 0)
       R <- as.matrix(t(t(svz$u) * sqrt(svz$d[1:q])))
       u <- t(svz$u) %*% z / sqrt(svz$d[1:q])
 
@@ -57,7 +52,6 @@ common.var.estimation <- function(xx, Gamma_c, q, var.order = NULL, max.var.orde
         pblock <- perm.index[block]
         invA <- var.to.vma(A[[jj]], trunc.lags + 1)
         for(ll in 1:(trunc.lags + 2)){
-          # inv.var.est[pblock, pblock, ll] <- inv.var.est[pblock, pblock, ll] + invA[,, ll]/n.perm
           tmp.irf[pblock,, ll,  ] <- invA[,, ll] %*% R[block, ]
         }
       }
@@ -70,26 +64,9 @@ common.var.estimation <- function(xx, Gamma_c, q, var.order = NULL, max.var.orde
       u.array[,, ii] <- t(H) %*% u
     }
 
-    # irf.est <- array(0, dim = c(dim(irf.array)[1:3], 2))
-    # u.est <- array(0, dim = c(q, n, 2))
 
-    # approach 1
     irf.est <- apply(irf.array, c(1, 2, 3), mean)
     u.est <- apply(u.array, c(1, 2), mean)
-
-    # # approach 2
-    # zz <- res[, (var.order + 1):n] %*% t(res[, (var.order + 1):n]) / (n - var.order)
-    # svz <- svd(zz, nu = q, nv = 0)
-    # R <- t(t(svz$u) * sqrt(svz$d[1:q]))
-    # u <- t(svz$u) %*% z / sqrt(svz$d[1:q])
-    #
-    # tmp.irf <- irf.est[,,, 2] * 0
-    # for(ll in 1:(trunc.lags + 2)) tmp.irf[,, ll] <- inv.var.est[,, ll] %*% R
-    # B0 <- tmp.irf[1:q,, 1]
-    # C0 <- t(chol(B0%*%t(B0))) # cholesky identification
-    # H <- solve(B0) %*% C0
-    # for(ll in 1:(trunc.lags + 2)) irf.est[,, ll, 2] <- tmp.irf[,, ll] %*% H
-    # u.est[,, 2] <- t(H) %*% u
 
     out <- list(irf.array = irf.array, u.array = u.array, irf.est = irf.est, u.est = u.est)
     return(out)
@@ -110,7 +87,7 @@ common.var.estimation <- function(xx, Gamma_c, q, var.order = NULL, max.var.orde
 #' \item{r}{factor number}
 #' \item{h}{forecast horizon}
 #' }
-#' @example examples/predict.R
+#' @example R/examples/predict.R
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @references Forni, M., Hallin, M., Lippi, M., & Reichlin, L. (2005). The generalized dynamic factor model: one-sided estimation and forecasting. Journal of the American Statistical Association, 100(471), 830--840.
 #' @references Forni, M., Hallin, M., Lippi, M., & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
@@ -144,7 +121,6 @@ common.static.predict <- function(xx, Gamma_c, q, r = NULL, max.r = NULL, h = 1)
 
   sv <- svd(Gamma_c[,, 1], nu = max.r, nv = 0)
   if(is.null(r)) r <- which.max(sv$d[q:max.r]/sv$d[1 + q:max.r]) + q - 1
-                                #if(is.null(r)) r <- which.max(sv$d[1:max.r]/sv$d[1 + 1:max.r])
 
   is <- sv$u[, 1:r, drop = FALSE] %*% t(sv$u[, 1:r, drop = FALSE]) %*% xx
   if(h >= 1){

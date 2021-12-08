@@ -4,10 +4,10 @@
 \alias{hl.factor.number}
 \title{Factor number estimator of Hallin and Liska (2011)}
 \usage{
-hl.factor.number(xx, q.max, mm, w = NULL, do.plot = TRUE)
+hl.factor.number(x, q.max, mm, w = NULL, do.plot = TRUE, center = TRUE)
 }
 \arguments{
-\item{xx}{centred input time series matrix, with each row representing a time series}
+\item{x}{input time series matrix, with each row representing a time series}
 
 \item{q.max}{the maximum number of factors to consider}
 
@@ -16,6 +16,8 @@ hl.factor.number(xx, q.max, mm, w = NULL, do.plot = TRUE)
 \item{w}{weight vector, defaults to Bartlett weights determined by \code{mm}}
 
 \item{do.plot}{return a plot of the information criteria}
+
+\item{center}{demean the input \code{x}}
 }
 \value{
 A list containing
@@ -25,10 +27,18 @@ A list containing
 \item{\code{'Sigma_x'}}{ Spectral density of x}
 \item{\code{'sv'}}{ singular value decomposition of Sigma_x}
 }
-\examples hl.factor.number(sample.data,6, 10)
 }
 \description{
 Selects the factor number \code{q} based on 6 information criteria
+}
+\examples{
+set.seed(222)
+n <- 200
+p<- 100
+chi <- sim.factor.M1(n,p)
+xi <- sim.idio(n,p)
+sample.data <- chi$data + xi$data
+hl.factor.number(sample.data,6, 10)
 }
 \references{
 Hallin, M., & Liška, R. (2007). Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.

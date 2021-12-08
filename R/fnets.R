@@ -1,4 +1,3 @@
-#library(igraph)
 
 #' @title Factor-adjusted network analysis
 #' @description This function estimates the spectral density and autocovariance matrices of the common and the idiosyncratic components, impulse response function and common shocks, and (sparse) VAR transition matrix and innovation covariance matrix.
@@ -8,7 +7,7 @@
 #' @param x input time series matrix, with each row representing a time series
 #' @param q the number of factors, if q=NULL this is selected by the information criterion-based estimator of Hallin and Liska (2007)
 #' @param ic.op an index number for the information criterion
-#' @param kern.bandwidth.const constant to determine bandwidth size
+#' @param kern.const constant to determine bandwidth size
 #' @param common.var.args A list specifying the estimator for the common component. This contains:
 #' \itemize{
 #'    \item{\code{'var.order'}}{ the order of the VAR model, if NULL then selected blockwise by BIC}
@@ -38,12 +37,12 @@
 #' \item{\code{'common.var'}}{ Estimated common component}
 #' \item{\code{'idio.var'}}{ Estimated idiosyncratic component}
 #' \item{\code{'mean.x'}}{ Removed means of \code{x} }
-#' \item{\code{'kern.bandwidth.const'}}{ Constant to determine bandwidth size}
+#' \item{\code{'kern.const'}}{ Constant to determine bandwidth size}
 #' }
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
-#' @examples fnets(sample.data, q=2, idio.method = "lasso")
+#' @example R/examples/fnets.R
 #' @export
-fnets <- function(x, q = NULL, ic.op = 4, kern.bandwidth.const = 4,
+fnets <- function(x, q = NULL, ic.op = 4, kern.const = 4,
                            common.var.args = list(var.order = 1, max.var.order = NULL, trunc.lags = 20, n.perm = 10),
                            idio.var.order = 1, idio.method = c('ds', 'lasso'),
                            idio.cv.args = list(n.folds = 1, path.length = 10, symmetric = 'min', cv.plot = TRUE),
@@ -56,7 +55,7 @@ fnets <- function(x, q = NULL, ic.op = 4, kern.bandwidth.const = 4,
   xx <- x - mean.x
 
   # dynamic pca
-  dpca <- dyn.pca(xx, q, ic.op, kern.bandwidth.const)
+  dpca <- dyn.pca(xx, q, ic.op, kern.const)
   q <- dpca$q
   spec <- dpca$spec
   acv <- dpca$acv
@@ -72,13 +71,13 @@ fnets <- function(x, q = NULL, ic.op = 4, kern.bandwidth.const = 4,
 
   icv <- idio.cv(xx, lambda.max = max(abs(GG)), var.order = idio.var.order, idio.method = idio.method,
           path.length = idio.cv.args$path.length, n.folds = idio.cv.args$n.folds,
-          q = q, kern.bandwidth.const = kern.bandwidth.const, cv.plot = idio.cv.args$n.folds)
+          q = q, kern.const = kern.const, cv.plot = idio.cv.args$n.folds)
   if(idio.method == 'lasso') ive <- var.lasso(GG, gg, lambda = icv$lambda, symmetric = idio.cv.args$symmetric)
   if(idio.method == 'ds') ive <- var.dantzig(GG, gg, lambda = icv$lambda, symmetric = idio.cv.args$symmetric)
 
   out <- list(q = q, spec = spec, acv = acv,
               common.var = cve, idio.var = ive, mean.x = mean.x,
-              kern.bandwidth.const = kern.bandwidth.const)
+              kern.const = kern.const)
   attr(out, 'class') <- 'fnets'
   return(out)
 
@@ -89,22 +88,21 @@ fnets <- function(x, q = NULL, ic.op = 4, kern.bandwidth.const = 4,
 #' @param xx centred input time series matrix, with each row representing a time series
 #' @param q the number of factors, if q=NULL this is selected by the information criterion-based estimator of Hallin and Liska (2007)
 #' @param ic.op an index number for the information criterion (1 to 6)
-#' @param kern.bandwidth.const constant to determine bandwidth size
+#' @param kern.const constant to determine bandwidth size
 #' @return A list containing
 #' \itemize{
 #' \item{\code{'q'}}{ number of factors}
 #' \item{\code{'spec'}}{ Spectral density matrices}
 #' \item{\code{'acv'}}{ Autocovariance matrices}
-#' \item{\code{'kern.bandwidth.const'}}{ Constant to determine bandwidth size}
+#' \item{\code{'kern.const'}}{ Constant to determine bandwidth size}
 #' }
-#' @examples dyn.pca(sample.data, q=2)
-#' @export
-dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.bandwidth.const = 4){
+# #' @export
+dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.const = 4){
 
   p <- dim(xx)[1]
   n <- dim(xx)[2]
 
-  mm <- min(max(1, kern.bandwidth.const * floor((n/log(n))^(1/3))), floor(n/4) - 1)
+  mm <- min(max(1, kern.const * floor((n/log(n))^(1/3))), floor(n/4) - 1)
   len <- 2 * mm
   w <- Bartlett.weights(((-mm):mm)/mm)
 
@@ -127,7 +125,7 @@ dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.bandwidth.const = 4){
   }
   if(is.null(q)){
     q.max <- min(50, floor(sqrt(min(n - 1, p))))
-    qq <- hl.factor.number(xx, q.max, mm, w)
+    qq <- hl.factor.number(xx, q.max, mm, w, center = FALSE)
     q <- qq$q.hat[ic.op]
     Gamma_x <- qq$Gamma_x
     Sigma_x <- qq$Sigma_x
@@ -145,26 +143,25 @@ dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.bandwidth.const = 4){
     Gamma_c <-  (aperm(apply(Sigma_c, c(1, 2), fft, inverse = TRUE), c(2, 3, 1)) ) * (2 * pi) / (2 * mm + 1)
     Gamma_c <- Re(Gamma_c)
   }
-  # max(abs(Im(Gamma_c)))
-  # Gamma_i <-  (aperm(apply(Sigma_i, c(1, 2), fft, inverse = TRUE), c(2, 3, 1)) ) * (2 * pi) / (2 * mm + 1)
   Sigma_i <- Sigma_x - Sigma_c
   Gamma_i <- Gamma_x - Gamma_c
 
   spec <- list(Sigma_x = Sigma_x, Sigma_c = Sigma_c, Sigma_i = Sigma_i)
   acv <- list(Gamma_x = Gamma_x, Gamma_c = Re(Gamma_c), Gamma_i = Re(Gamma_i))
 
-  out <- list(q = q, spec = spec, acv = acv, kern.bandwidth.const = kern.bandwidth.const)
+  out <- list(q = q, spec = spec, acv = acv, kern.const = kern.const)
   return(out)
 
 }
 
 #' @title Factor number estimator of Hallin and Liska (2011)
 #' @description Selects the factor number \code{q} based on 6 information criteria
-#' @param xx centred input time series matrix, with each row representing a time series
+#' @param x input time series matrix, with each row representing a time series
 #' @param q.max the maximum number of factors to consider
 #' @param mm bandwidth scalar
 #' @param w weight vector, defaults to Bartlett weights determined by \code{mm}
 #' @param do.plot return a plot of the information criteria
+#' @param center demean the input \code{x}
 #' @return A list containing
 #' \itemize{
 #' \item{\code{'q.hat'}}{ Estimated factor numbers corresponding to each criterion}
@@ -172,12 +169,17 @@ dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.bandwidth.const = 4){
 #' \item{\code{'Sigma_x'}}{ Spectral density of x}
 #' \item{\code{'sv'}}{ singular value decomposition of Sigma_x}
 #' }
-#' \examples hl.factor.number(sample.data,6, 10)
+#' @example R/examples/hlfactornumber.R
 #' @references Hallin, M., & Liška, R. (2007). Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 #' @export
-hl.factor.number <- function(xx, q.max, mm, w=NULL, do.plot = TRUE){
+hl.factor.number <- function(x, q.max, mm, w=NULL, do.plot = TRUE, center = TRUE){
+  p <- dim(x)[1]; n <- dim(x)[2]
+
+  if(center) mean.x <- apply(x, 1, mean) else mean.x <- rep(0, p)
+  xx <- x - mean.x
+
   if(is.null(w)) w <- Bartlett.weights(((-mm):mm)/mm)
-  p <- dim(xx)[1]; n <- dim(xx)[2]
+
 
   p.seq <- floor(3*p/4 + (1:10) * p/40)
   n.seq <- n - (9:0) * floor(n/20)
@@ -261,6 +263,7 @@ hl.factor.number <- function(xx, q.max, mm, w=NULL, do.plot = TRUE){
 #' @param h forecast horizon
 #' @param common.method which of "static" or "var" to forecast the common component with
 #' @param r factor number, if r=NULL this is selected using the maximal eigenratio
+#' @param ... further arguments
 #' @return A list containing
 #' \itemize{
 #' \item{\code{'fitted'}}{ \code{x} in-sample estimation}
@@ -269,10 +272,10 @@ hl.factor.number <- function(xx, q.max, mm, w=NULL, do.plot = TRUE){
 #' \item{\code{'idio.pred'}}{ Prediction for the idiosyncratic component}
 #' \item{\code{'x.mean'}}{ removed mean of \code{x} }
 #' }
-#' @example examples/predict.R
+#' @example R/examples/predict.R
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @export
-predict.fnets <- function(object, x, h = 1, common.method = c('static', 'var'), r = NULL){
+predict.fnets <- function(object, x, h = 1, common.method = c('static', 'var'), r = NULL, ...){
 
   cpre <- common.predict(object, x, h, common.method, r)
   ipre <- idio.predict(object, x, cpre, h)
@@ -286,7 +289,7 @@ predict.fnets <- function(object, x, h = 1, common.method = c('static', 'var'), 
 #' @title Plot fnets object
 #' @method plot fnets
 #' @description plots the idiosyncratic component of the fnets object as a Granger causal network, either as a network graph or a heatmap
-#' @param object fnets object
+#' @param x fnets object
 #' @param type whether to plot a "network" or "heatmap"
 #' @param names character vector of node names
 #' @param groups integer vector denoting groups for "network" plots
@@ -294,9 +297,10 @@ predict.fnets <- function(object, x, h = 1, common.method = c('static', 'var'), 
 #' @param size which type of degree to use for node size in "network" plots, one of "all", "out", "in", "total"
 #' @param ... additional arguments
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
+#' @example R/examples/plot.R
 #' @export
-plot.fnets <- function(object, type = "network",  names = NULL, groups = NULL, threshold = 0, size = NULL, ...){
-  A <- abs(t(object$idio.var$beta)) ## absolute value graph
+plot.fnets <- function(x, type = "network",  names = NULL, groups = NULL, threshold = 0, size = NULL, ...){
+  A <- abs(t(x$idio.var$beta)) ## absolute value graph
   A[A < threshold] <- 0
   p <- dim(A)[1]
   d <- dim(A)[2]/dim(A)[1]
@@ -309,13 +313,12 @@ plot.fnets <- function(object, type = "network",  names = NULL, groups = NULL, t
       mark.groups[[ii]] <- permii
       perm <- c(perm, permii)
     }
-   # perm <- Matrix::invPerm(perm)
   } else perm <- 1:p
 
   # Granger causal network
   granger.mat <- matrix(0, p, p)
   for(ll in 1:d) granger.mat <- granger.mat + A[, (ll - 1) * p + 1:p]
-  granger.mat <- granger.mat[perm,perm]#granger <- permute(granger, perm) #
+  granger.mat <- granger.mat[perm,perm]
 
   if(type=="network"){
     granger <- igraph::graph_from_adjacency_matrix(granger.mat, mode = "directed", weighted=TRUE, diag = FALSE)
@@ -324,9 +327,9 @@ plot.fnets <- function(object, type = "network",  names = NULL, groups = NULL, t
     if(!is.null(names)) V(granger)$name <- names[perm]
     l_granger <- igraph::layout_in_circle(granger)
     par(mfrow = c(1,1))
-    plot.igraph(granger, main = "Granger", vertex.label = V(granger)$name, layout = l_granger, vertex.label.font = 2, #mark.groups = mark.groups,
-              vertex.label.color = "black", edge.color = "gray40", edge.arrow.size = 0.1, vertex.size = degree, #arrow.width = 5,
-              vertex.shape ="circle", vertex.color = groups[perm], vertex.label.cex = 0.8) #"light blue"
+    plot.igraph(granger, main = "Granger", vertex.label = V(granger)$name, layout = l_granger, vertex.label.font = 2,
+              vertex.label.color = "black", edge.color = "gray40", edge.arrow.size = 0.1, vertex.size = degree,
+              vertex.shape ="circle", vertex.color = groups[perm], vertex.label.cex = 0.8)
   }
   else if(type=="heatmap"){
     mv <- max(abs(granger.mat)) * 1.01
@@ -346,6 +349,7 @@ plot.fnets <- function(object, type = "network",  names = NULL, groups = NULL, t
 ##
 
 # #' @export
+#' @title Bartlett weights
 #' @description internal function
 #' @keywords internal
 Bartlett.weights <- function(x) 1 - abs(x)

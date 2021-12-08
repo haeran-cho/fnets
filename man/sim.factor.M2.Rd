@@ -43,3 +43,6 @@ Simulate data from a static factor model (Model 2)
 \references{
 Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 }
+\seealso{
+\link{sim.factor.M1}
+}

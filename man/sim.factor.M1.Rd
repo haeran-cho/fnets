@@ -40,3 +40,6 @@ Simulate data from a dynamic factor model (Model 1)
 \references{
 Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 }
+\seealso{
+\link{sim.factor.M2}
+}

@@ -5,7 +5,7 @@
 \title{Plot fnets.lrpc object}
 \usage{
 \method{plot}{fnets.lrpc}(
-  object,
+  x,
   type = "network",
   names = NULL,
   groups = NULL,
@@ -15,7 +15,7 @@
 )
 }
 \arguments{
-\item{object}{fnets.lrpc object}
+\item{x}{fnets.lrpc object}
 
 \item{type}{whether to plot a "network" or "heatmap"}
 
