@@ -8,8 +8,8 @@ param.lrpc(
   object,
   x,
   eta = NULL,
-  symmetric = c("min", "max", "avg", "none"),
-  lrpc.cv.args = list(n.folds = 1, path.length = 10),
+  lrpc.cv.args = list(n.folds = 1, path.length = 10, symmetric = "min"),
+  correct.zero.diag = FALSE,
   n.cores = min(parallel::detectCores() - 1, 3)
 )
 }
@@ -18,15 +18,16 @@ param.lrpc(
 
 \item{x}{input time series matrix, with each row representing a time series}
 
-\item{eta}{regularisation parameter, if NULL this is selected by cross-validation}
-
-\item{symmetric}{type of symmetry to enforce on output, one of 'min', 'max', 'avg', 'none'}
+\item{eta}{regularisation parameter, if \code{eta = NULL} this is selected by cross-validation}
 
 \item{lrpc.cv.args}{A list specifying arguments to the cross-validation (CV) procedure containing:
 \itemize{
-   \item{\code{'n.folds'}}{number of folds}
-   \item{\code{'path.length'}}{number of lambda values to consider}
+   \item{n.folds}{ number of folds}
+   \item{path.length}{ number of lambda values to consider}
+   \item{symmetric}{ symmetric type of symmetry to enforce on output, one of 'min', 'max', 'avg', 'none'}
 }}
+
+\item{correct.zero.diag}{correct for 0 entries on the diagonal}
 
 \item{n.cores}{number of cores to use for parallel computing}
 }

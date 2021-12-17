@@ -2,9 +2,9 @@
 % Please edit documentation in R/sim.R
 \name{sim.factor.M1}
 \alias{sim.factor.M1}
-\title{Simulate data from a dynamic factor model (Model 1)}
+\title{Simulate data from a dynamic factor model (Model 1) with factor number \code{r = q * lags}}
 \usage{
-sim.factor.M1(n, p, q = 2, r = 4, do.scale = T, loadings = NULL, K = NULL)
+sim.factor.M1(n, p, q = 2, lags = 2, do.scale = T, loadings = NULL, D = NULL)
 }
 \arguments{
 \item{n}{sample size}
@@ -13,26 +13,26 @@ sim.factor.M1(n, p, q = 2, r = 4, do.scale = T, loadings = NULL, K = NULL)
 
 \item{q}{dynamic dimension (default 2)}
 
-\item{r}{factor number (default 4)}
+\item{lags}{number of lags for which the observed series depends on the factor series (default 2)}
 
 \item{do.scale}{scale the output (default \code{TRUE} )}
 
 \item{loadings}{loading matrix, dimension p by r (default null)}
 
-\item{K}{transition matrix, dimension r by q (default null)}
+\item{D}{transition matrix, dimension q by q (default null)}
 }
 \value{
 A list containing
 \itemize{
 \item{\code{'data'}}{ generated series}
 \item{\code{'shocks'}}{ \code{q}-dimensional shock series}
-\item{\code{'factors'}}{ \code{r}-dimensional factor series}
-\item{\code{'K'}}{ transition matrix}
+\item{\code{'factors'}}{ \code{q}-dimensional factor series}
+\item{\code{'D'}}{ transition matrix}
 \item{\code{'loadings'}}{ factor loadings}
 }
 }
 \description{
-Simulate data from a dynamic factor model (Model 1)
+Simulate data from a dynamic factor model (Model 1) with factor number \code{r = q * lags}
 }
 \examples{
     sim.factor.M1(100,10)

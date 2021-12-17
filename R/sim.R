@@ -1,21 +1,21 @@
 # simulate data
 
-#' Simulate data from a dynamic factor model (Model 1)
+#' Simulate data from a dynamic factor model (Model 1) with factor number \code{r = q * lags}
 #'
 #' @param n sample size
 #' @param p number of series
 #' @param q dynamic dimension (default 2)
-#' @param r factor number (default 4)
+#' @param lags number of lags for which the observed series depends on the factor series (default 2)
 #' @param do.scale scale the output (default \code{TRUE} )
-#' @param K  transition matrix, dimension r by q (default null)
+#' @param D transition matrix, dimension q by q (default null)
 #' @param loadings  loading matrix, dimension p by r (default null)
 #'
 #' @return  A list containing
 #' \itemize{
 #' \item{\code{'data'}}{ generated series}
 #' \item{\code{'shocks'}}{ \code{q}-dimensional shock series}
-#' \item{\code{'factors'}}{ \code{r}-dimensional factor series}
-#' \item{\code{'K'}}{ transition matrix}
+#' \item{\code{'factors'}}{ \code{q}-dimensional factor series}
+#' \item{\code{'D'}}{ transition matrix}
 #' \item{\code{'loadings'}}{ factor loadings}
 #' }
 #' @export
@@ -24,26 +24,33 @@
 #' @seealso \link{sim.factor.M2}
 #' @examples
 #'     sim.factor.M1(100,10)
-sim.factor.M1 <- function(n, p, q = 2, r = 4, do.scale = T, loadings=NULL, K = NULL){
-  stopifnot(r>=q)
+sim.factor.M1 <- function(n, p, q = 2, lags = 2, do.scale = T, loadings=NULL, D = NULL){
+  r <- q * lags
   burnin <- 100
   u2 <- matrix(rnorm(q * (n + burnin)), nrow = q)
-  if(is.null(K) )K <- matrix(runif(r * q, -1, 1), nrow = r)
-  D <- matrix(runif(r^2, -1, 1), nrow = r)
-  D <- D/norm(D, type = '2')
-  D <- runif(1, .4, .9) * D
+  if(is.null(D)){
+    D <- matrix(runif(q^2, 0, .3), nrow = q) #matrix(runif(r^2, -1, 1), nrow = r)
+    diag(D) <- runif(q, .5,.8)
+    D <- 0.7 * D/norm(D, type = '2')
+  } else stopifnot(all(dim(D) == c(q,q)))
 
-  f <- matrix(0, nrow = r, ncol = n + burnin)
-  f[, 1] <-  K %*% u2[, 1]
-  for(t in 2:(n + burnin)) f[, t] <- D %*% f[, t - 1] + K %*% u2[, t]
-  f <- f[, -(1:burnin)]
+  #D <- runif(1, .4, .9) * D
+
+  f <- matrix(0, nrow = q, ncol = n + burnin)
+  f[, 1] <-  u2[, 1]
+  for(t in 2:(n + burnin)) f[, t] <- D %*% f[, t - 1] +  u2[, t] #K %*%
+  f <- f[, -(1:(burnin-lags+1) )]
   u2 <- u2[, -(1:burnin)]
 
-  if(is.null(loadings) )loadings <- matrix(runif(p * r, -1, 1), nrow = p)
-  chi <- loadings %*% f
+
+  if(is.null(loadings))  loadings <- matrix(rnorm(p*r, 1,1), nrow = p) else stopifnot(all(dim(loadings) == c(p,r)))
+  chi <- matrix(0, p, n)#
+  for (ii in 1:lags) {
+    chi <- chi + loadings[,(ii-1)*q + 1:q] %*% f[,1:n + lags - ii]
+  }
 
   if(do.scale) chi <- chi/apply(chi, 1, sd)
-  return(list(data = chi, shocks = u2, factors = f, loadings = loadings, K=K))
+  return(list(data = chi, shocks = u2, factors = f, loadings = loadings, D=D))
 }
 
 
