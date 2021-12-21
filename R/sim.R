@@ -1,6 +1,6 @@
 # simulate data
 
-#' Simulate data from a dynamic factor model (Model 1) with factor number \code{r = q * lags}
+#' Simulate data from a static factor model (Model 2) with factor number \code{r = q * lags}
 #'
 #' @param n sample size
 #' @param p number of series
@@ -21,10 +21,10 @@
 #' @export
 #'
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
-#' @seealso \link{sim.factor.M2}
+#' @seealso \link{sim.factor.M1}
 #' @examples
-#'     sim.factor.M1(100,10)
-sim.factor.M1 <- function(n, p, q = 2, lags = 2, do.scale = T, loadings=NULL, D = NULL){
+#'     sim.factor.M2(100,10)
+sim.factor.M2 <- function(n, p, q = 2, lags = 2, do.scale = T, loadings = NULL, D = NULL){
   r <- q * lags
   burnin <- 100
   u2 <- matrix(rnorm(q * (n + burnin)), nrow = q)
@@ -43,7 +43,7 @@ sim.factor.M1 <- function(n, p, q = 2, lags = 2, do.scale = T, loadings=NULL, D 
   u2 <- u2[, -(1:burnin)]
 
 
-  if(is.null(loadings))  loadings <- matrix(rnorm(p*r, 1,1), nrow = p) else stopifnot(all(dim(loadings) == c(p,r)))
+  if(is.null(loadings))  loadings <- matrix(rnorm(p*r, 0,1), nrow = p) else stopifnot(all(dim(loadings) == c(p,r)))
   chi <- matrix(0, p, n)#
   for (ii in 1:lags) {
     chi <- chi + loadings[,(ii-1)*q + 1:q] %*% f[,1:n + lags - ii]
@@ -55,7 +55,7 @@ sim.factor.M1 <- function(n, p, q = 2, lags = 2, do.scale = T, loadings=NULL, D 
 
 
 
-#' Simulate data from a static factor model (Model 2)
+#' Simulate data from a dynamic factor model (Model 1)
 #'
 #' @param n sample size
 #' @param p number of series
@@ -72,10 +72,10 @@ sim.factor.M1 <- function(n, p, q = 2, lags = 2, do.scale = T, loadings=NULL, D 
 #' @export
 #'
 #' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
-#' @seealso \link{sim.factor.M1}
+#' @seealso \link{sim.factor.M2}
 #' @examples
-#'     sim.factor.M2(100,10)
-sim.factor.M2 <- function(n, p, trunc.lags = 20, do.scale = T, a1 = NULL, a2 = NULL, alpha1 = NULL, alpha2 = NULL){
+#'     sim.factor.M1(100,10)
+sim.factor.M1 <- function(n, p, trunc.lags = 20, do.scale = T, a1 = NULL, a2 = NULL, alpha1 = NULL, alpha2 = NULL){
   stopifnot(n>=trunc.lags)
   chi <- matrix(0, p, n)
   u1 <- rnorm(n + trunc.lags)
