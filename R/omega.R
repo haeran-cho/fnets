@@ -32,7 +32,7 @@ nonpar.lrpc <- function(object, x, eta = NULL,
   if(is.null(eta)){
     dcv <- direct.cv(object, xx, target = 'spec', symmetric = lrpc.cv.args$symmetric,
                      path.length = lrpc.cv.args$path.length, n.folds = lrpc.cv.args$n.folds,
-                     q = object$q, kern.bandwidth.const = object$kern.bandwidth.const, n.cores = n.cores)
+                     q = object$q, kern.const = object$kern.const, n.cores = n.cores)
     eta <- dcv$eta
   }
   DD <- direct.inv.est(GG, eta = eta, symmetric = lrpc.cv.args$symmetric,
@@ -84,7 +84,7 @@ param.lrpc <- function(object, x, eta = NULL,
   if(is.null(eta)){
     dcv <- direct.cv(object, xx, target = 'acv', symmetric = lrpc.cv.args$symmetric,
                      path.length = lrpc.cv.args$path.length, n.folds = lrpc.cv.args$n.folds,
-                     q = object$q, kern.bandwidth.const = object$kern.bandwidth.const, n.cores = n.cores)
+                     q = object$q, kern.const = object$kern.const, n.cores = n.cores)
     eta <- dcv$eta
   }
   Delta <- direct.inv.est(GG, eta = eta, symmetric = lrpc.cv.args$symmetric,
@@ -180,7 +180,7 @@ direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', '
     b1 <- rep(eta, p) - ee
     b2 <- rep(eta, p) + ee
     f.rhs <- c(b1, b2)
-    lpout <- lp('min', f.obj, f.con, f.dir, f.rhs)
+    lpout <- lpSolve::lp('min', f.obj, f.con, f.dir, f.rhs)
     lpout$solution[1:p] - lpout$solution[-(1:p)]
   }
   parallel::stopCluster(cl)
@@ -285,7 +285,9 @@ plot.fnets.lrpc <- function(x, type = "network", names = NULL, groups = NULL, th
                 vertex.shape ="circle", vertex.color = groups[perm], vertex.label.cex = 0.8)
   }
   else if(type=="heatmap"){ ## HEATMAP
+
     mv <- max(abs(O)) * 1.01
+    mv <- max(mv,1e-4)
     fields::imagePlot(O, axes = FALSE,
                       col = rev(RColorBrewer::brewer.pal(11, 'RdBu')),
                       breaks = seq(-mv, mv, length.out = 12),
@@ -296,7 +298,8 @@ plot.fnets.lrpc <- function(x, type = "network", names = NULL, groups = NULL, th
     if(!is.null(x$Delta)){
       Delta <- x$Delta[perm,perm]
       mv <- max(abs(Delta)) * 1.01
-      fields::imagePlot(O, axes = FALSE,
+      mv <- max(mv,1e-4)
+      fields::imagePlot(Delta, axes = FALSE,
                         col = rev(RColorBrewer::brewer.pal(11, 'RdBu')),
                         breaks = seq(-mv, mv, length.out = 12),
                         main = "Delta" )

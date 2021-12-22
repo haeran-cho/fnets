@@ -200,7 +200,7 @@ var.dantzig <- function(GG, gg, lambda, symmetric = 'min', n.cores = min(paralle
     b1 <- rep(lambda, p * d) - gg[, ii]
     b2 <- rep(lambda, p * d) + gg[, ii]
     f.rhs <- c(b1, b2)
-    lpout <- lp('min', f.obj, f.con, f.dir, f.rhs)
+    lpout <- lpSolve::lp('min', f.obj, f.con, f.dir, f.rhs)
     lpout$solution[1:(p * d)] - lpout$solution[-(1:(p * d))]
   }
   parallel::stopCluster(cl)

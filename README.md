@@ -36,14 +36,17 @@ ip <- idio.predict(model,sample.data, cpre)
 
 Plot the model:
 ```
-plot(model)
+plot(model, type = "heatmap")
 ```
+![Granger](/figures/model.pdf)
 
 Estimate and plot the long-run partial correlation network:
 ```
-net <- param.lrpc(model, sample.data, 1, n.cores = 1)
-plot(net)
+net <- param.lrpc(model, sample.data)
+plot(net, type="heatmap")
 ```
+![Omega](/figures/omega.pdf)
+![Delta](/figures/delta.pdf)
 
 
 

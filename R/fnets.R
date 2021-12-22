@@ -333,6 +333,7 @@ plot.fnets <- function(x, type = "network",  names = NULL, groups = NULL, thresh
   }
   else if(type=="heatmap"){
     mv <- max(abs(granger.mat)) * 1.01
+    mv <- max(mv,1e-4)
     fields::imagePlot(granger.mat, axes = FALSE,
                       col = (RColorBrewer::brewer.pal(9, 'Reds') ),
                       breaks = seq(0, mv, length.out = 10),
