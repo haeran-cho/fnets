@@ -2,37 +2,40 @@
 % Please edit documentation in R/sim.R
 \name{sim.factor.M1}
 \alias{sim.factor.M1}
-\title{Simulate data from a dynamic factor model (Model 1) with factor number \code{r = q * lags}}
+\title{Simulate data from a dynamic factor model (Model 1)}
 \usage{
-sim.factor.M1(n, p, q = 2, lags = 2, do.scale = T, loadings = NULL, D = NULL)
+sim.factor.M1(
+  n,
+  p,
+  trunc.lags = 20,
+  do.scale = T,
+  a1 = NULL,
+  a2 = NULL,
+  alpha1 = NULL,
+  alpha2 = NULL
+)
 }
 \arguments{
 \item{n}{sample size}
 
 \item{p}{number of series}
 
-\item{q}{dynamic dimension (default 2)}
-
-\item{lags}{number of lags for which the observed series depends on the factor series (default 2)}
+\item{trunc.lags}{lag for moving average representation}
 
 \item{do.scale}{scale the output (default \code{TRUE} )}
 
-\item{loadings}{loading matrix, dimension p by r (default null)}
-
-\item{D}{transition matrix, dimension q by q (default null)}
+\item{a1, a2, alpha1, alpha2}{generative parameters (default null, see reference)}
 }
 \value{
 A list containing
 \itemize{
 \item{\code{'data'}}{ generated series}
-\item{\code{'shocks'}}{ \code{q}-dimensional shock series}
-\item{\code{'factors'}}{ \code{q}-dimensional factor series}
-\item{\code{'D'}}{ transition matrix}
-\item{\code{'loadings'}}{ factor loadings}
+\item{\code{'shocks'}}{ 2-dimensional shock series}
+\item{\code{'a1','a2','alpha1','alpha2'}}{ generative parameters}
 }
 }
 \description{
-Simulate data from a dynamic factor model (Model 1) with factor number \code{r = q * lags}
+Simulate data from a dynamic factor model (Model 1)
 }
 \examples{
     sim.factor.M1(100,10)

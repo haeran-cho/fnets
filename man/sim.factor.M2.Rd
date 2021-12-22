@@ -2,40 +2,37 @@
 % Please edit documentation in R/sim.R
 \name{sim.factor.M2}
 \alias{sim.factor.M2}
-\title{Simulate data from a static factor model (Model 2)}
+\title{Simulate data from a static factor model (Model 2) with factor number \code{r = q * lags}}
 \usage{
-sim.factor.M2(
-  n,
-  p,
-  trunc.lags = 20,
-  do.scale = T,
-  a1 = NULL,
-  a2 = NULL,
-  alpha1 = NULL,
-  alpha2 = NULL
-)
+sim.factor.M2(n, p, q = 2, lags = 2, do.scale = T, loadings = NULL, D = NULL)
 }
 \arguments{
 \item{n}{sample size}
 
 \item{p}{number of series}
 
-\item{trunc.lags}{lag for moving average representation}
+\item{q}{dynamic dimension (default 2)}
+
+\item{lags}{number of lags for which the observed series depends on the factor series (default 2)}
 
 \item{do.scale}{scale the output (default \code{TRUE} )}
 
-\item{a1, a2, alpha1, alpha2}{generative parameters (default null, see reference)}
+\item{loadings}{loading matrix, dimension p by r (default null)}
+
+\item{D}{transition matrix, dimension q by q (default null)}
 }
 \value{
 A list containing
 \itemize{
 \item{\code{'data'}}{ generated series}
-\item{\code{'shocks'}}{ 2-dimensional shock series}
-\item{\code{'a1','a2','alpha1','alpha2'}}{ generative parameters}
+\item{\code{'shocks'}}{ \code{q}-dimensional shock series}
+\item{\code{'factors'}}{ \code{q}-dimensional factor series}
+\item{\code{'D'}}{ transition matrix}
+\item{\code{'loadings'}}{ factor loadings}
 }
 }
 \description{
-Simulate data from a static factor model (Model 2)
+Simulate data from a static factor model (Model 2) with factor number \code{r = q * lags}
 }
 \examples{
     sim.factor.M2(100,10)

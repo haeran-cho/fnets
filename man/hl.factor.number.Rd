@@ -35,7 +35,7 @@ Selects the factor number \code{q} based on 6 information criteria
 set.seed(222)
 n <- 200
 p<- 100
-chi <- sim.factor.M1(n,p)
+chi <- sim.factor.M2(n,p)
 xi <- sim.idio(n,p)
 sample.data <- chi$data + xi$data
 hl.factor.number(sample.data,6, 10)
