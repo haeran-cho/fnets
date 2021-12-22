@@ -38,15 +38,16 @@ Plot the model:
 ```
 plot(model, type = "heatmap")
 ```
-![Granger](figures/model.pdf)
+![Granger](figures/model.png)
 
 Estimate and plot the long-run partial correlation network:
 ```
 net <- param.lrpc(model, sample.data)
 plot(net, type="heatmap")
 ```
-![Omega](figures/omega.pdf)
-![Delta](figures/delta.pdf)
+![Omega](figures/omega.png)
+
+![Delta](figures/delta.png)
 
 
 
