@@ -37,14 +37,14 @@ plot(model, type = "heatmap")
 ```
 ![Granger](figures/model.png)
 
-Estimate and plot the long-run partial correlation network:
+Estimate and plot the partial-correlation and long-run partial correlation-based networks:
 ```
 net <- param.lrpc(model, x)
 plot(net, type = "heatmap")
 ```
-![Omega](figures/omega.png)
-
 ![Delta](figures/delta.png)
+
+![Omega](figures/omega.png)
 
 Perform h-step ahead forecast 
 ```
