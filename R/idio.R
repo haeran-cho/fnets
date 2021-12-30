@@ -2,10 +2,9 @@
 #' @description Estimates the VAR parameter matrices via \code{l1}-regularised Yule-Walker estimation
 #' and innovation covariance matrix via constrained \code{l1}-minimisation.
 #' @details Further information can be found in Barigozzi, Cho and Owens (2021).
-#'
 #' @param x input time series matrix, with each row representing a variable
 #' @param center whether to de-mean the input \code{x} row-wise
-#' @param method a string specifying the type of \code{l1}-regularised estimator to be adopted for VAR process estimation; possible values are:
+#' @param method a string specifying the method to be adopted for VAR process estimation; possible values are:
 #' \itemize{
 #'    \item{"lasso"}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
 #'    \item{"ds"}{ Dantzig Selector-type constrained \code{l1}-minimisation}
@@ -19,23 +18,24 @@
 #'    \item{path.length}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #'    \item{do.plot}{ whether to plot the output of the cross validation step}
 #' }
-#' @param n.cores number of cores to use for parallel computing; applies when \code{method = "ds"}
-#' @param niter maximum number of descent steps; applies when \code{method = "lasso"}
-#' @param tol numerical tolerance for increases in the loss function; applies when \code{method = "lasso"}
-#' @return A list which contains the following fields:
+#' @param n.iter maximum number of descent steps; applicable when \code{method = "lasso"}
+#' @param tol numerical tolerance for increases in the loss function; applicable when \code{method = "lasso"}
+#' @param n.cores number of cores to use for parallel computing; applicable when \code{method = "ds"}
+#' @return a list which contains the following fields:
 #' \itemize{
-#' \item{beta}{VAR parameters}
-#' \item{lambda}{regularisation parameter}
-#' \item{Gamma}{Estimated noise covariance}
+#' \item{beta}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
+#' \item{Gamma}{ estimate of the innovation covariance matrix}
+#' \item{lambda}{ regularisation parameter}
+#' \item{var.order}{ VAR order}
 #' \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
 #' }
 #' @example R/examples/idio.R
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @export
-fit.var  <- function(x, center = TRUE, method = c('ds', 'lasso'),
+fit.var  <- function(x, center = TRUE, method = c('lasso', 'ds'),
                      lambda = NULL, var.order = 1, 
                      cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
-                     n.cores = min(parallel::detectCores() - 1, 3), niter = 100, tol = 0){
+                     n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3)){
   p <- dim(x)[1]
   n <- dim(x)[2]
 
@@ -45,60 +45,29 @@ fit.var  <- function(x, center = TRUE, method = c('ds', 'lasso'),
   dpca <- dyn.pca(xx, q = 0)
   acv <- dpca$acv
 
-  mg <- make.gg(acv$Gamma_i, var.order)
+  icv <- yw.cv(xx, method = method, 
+               lambda.max = NULL, var.order = var.order, 
+               n.folds = cv.args$n.folds, path.length = cv.args$path.length, 
+               q = 0, kern.const = 4, do.plot = cv.args$do.plot)
+  mg <- make.gg(acv$Gamma_i, icv$var.order)
   gg <- mg$gg; GG <- mg$GG
   
-  ##
-  icv <- idio.cv(xx, lambda.max = max(abs(GG)), var.order = var.order, idio.method = idio.method,
-                 path.length = cv.args$path.length, n.folds = cv.args$n.folds,
-                 q = q, kern.const = kern.const, do.plot = cv.args$do.plot)
-  if(idio.method == 'lasso') ive <- var.lasso(GG, gg, lambda = icv$lambda, symmetric = 'min')
-  if(idio.method == 'ds') ive <- var.dantzig(GG, gg, lambda = icv$lambda, symmetric = 'min')
-  ##
-  
-  
-
-  if(idio.method == 'lasso') ive <- var.lasso(GG, gg, lambda = lambda, symmetric = 'min')
-  if(idio.method == 'ds') ive <- var.dantzig(GG, gg, lambda = lambda, symmetric = 'min')
+  if(idio.method == 'lasso') ive <- var.lasso(GG, gg, lambda = icv$lambda, symmetric = 'min', n.iter = n.iter, tol = tol)
+  if(idio.method == 'ds') ive <- var.dantzig(GG, gg, lambda = icv$lambda, symmetric = 'min', n.cores = n.cores)
+  ive$var.order <- icv$var.order
+  ive$mean.x <- mean.x
+    
   return(ive)
   
 }
 
-
-
 #' @title Lasso-type estimator of VAR processes via \code{l1}-regularised \code{M}-estimation 
-#' @description Estimates the VAR parameter matrices by adopting Lasso-type \code{l1}-regularised \code{M}-estimation for VAR processes.
-#' @details Further information can be found in Barigozzi, Cho and Owens (2021).
-#'
-#' @param GG,gg output from \code{\link[fnets]{make.gg}}
-#' @param lambda \code{l1}-regularisation parameter
-#' @param symmetric type of symmetry to enforce on \code{Gamma}, possible values are:
-#' \itemize{
-#' \item{"min"}{ take the minimum of each pair of off-diagonal elements}
-#' \item{"max"}{ take the maximum of each pair of off-diagonal elements}
-#' \item{"avg"}{ take the average of each pair of off-diagonal elements}
-#' \item{"none"}{ do not enforce symmetry}
-#' }
-#' @param niter maximum number of descent steps
-#' @param tol numerical tolerance for increases in the loss function
-#' @return a list which contains the following fields:
-#' \itemize{
-#' \item{beta}{ a matrix with each row containing the parameter estimates for the regression model for each time series variable}
-#' \item{lambda}{ regularisation parameter}
-#' \item{Gamma}}{ estimate of the innovation covariance matrix}
-#' }
-#' @example R/examples/idio.R
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @keywords internal
-var.lasso <- function(GG, gg, lambda, symmetric = 'min', niter = 100, tol = 0, do.plot = FALSE){
+var.lasso <- function(GG, gg, lambda, symmetric = 'min', n.iter = 100, tol = 0){
 
   backtracking <- TRUE
   p <- ncol(gg)
   d <- nrow(gg)/ncol(gg)
-  var.order
-
-  GtG <- t(GG) %*% GG
-  Gtg <- t(GG) %*% gg
 
   ii <- 0
   tnew <- t <- 1
@@ -107,26 +76,26 @@ var.lasso <- function(GG, gg, lambda, symmetric = 'min', niter = 100, tol = 0, d
   diff <- tol - 1
 
   if(backtracking){
-    L <- norm(GG, "F")^2 / 5
+    L <- norm(GG, "F") / 5
     gamma <- 2
-  } else L <- norm(GG, "F")^2
+  } else L <- norm(GG, "F")
 
   obj.val <- rel.err <- c()
-  while(ii < niter & diff < tol){
+  while(ii < n.iter & diff < tol){
     ii <- ii+1
     if(backtracking){
       L.bar <- L
       found <- FALSE
       while(!found){
-        prox <- fnsl.update(beta.up, beta1, lambda, eta = 2 * L.bar, GtG, Gtg)
-        if(f.func(GG, gg, prox) <= Q.func(prox, beta.up, L.bar, GG, gg, GtG, Gtg)){
+        prox <- fnsl.update(beta.up, beta1, lambda, eta = 2 * L.bar, GG, gg)
+        if(f.func(GG, gg, prox) <= Q.func(prox, beta.up, L.bar, GG, gg)){
           found <- TRUE
         }else{
           L.bar <- L.bar * gamma
         }
       }
       L <- L.bar
-    } else prox <- fnsl.update(beta.up, beta1, lambda, eta = 2 * L, GtG, gtg)
+    } else prox <- fnsl.update(beta.up, beta1, lambda, eta = 2 * L, GG, gg)
     
     beta1 <- beta.mid
     beta.mid <- prox
@@ -142,32 +111,12 @@ var.lasso <- function(GG, gg, lambda, symmetric = 'min', niter = 100, tol = 0, d
   Gamma <- GG[1:p, 1:p]
   for(ll in 1:d) Gamma <- Gamma - A[, (ll - 1) * p + 1:p] %*% gg[(ll - 1) * p + 1:p, ]
   Gamma <- make.symmetric(Gamma, symmetric)
-  out <- list(beta = beta.mid, lambda = lambda, Gamma = Gamma)
+  out <- list(beta = beta.mid, Gamma = Gamma, lambda = lambda)
   return(out)
   
 }
 
 #' @title Dantzig selector-type estimator of VAR processes via constrained \code{l1}-minimisation
-#' @description Estimates the VAR parameter matrices by adopting Dantzig selector-type constrained \code{l1}-minimisation for VAR processes.
-#' @details Further information can be found in Barigozzi, Cho and Owens (2021).
-#' @param GG,gg output from \code{\link[fnets]{make.gg}}
-#' @param lambda constraint parameter
-#' @param symmetric type of symmetry to enforce on \code{Gamma}, possible values are:
-#' \itemize{
-#' \item{"min"}{ take the minimum of each pair of off-diagonal elements}
-#' \item{"max"}{ take the maximum of each pair of off-diagonal elements}
-#' \item{"avg"}{ take the average of each pair of off-diagonal elements}
-#' \item{"none"}{ do not enforce symmetry}
-#' }
-#' @param n.cores number of cores to use for parallel computing
-#' @return a list which contains the following fields:
-#' \itemize{
-#' \item{beta}{ a matrix with each row containing the parameter estimates for the regression model for each time series variable}
-#' \item{lambda}{ regularisation parameter}
-#' \item{Gamma}}{ estimate of the innovation covariance matrix}
-#' }
-#' @example R/examples/idio.R
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @keywords internal
 var.dantzig <- function(GG, gg, lambda, symmetric = 'min', n.cores = min(parallel::detectCores() - 1, 3)){
 
@@ -197,50 +146,21 @@ var.dantzig <- function(GG, gg, lambda, symmetric = 'min', n.cores = min(paralle
   for(ll in 1:d) Gamma <- Gamma - A[, (ll - 1) * p + 1:p] %*% gg[(ll - 1) * p + 1:p, ]
   Gamma <- make.symmetric(Gamma, symmetric)
 
-  out <- list(beta = beta, lambda = lambda, Gamma = Gamma)
+  out <- list(beta = beta, Gamma = Gamma, lambda = lambda)
   return(out)
   
 }
 
-#' @title Cross validation for \code{l1}-regularised VAR estimation
-#' @description Performs cross validation to select a tuning parameter and VAR order for Lasso or Dantzig selector-type estimator of the VAR process
-#' @details Further information can be found in Barigozzi, Cho and Owens (2021).
+#' @title Cross validation for factor-adjusted VAR estimation
+#' @keywords internal
+yw.cv <- function(xx, method = c('lasso', 'ds'), 
+                  lambda.max = NULL, var.order = 1, 
+                  n.folds = 1, path.length = 10, 
+                  q = 0, kern.const = 4, do.plot = FALSE){
 
-#' \itemize{
-#'    \item{n.folds}{ number of folds}
-#'    \item{path.length}{ number of penalty parameter values to consider}
-#'    \item{do.plot}{ whether to plot the output of the cross validation step}
-#' }
-
-
-#' @param x input time series matrix, with each row representing a variable
-#' @param lambda.max maximum regularisation parameter, if NULL this is set to the smallest which sets all entries to 0
-#' @param var.order vector of VAR orders to consider
-#' @param method estimation method, one of "lasso" or "ds"
-#' @param path.length number of regularisation parameters to consider
-#' @param n.folds number of CV folds
-#' @param q factor number
-#' @param kern.const constant to determine bandwidth size
-#' @param do.plot return a plot of the CV error against regularisation parameters, stratified by VAR order
-#' @return A list which contains the following fields:
-#' \itemize{
-#' \item{\code{'lambda'}}{ minimising argument}
-#' \item{\code{'var.order'}}{ minimising order}
-#' \item{\code{'cv.error'}}{ matrix of errors}
-#' \item{\code{'lambda.path'}}{ candidate lambda values}
-#' }
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
-#' @example R/examples/idiocv.R
-#' @export
-idio.cv <- function(x, lambda.max = NULL, var.order = 1, method = c('lasso', 'ds'),
-                    path.length = 10, n.folds = 1,
-                    q = 0, kern.const = 4, do.plot = FALSE){
-
-  n <- ncol(x)
-  p <- nrow(x)
+  n <- ncol(xx)
+  p <- nrow(xx)
   
-  if(center) mean.x <- apply(x, 1, mean) else mean.x <- rep(0, p)
-  xx <- x - mean.x
   if(is.null(lambda.max)) lambda.max <- max(abs(xx %*% t(xx)/n)) * 1
   lambda.path <- round(exp(seq(log(lambda.max), log(lambda.max * .0001), length.out = path.length)), digits = 10)
 
@@ -340,23 +260,23 @@ make.gg <- function(acv, d){
 
 #' @keywords internal
 f.func <- function(GG, gg, A){
-  return(0.5 * norm((GG %*% (A) - gg) , "F")^2) ##
+  return(0.5 * norm((GG %*% (A) - gg) , "F")) 
 }
 
 #' @keywords internal
-gradf.func <- function(GtG, Gtg, A){
-  return( (GtG %*% (A) - Gtg ) )
+gradf.func <- function(GG, gg, A){
+  return(GG %*% (A) - gg)
 }
 
 #' @keywords internal
-Q.func <- function(A, A.up, L, GG, gg, GtG, Gtg){
+Q.func <- function(A, A.up, L, GG, gg){
   Adiff <- (A - A.up)
-  return(f.func(GG, gg, A.up) + sum(Adiff * gradf.func(GtG, Gtg,A.up)) + 0.5 * L * norm(Adiff, "F")^2 )
+  return(f.func(GG, gg, A.up) + sum(Adiff * gradf.func(GG, gg, A.up)) + 0.5 * L * norm(Adiff, "F")^2)
 }
 
 #' @keywords internal
-fnsl.update <- function(B, B_md, lambda, eta, GtG, Gtg){
-  b <- B - (1/eta) * (GtG %*% (B_md) - Gtg ) ##
+fnsl.update <- function(B, B_md, lambda, eta, GG, gg){
+  b <- B - (1/eta) * (GG %*% (B_md) - gg) ##
   sgn <- sign(b)
   ab <- abs(b)
   sub <- ab - 2*lambda/eta

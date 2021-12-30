@@ -18,7 +18,7 @@
 #'    \item{n.perm}{ number of cross-sectional permutations involved in impluse response function estimation}
 #' }
 #' @param idio.var.order order of the idiosyncratic VAR process; if a vector of integers is supplied, the order is chosen via cross validation
-#' @param idio.method a string specifying the type of \code{l1}-regularised estimator to be adopted for idiosyncratic VAR process estimation; possible values are:
+#' @param idio.method a string specifying the method to be adopted for idiosyncratic VAR process estimation; possible values are:
 #' \itemize{
 #'    \item{"lasso"}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
 #'    \item{"ds"}{ Dantzig Selector-type constrained \code{l1}-minimisation}
@@ -43,7 +43,13 @@
 #' \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
 #' \item{common.var}{ if \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)}) 
 #' and common shocks (an array of dimension \code{(q, n)}) for the common component}
-#' \item{idio.var}}{ Estimated idiosyncratic component}
+#' \item{idio.var}{ a list containing the following fields:
+#' \itemize{
+#' \item{beta}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
+#' \item{Gamma}{ estimate of the innovation covariance matrix}
+#' \item{lambda}{ regularisation parameter}
+#' \item{var.order}{ VAR order}
+#' }}
 #' \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
 #' \item{kern.const}{ input parameter}
 #' }
@@ -54,7 +60,7 @@
 #' @export
 fnets <- function(x, center = TRUE, q = NULL, ic.op = 4, kern.const = 4,
                   common.var.args = list(var.order = 1, max.var.order = NULL, trunc.lags = 20, n.perm = 10),
-                  idio.var.order = 1, idio.method = c('ds', 'lasso'),
+                  idio.var.order = 1, idio.method = c('lasso', 'ds'),
                   lrpc.method = c('param', 'nonpar', 'none'),
                   cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE)){
   p <- dim(x)[1]
@@ -80,14 +86,15 @@ fnets <- function(x, center = TRUE, q = NULL, ic.op = 4, kern.const = 4,
 
   if(cv.args$do.plot) par(mfrow = c(1, 1 + lrpc.method %in% c('param', 'nonpar')))
     
-  icv <- idio.cv(xx, lambda.max = NULL, var.order = idio.var.order, idio.method = idio.method,
-          path.length = cv.args$path.length, n.folds = cv.args$n.folds,
-          q = q, kern.const = kern.const, do.plot = cv.args$do.plot)
+  icv <- yw.cv(xx, lambda.max = NULL, var.order = idio.var.order, method = idio.method,
+               path.length = cv.args$path.length, n.folds = cv.args$n.folds,
+               q = q, kern.const = kern.const, do.plot = cv.args$do.plot)
   mg <- make.gg(acv$Gamma_i, icv$var.order)
   gg <- mg$gg; GG <- mg$GG
   if(idio.method == 'lasso') ive <- var.lasso(GG, gg, lambda = icv$lambda, symmetric = 'min')
   if(idio.method == 'ds') ive <- var.dantzig(GG, gg, lambda = icv$lambda, symmetric = 'min')
-
+  ive$var.order <- icv$var.order
+  
   out <- list(q = q, spec = spec, acv = acv,
               common.var = cve, idio.var = ive, mean.x = mean.x,
               kern.const = kern.const)
