@@ -33,7 +33,7 @@
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @export
 fit.var  <- function(x, center = TRUE, method = c('lasso', 'ds'),
-                     lambda = NULL, var.order = 1, 
+                     lambda = NULL, var.order = 1,
                      cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
                      n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3)){
   p <- dim(x)[1]
@@ -45,23 +45,23 @@ fit.var  <- function(x, center = TRUE, method = c('lasso', 'ds'),
   dpca <- dyn.pca(xx, q = 0)
   acv <- dpca$acv
 
-  icv <- yw.cv(xx, method = method, 
-               lambda.max = NULL, var.order = var.order, 
-               n.folds = cv.args$n.folds, path.length = cv.args$path.length, 
+  icv <- yw.cv(xx, method = method,
+               lambda.max = NULL, var.order = var.order,
+               n.folds = cv.args$n.folds, path.length = cv.args$path.length,
                q = 0, kern.const = 4, do.plot = cv.args$do.plot)
   mg <- make.gg(acv$Gamma_i, icv$var.order)
   gg <- mg$gg; GG <- mg$GG
-  
+
   if(idio.method == 'lasso') ive <- var.lasso(GG, gg, lambda = icv$lambda, symmetric = 'min', n.iter = n.iter, tol = tol)
   if(idio.method == 'ds') ive <- var.dantzig(GG, gg, lambda = icv$lambda, symmetric = 'min', n.cores = n.cores)
   ive$var.order <- icv$var.order
   ive$mean.x <- mean.x
-    
+
   return(ive)
-  
+
 }
 
-#' @title Lasso-type estimator of VAR processes via \code{l1}-regularised \code{M}-estimation 
+#' @title Lasso-type estimator of VAR processes via \code{l1}-regularised \code{M}-estimation
 #' @keywords internal
 var.lasso <- function(GG, gg, lambda, symmetric = 'min', n.iter = 100, tol = 0){
 
@@ -96,7 +96,7 @@ var.lasso <- function(GG, gg, lambda, symmetric = 'min', n.iter = 100, tol = 0){
       }
       L <- L.bar
     } else prox <- fnsl.update(beta.up, beta1, lambda, eta = 2 * L, GG, gg)
-    
+
     beta1 <- beta.mid
     beta.mid <- prox
     t <- tnew
@@ -113,7 +113,7 @@ var.lasso <- function(GG, gg, lambda, symmetric = 'min', n.iter = 100, tol = 0){
   Gamma <- make.symmetric(Gamma, symmetric)
   out <- list(beta = beta.mid, Gamma = Gamma, lambda = lambda)
   return(out)
-  
+
 }
 
 #' @title Dantzig selector-type estimator of VAR processes via constrained \code{l1}-minimisation
@@ -148,19 +148,19 @@ var.dantzig <- function(GG, gg, lambda, symmetric = 'min', n.cores = min(paralle
 
   out <- list(beta = beta, Gamma = Gamma, lambda = lambda)
   return(out)
-  
+
 }
 
 #' @title Cross validation for factor-adjusted VAR estimation
 #' @keywords internal
-yw.cv <- function(xx, method = c('lasso', 'ds'), 
-                  lambda.max = NULL, var.order = 1, 
-                  n.folds = 1, path.length = 10, 
+yw.cv <- function(xx, method = c('lasso', 'ds'),
+                  lambda.max = NULL, var.order = 1,
+                  n.folds = 1, path.length = 10,
                   q = 0, kern.const = 4, do.plot = FALSE){
 
   n <- ncol(xx)
   p <- nrow(xx)
-  
+
   if(is.null(lambda.max)) lambda.max <- max(abs(xx %*% t(xx)/n)) * 1
   lambda.path <- round(exp(seq(log(lambda.max), log(lambda.max * .0001), length.out = path.length)), digits = 10)
 
@@ -193,12 +193,12 @@ yw.cv <- function(xx, method = c('lasso', 'ds'),
   order.min <- var.order[which.min(apply(cv.err.mat, 2, min))]
 
   if(do.plot){
-    matplot(lambda.path, cv.err.mat, type = 'b', col = 2:(max(var.order) + 1), pch = 2:(max(var.order) + 1), 
+    matplot(lambda.path, cv.err.mat, type = 'b', col = 2:(max(var.order) + 1), pch = 2:(max(var.order) + 1),
             log = 'x', xlab = 'lambda (log scale)', ylab = 'CV error', main = 'CV for VAR parameter estimation')
     abline(v = lambda.min)
     legend('topleft', legend = var.order, col = 2:(max(var.order) + 1), pch = 2:(max(var.order) + 1), lty = 1)
   }
-  
+
   out <- list(lambda = lambda.min, var.order = order.min, cv.error = cv.err.mat, lambda.path = lambda.path)
   return(out)
 
@@ -260,7 +260,7 @@ make.gg <- function(acv, d){
 
 #' @keywords internal
 f.func <- function(GG, gg, A){
-  return(.5 * trace(2 * GG - t(A) %*% gg - t(gg) %*% A)) 
+  return(.5 * sum(diag(2 * GG - t(A) %*% gg - t(gg) %*% A)) )
 }
 
 #' @keywords internal
