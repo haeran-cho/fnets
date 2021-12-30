@@ -2,58 +2,11 @@
 % Please edit documentation in R/idio.R
 \name{var.lasso}
 \alias{var.lasso}
-\title{Lasso-type Yule-Walker estimation for VAR processes}
+\title{Lasso-type estimator of VAR processes via \code{l1}-regularised \code{M}-estimation}
 \usage{
-var.lasso(
-  GG,
-  gg,
-  lambda,
-  symmetric = "min",
-  niter = 100,
-  tol = 0,
-  do.plot = FALSE
-)
-}
-\arguments{
-\item{GG, gg}{output from \code{make.gg}}
-
-\item{lambda}{regularisation parameter}
-
-\item{symmetric}{type of symmetry to enforce on \code{Gamma}, one of 'min', 'max', 'avg', 'none'}
-
-\item{niter}{maximum number of descent steps}
-
-\item{tol}{numerical tolerance for increases in the loss function}
-
-\item{do.plot}{return a plot of the loss function against descent steps}
-}
-\value{
-A list which contains the following fields:
-\itemize{
-\item{\code{beta}}{VAR parameters}
-\item{\code{lambda}}{ regularisation parameter}
-\item{\code{Gamma}}{ Estimated noise covariance}
-\item{\code{loss}}{ Objective function value}
-}
+var.lasso(GG, gg, lambda, symmetric = "min", n.iter = 100, tol = 0)
 }
 \description{
-Returns parameter estimates for the idiosyncratic VAR and the corresponding Gamma matrix
+Lasso-type estimator of VAR processes via \code{l1}-regularised \code{M}-estimation
 }
-\details{
-Further information can be found in Barigozzi, Cho and Owens (2021).
-}
-\examples{
-require(fnets)
-require(doParallel)
-require(lpSolve)
-set.seed(222)
-n <- 200
-p<- 100
-chi <- sim.factor.M2(n,p)
-xi <- sim.idio(n,p)
-sample.data <- chi$data + xi$data
-fit.var(sample.data, .1, idio.method = "lasso")
-}
-\references{
-Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
-}
+\keyword{internal}

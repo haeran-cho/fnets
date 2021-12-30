@@ -2,7 +2,7 @@
 % Please edit documentation in R/idio.R
 \name{var.dantzig}
 \alias{var.dantzig}
-\title{Dantzig selector-type Yule-Walker estimation for VAR processes}
+\title{Dantzig selector-type estimator of VAR processes via constrained \code{l1}-minimisation}
 \usage{
 var.dantzig(
   GG,
@@ -12,41 +12,7 @@ var.dantzig(
   n.cores = min(parallel::detectCores() - 1, 3)
 )
 }
-\arguments{
-\item{GG, gg}{output from \code{make.gg}}
-
-\item{lambda}{regularisation parameter}
-
-\item{symmetric}{type of symmetry to enforce on \code{Gamma}, one of 'min', 'max', 'avg', 'none'}
-
-\item{n.cores}{number of cores to use for parallel computing}
-}
-\value{
-A list which contains the following fields:
-\itemize{
-\item{beta: VAR parameters}
-\item{lambda: regularisation parameter}
-\item{Gamma: Estimated noise covariance}
-}
-}
 \description{
-Returns parameter estimates for the idiosyncratic VAR and the corresponding Gamma matrix
+Dantzig selector-type estimator of VAR processes via constrained \code{l1}-minimisation
 }
-\details{
-Further information can be found in Barigozzi, Cho and Owens (2021).
-}
-\examples{
-require(fnets)
-require(doParallel)
-require(lpSolve)
-set.seed(222)
-n <- 200
-p<- 100
-chi <- sim.factor.M2(n,p)
-xi <- sim.idio(n,p)
-sample.data <- chi$data + xi$data
-fit.var(sample.data, .1, idio.method = "lasso")
-}
-\references{
-Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
-}
+\keyword{internal}

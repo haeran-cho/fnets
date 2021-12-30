@@ -1,8 +1,8 @@
 # fnets
 
-Contains methods for factor-adjusted network estimation and forecasting for high-dimensional time series. See 
+Contains methods for network estimation and forecasting for high-dimensional time series under a factor-adjusted VAR model. See 
 
-> _fnets_: Factor-adjusted network estimation and forecasting for high-dimensional time series
+> _FNETS_: Factor-adjusted network estimation and forecasting for high-dimensional time series
 
 by Matteo Barigozzi, Haeran Cho and Dom Owens [arXiv:](insert arXiv link) for full details.
 
@@ -19,36 +19,34 @@ devtools::install_github("https://github.com/Dom-Owens-UoB/fnets")
 
 We can generate an example dataset used in the above paper for simulation studies, by separately generating the factor-driven common component and the idiosyncratic VAR process as
 ```
-set.seed(222)
-n <- 200
-p <- 100
-common <- sim.factor.M1(n, p)
-idio <- sim.idio(n, p)
+set.seed(123)
+n <- 500
+p <- 50
+common <- sim.common1(n, p)
+idio <- sim.var(n, p)
 x <- common$data + idio$data
 ```
 
-Fit the factor-adjusted VAR model with `q = 2` factors and `lasso` for VAR transition matrix estimation
+Fit a factor-adjusted VAR model with `q = 2` factors and `lasso` for VAR transition matrix estimation
 ```
-model <- fnets(x, q = 2, idio.method = "lasso")
+out <- fnets(x, q = 2, idio.var.order = 1, idio.method = "lasso", lrpc.method = "none")
 ```
 Plot the Granger network induced by the estimated VAR transition matrices:
 ```
-plot(model, type = "heatmap")
+plot(out, type = "granger", display = "network")
 ```
-![Granger](figures/model.png)
 
 Estimate and plot the partial-correlation and long-run partial correlation-based networks:
 ```
-net <- param.lrpc(model, x)
-plot(net, type = "heatmap")
+plrpc <- par.lrpc(out, x)
+out$lrpc <- plrpc
+out$lrpc.method <- 'par'
+plot(out, type = "lrpc", display = "heatmap")
 ```
-![Delta](figures/delta.png)
 
-![Omega](figures/omega.png)
-
-Perform h-step ahead forecast 
+Perform h-step ahead forecasting
 ```
-pr <- predict(model, x, h = 1, common.method = "static")
+pr <- predict(out, x, h = 1, common.method = "static")
 pr$forecast
 ```
 

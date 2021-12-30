@@ -2,49 +2,54 @@
 % Please edit documentation in R/fnets.R
 \name{predict.fnets}
 \alias{predict.fnets}
-\title{Prediction by fnets}
+\title{Forecasting by fnets}
 \usage{
-\method{predict}{fnets}(object, x, h = 1, common.method = c("static", "var"), r = NULL, ...)
+\method{predict}{fnets}(
+  object,
+  x,
+  h = 1,
+  common.method = c("restricted", "unrestricted"),
+  r = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{\code{fnets} object}
 
-\item{x}{input time series matrix, with each row representing a time series}
+\item{x}{input time series matrix, with each row representing a variable}
 
-\item{h}{forecast horizon}
+\item{h}{forecasting horizon}
 
-\item{common.method}{which of "static" or "var" to forecast the common component with}
+\item{common.method}{a string specifying the method for common component forecasting; possible values are:
+\itemize{
+   \item{"restricted"}{ performs forecasting under a restrictive static factor model}
+   \item{"unrestricted"}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
+}}
 
-\item{r}{factor number, if r=NULL this is selected using the maximal eigenratio}
+\item{r}{number of static factors; if \code{common.method = "restricted"} and \code{r = NULL},
+it is estimated as the maximiser of the ratio of the successive eigenvalues of the estimate of the common component covariance matrix,
+see Ahn and Horenstein (2013)}
 
-\item{...}{further arguments}
+\item{...}{not used}
 }
 \value{
-A list containing
+a list containing
 \itemize{
-\item{\code{'fitted'}}{ \code{x} in-sample estimation}
-\item{\code{'forecast'}}{ \code{x} forecast}
-\item{\code{'common.pred'}}{ Prediction for the factor-driven common component}
-\item{\code{'idio.pred'}}{ Prediction for the idiosyncratic component}
-\item{\code{'x.mean'}}{ removed mean of \code{x} }
+\item{forecast}{ forecasts for the given forecasting horizon}
+\item{common.pred}{ a list containing forecasting results for the common component}
+\item{idio.pred}{ a list containing forecasting results for the idiosyncratic component}
+\item{mean.x}{ \code{mean.x} argument from \code{object}}
 }
 }
 \description{
-Predicts common and idiosyncratic components from a \code{fnets} object for new data
-}
-\examples{
-require(fnets)
-set.seed(222)
-n <- 200
-p<- 100
-chi <- sim.factor.M2(n,p)
-xi <- sim.idio(n,p)
-sample.data <- chi$data + xi$data
-model <- fnets(sample.data, q=2, idio.method = "lasso")
-pr <- predict(model,sample.data, common.method = "static")
-cpre <- common.predict(model,sample.data, common.method = "static")
-ip <- idio.predict(model,sample.data, cpre)
+Produces forecasts of the data for a given forecasting horizon by
+separately estimating the best linear predictors of common and idiosyncratic components
 }
 \references{
-Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
+Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+
+Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
+}
+\seealso{
+\code{\link[fnets]{common.predict}}, \code{\link[fnets]{idio.predict}}
 }

@@ -1,7 +1,7 @@
 #' @title Factor-adjusted network estimation
-#' @description Operating under factor-adjusted vector autoregressive (VAR) model, 
+#' @description Operating under factor-adjusted vector autoregressive (VAR) model,
 #' the function estimates the spectral density and autocovariance matrices of the factor-driven common component and the idiosyncratic VAR process,
-#' the impulse response functions and common shocks for the common component, 
+#' the impulse response functions and common shocks for the common component,
 #' and VAR parameters and innovation covariance matrix for the idiosyncratic component.
 #' @details See Barigozzi, Cho and Owens (2021) for further details.
 #'
@@ -12,10 +12,10 @@
 #' @param kern.const constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA
 #' @param common.args a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
 #' \itemize{
-#'    \item{var.order}{ order of the blockwise VAR representation of the common component. If \code{var.order = NULL}, it is selected blockwise by Schwarz criterion}
-#'    \item{max.var.order}{ maximum blockwise VAR order for the Schwarz criterion}
-#'    \item{trunc.lags}{ truncation lag for impulse response function estimation}
-#'    \item{n.perm}{ number of cross-sectional permutations involved in impluse response function estimation}
+#'    \item{\code{var.order}}{ order of the blockwise VAR representation of the common component. If \code{var.order = NULL}, it is selected blockwise by Schwarz criterion}
+#'    \item{\code{max.var.order}}{ maximum blockwise VAR order for the Schwarz criterion}
+#'    \item{\code{trunc.lags}}{ truncation lag for impulse response function estimation}
+#'    \item{\code{n.perm}}{ number of cross-sectional permutations involved in impluse response function estimation}
 #' }
 #' @param idio.var.order order of the idiosyncratic VAR process; if a vector of integers is supplied, the order is chosen via cross validation
 #' @param idio.method a string specifying the method to be adopted for idiosyncratic VAR process estimation; possible values are:
@@ -25,23 +25,22 @@
 #' }
 #' @param lrpc.method a string specifying the type of estimator for long-run partial correlation matrix estimation; possible values are:
 #' \itemize{
-#'    \item{"par"}{ parametric estimator based on the VAR model assumption}
-#'    \item{"npar"}{ nonparametric estimator from inverting the long-run covariance matrix of the idiosyncratic component via constrained \code{l1}-minimisation}
-#'    \item{"none"}{ do not estimate the long-run partial correlation matrix}
+#'    \item{\code{"par"}}{ parametric estimator based on the VAR model assumption}
+#'    \item{\code{"npar"}}{ nonparametric estimator from inverting the long-run covariance matrix of the idiosyncratic component via constrained \code{l1}-minimisation}
+#'    \item{\code{"none"}}{ do not estimate the long-run partial correlation matrix}
 #' }
-#' @param cv.args a list specifying arguments for the cross validation procedures 
+#' @param cv.args a list specifying arguments for the cross validation procedures
 #' for selecting the tuning parameters involved in VAR parameter and (long-run) partial correlation matrix estimation. It contains:
 #' \itemize{
-#'    \item{n.folds}{ number of folds}
-#'    \item{path.length}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
-#'    \item{do.plot}{ whether to plot the output of the cross validation step}
+#'    \item{\code{n.folds}}{ number of folds}
+#'    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
+#'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
 #' @return an S3 object of class \code{fnets}, which contains the following fields:
-#' \itemize{
 #' \item{q}{ number of factors}
 #' \item{spec}{ a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
 #' \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
-#' \item{common.irf}{ if \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)}) 
+#' \item{common.irf}{ if \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})
 #' and common shocks (an array of dimension \code{(q, n)}) for the common component}
 #' \item{idio.var}{ a list containing the following fields:
 #' \itemize{
@@ -56,11 +55,28 @@
 #' \item{idio.method}{ input parameter}
 #' \item{lrpc.method}{ input parameter}
 #' \item{kern.const}{ input parameter}
-#' }
+#'
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
-#' @example R/examples/fnets.R
+#' @examples
+#' \dontrun{
+#' set.seed(123)
+#' n <- 500
+#' p <- 50
+#' common <- sim.common1(n, p)
+#' idio <- sim.var(n, p)
+#' x <- common$data + idio$data
+#' out <- fnets(x, q = NULL, idio.var.order = 1, idio.method = "lasso",
+#' lrpc.method = "par", cv.args = list(n.folds = 1, path.length = 10, do.plot = TRUE))
+#' pre <- predict(out, x, h = 1, common.method = 'unrestricted')
+#' cpre <- common.predict(out, x, h = 1, common.method = 'restricted', r = NULL)
+#' ipre <- idio.predict(out, x, cpre, h = 1)
+#'
+#' plot(out, type = 'granger', display = 'network', threshold = .05)
+#' plot(out, type = 'lrpc', display = 'heatmap', threshold = .05)
+#' }
 #' @seealso \code{\link[fnets]{predict.fnets}}, \code{\link[fnets]{plot.fnets}}
+#' @importFrom graphics par
 #' @export
 fnets <- function(x, center = TRUE, q = NULL, ic.op = 5, kern.const = 4,
                   common.args = list(var.order = 1, max.var.order = NULL, trunc.lags = 20, n.perm = 10),
@@ -88,29 +104,29 @@ fnets <- function(x, center = TRUE, q = NULL, ic.op = 5, kern.const = 4,
 
   ## idio estimation
   if(cv.args$do.plot) par(mfrow = c(1, 1 + lrpc.method %in% c('par', 'npar')))
-    
+
   icv <- yw.cv(xx, method = idio.method,
-               lambda.max = NULL, var.order = idio.var.order, 
-               n.folds = cv.args$n.folds, path.length = cv.args$path.length, 
+               lambda.max = NULL, var.order = idio.var.order,
+               n.folds = cv.args$n.folds, path.length = cv.args$path.length,
                q = q, kern.const = kern.const, do.plot = cv.args$do.plot)
   mg <- make.gg(acv$Gamma_i, icv$var.order)
   gg <- mg$gg; GG <- mg$GG
   if(idio.method == 'lasso') ive <- var.lasso(GG, gg, lambda = icv$lambda, symmetric = 'min')
   if(idio.method == 'ds') ive <- var.dantzig(GG, gg, lambda = icv$lambda, symmetric = 'min')
   ive$var.order <- icv$var.order
-  
+
   out <- list(q = q, spec = spec, acv = acv,
               common.irf = cve, idio.var = ive, mean.x = mean.x,
               idio.method = idio.method, lrpc.method = lrpc.method, kern.const = kern.const)
   attr(out, 'class') <- 'fnets'
-  
+
   ## lrpc estimation
   if(lrpc.method %in% c('par', 'npar')){
     if(lrpc.method == 'par') lrpc <- par.lrpc(out, x, eta = NULL, cv.args = cv.args)
     if(lrpc.method == 'npar') lrpc <- npar.lrpc(out, x, eta = NULL, cv.args = cv.args)
     out$lrpc <- lrpc
   } else out$lrpc <- NA
-  
+
   return(out)
 
 }
@@ -119,7 +135,7 @@ fnets <- function(x, center = TRUE, q = NULL, ic.op = 5, kern.const = 4,
 #' @description Performs principal components analysis in frequency domain for identifying common and idiosyncratic components.
 #' @param xx centred input time series matrix, with each row representing a variable
 #' @param q number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007)
-#' @param ic.op choice of the information criterion. Currently the three options from Hallin and Liška (2007) (\code{ic.op = 1, 2} or \code{3}) and 
+#' @param ic.op choice of the information criterion. Currently the three options from Hallin and Liška (2007) (\code{ic.op = 1, 2} or \code{3}) and
 #' their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
 #' with \code{ic.op = 5} recommended as a default choice based on numerical experiments
 #' @param kern.const constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA
@@ -131,6 +147,7 @@ fnets <- function(x, center = TRUE, q = NULL, ic.op = 5, kern.const = 4,
 #' \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
 #' \item{kern.const}{ input parameter}
 #' }
+#' @importFrom stats fft
 #' @keywords internal
 dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.const = 4){
 
@@ -208,13 +225,15 @@ dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.const = 4){
 #' \item{Sigma_x}{ an array containing the estimates of the spectral density matrices of \code{x} at \code{2 * mm + 1} Fourier frequencies}
 #' \item{sv}{ a list containing the singular value decomposition of \code{Sigma_x}}
 #' }
-#' @example R/examples/hlfactornumber.R
+#' @example R/examples/hl_ex.R
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
+#' @importFrom graphics par abline box axis legend
+#' @importFrom stats var
 #' @export
 hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = FALSE, center = TRUE){
   p <- dim(x)[1]; n <- dim(x)[2]
   q.max <- min(50, floor(sqrt(min(n - 1, p))))
-  
+
   if(center) mean.x <- apply(x, 1, mean) else mean.x <- rep(0, p)
   xx <- x - mean.x
 
@@ -275,7 +294,7 @@ hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = FALSE, cen
       q.hat[ii] <- q.mat[which(ss[-length(const.seq)] != 0 & ss[-1] == 0)[1] + 1, 10, ii] - 1
     }
   }
-  
+
   if(do.plot){
     par(mfrow = c(2, 3))
     for(ii in 1:6){
@@ -297,8 +316,8 @@ hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = FALSE, cen
 
 #' @title Forecasting by fnets
 #' @method predict fnets
-#' @description Produces forecasts of the data for a given forecasting horizon by 
-#' separately estimating the best linear predictors of common and idiosyncratic components 
+#' @description Produces forecasts of the data for a given forecasting horizon by
+#' separately estimating the best linear predictors of common and idiosyncratic components
 #' @param object \code{fnets} object
 #' @param x input time series matrix, with each row representing a variable
 #' @param h forecasting horizon
@@ -306,10 +325,11 @@ hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = FALSE, cen
 #' \itemize{
 #'    \item{"restricted"}{ performs forecasting under a restrictive static factor model}
 #'    \item{"unrestricted"}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
-#' @param r number of static factors; if \code{common.method = "restricted"} and \code{r = NULL}, 
+#' }
+#' @param r number of static factors; if \code{common.method = "restricted"} and \code{r = NULL},
 #' it is estimated as the maximiser of the ratio of the successive eigenvalues of the estimate of the common component covariance matrix,
 #' see Ahn and Horenstein (2013)
-#' @param ... further arguments
+#' @param ... not used
 #' @return a list containing
 #' \itemize{
 #' \item{forecast}{ forecasts for the given forecasting horizon}
@@ -317,17 +337,17 @@ hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = FALSE, cen
 #' \item{idio.pred}{ a list containing forecasting results for the idiosyncratic component}
 #' \item{mean.x}{ \code{mean.x} argument from \code{object}}
 #' }
-#' @example R/examples/predict.R
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
+#' @seealso \code{\link[fnets]{common.predict}}, \code{\link[fnets]{idio.predict}}
 #' @export
-predict.fnets <- function(object, x, h = 1, common.method = c('restricted', 'unrestricted'), r = NULL){
+predict.fnets <- function(object, x, h = 1, common.method = c('restricted', 'unrestricted'), r = NULL, ...){
 
   cpre <- common.predict(object, x, h, common.method, r)
   ipre <- idio.predict(object, x, cpre, h)
 
   out <- list(forecast = cpre$fc + ipre$fc,
-              common.pred = cpre, idio.pred = ipre, 
+              common.pred = cpre, idio.pred = ipre,
               mean.x = object$mean.x)
   return(out)
 
@@ -335,9 +355,9 @@ predict.fnets <- function(object, x, h = 1, common.method = c('restricted', 'unr
 
 #' @title Plotting the networks estimated by fnets
 #' @method plot fnets
-#' @description Plotting method for S3 objects of class \code{fnets}. 
-#' Produces a plot visualising three networks underlying factor-adjusted VAR processes: 
-#' (i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices aggregated across the lags, 
+#' @description Plotting method for S3 objects of class \code{fnets}.
+#' Produces a plot visualising three networks underlying factor-adjusted VAR processes:
+#' (i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices aggregated across the lags,
 #' (ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
 #' (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
 #' @details See Barigozzi, Cho and Owens (2021) for further details.
@@ -358,23 +378,27 @@ predict.fnets <- function(object, x, h = 1, common.method = c('restricted', 'unr
 #' @param threshold if \code{threshold > 0}, hard thresholding is performed on the matrix giving rise to the network of interest
 #' @param ... additional arguments
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
-#' @example R/examples/plot.R
+#' @import igraph
+#' @importFrom fields imagePlot
+#' @importFrom grDevices rainbow
+#' @importFrom graphics mtext axis
+#' @importFrom RColorBrewer brewer.pal
 #' @export
-plot.fnets <- function(x, type = c('granger', 'pc', 'lrpc'), display = c('network', 'heatmap'), 
+plot.fnets <- function(x, type = c('granger', 'pc', 'lrpc'), display = c('network', 'heatmap'),
                        names = NA, groups = NA, threshold = 0, ...){
-  
+
   type <- match.arg(type, c('granger', 'pc', 'lrpc'))
   display <- match.arg(display, c('network', 'heatmap'))
-  
+
   p <- dim(x$spec$Sigma_x)[1]
   A <- matrix(0, nrow = p, ncol = p)
-  
+
   if(type == 'granger'){
     d <- dim(x$idio.var$beta)[1]/p
     for(ll in 1:d) A <- A + abs(t(x$idio.var$beta))[, (ll - 1) * p + 1:p]
     nm <- 'Granger causal'
   }
-  
+
   if(type == 'pc'){
     if(x$lrpc.method != 'par'){
       stop(paste0('Partial correlation matrix is undetected'))
@@ -383,7 +407,7 @@ plot.fnets <- function(x, type = c('granger', 'pc', 'lrpc'), display = c('networ
       nm <- 'Partial correlation'
     }
   }
-  
+
   if(type == 'lrpc'){
     if(!(x$lrpc.method %in% c('par', 'npar'))){
       stop(paste0('Long-run partial correlation matrix is undetected'))
@@ -393,7 +417,7 @@ plot.fnets <- function(x, type = c('granger', 'pc', 'lrpc'), display = c('networ
     }
   }
   nm <- paste(nm, display, sep = ' ')
-  
+
   A[abs(A) < threshold] <- 0
 
   if(!is.na(groups[1])){
@@ -419,14 +443,14 @@ plot.fnets <- function(x, type = c('granger', 'pc', 'lrpc'), display = c('networ
     if(type %in% c('pc', 'lrpc')) g <- igraph::graph_from_adjacency_matrix(A, mode = 'undirected', weighted = TRUE, diag = FALSE, ...)
     lg <- igraph::layout_in_circle(g)
     igraph::plot.igraph(g, main = nm, layout = lg, vertex.label = names, vertex.label.font = 2,
-                        vertex.shape = 'circle', vertex.color = v.col, 
-                        vertex.label.color = grp.col, vertex.label.cex = 0.6, 
+                        vertex.shape = 'circle', vertex.color = v.col,
+                        vertex.label.color = grp.col, vertex.label.cex = 0.6,
                         edge.color = 'gray40', edge.arrow.size = 0.5)
   } else if(display == "heatmap"){
     if(type == 'granger'){
       heat.cols <- RColorBrewer::brewer.pal(9, 'Reds')
       breaks <- seq(0, max(1e-3, abs(A)), length.out = 10)
-    } 
+    }
     if(type %in% c('pc', 'lrpc')){
       heat.cols <- rev(RColorBrewer::brewer.pal(11, 'RdBu'))
       breaks <- seq(-1.01, 1.01, length.out = 12)
@@ -439,5 +463,5 @@ plot.fnets <- function(x, type = c('granger', 'pc', 'lrpc'), display = c('networ
       for(ii in 1:p) mtext(text = names[ii], at = (ii - 1)/(p - 1), side = 2, las = 2, cex = .8, col = grp.col[ii])
     }
   }
-  
+
 }

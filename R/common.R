@@ -1,5 +1,45 @@
+#' @title Forecasting the factor-driven common component
+#' @description Produces forecasts of the common component
+#' for a given forecasting horizon by estimating the best linear predictors
+#' @param object \code{fnets} object
+#' @param x input time series matrix, with each row representing a variable
+#' @param h forecasting horizon
+#' @param common.method a string specifying the method for common component forecasting; possible values are:
+#' \itemize{
+#'    \item{\code{"restricted"}}{ performs forecasting under a restrictive static factor model}
+#'    \item{\code{"unrestricted"}}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
+#' }
+#' @param r number of static factors; if \code{common.method = "restricted"} and \code{r = NULL},
+#' it is estimated as the maximiser of the ratio of the successive eigenvalues
+#' of the estimate of the common component covariance matrix, see Ahn and Horenstein (2013)
+#' @return a list containing
+#' \item{is}{ in-sample estimator of the common component}
+#' \item{fc}{ forecasts of the common component for a given forecasting horizon \code{h}}
+#' \item{r}{ static factor number}
+#' \item{h}{ forecast horizon}
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
+#' @references Forni, M., Hallin, M., Lippi, M. & Reichlin, L. (2005). The generalized dynamic factor model: one-sided estimation and forecasting. Journal of the American Statistical Association, 100(471), 830--840.
+#' @references Forni, M., Hallin, M., Lippi, M. & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
+#' @export
+common.predict <- function(object, x, h = 1, common.method = c('restricted', 'unrestricted'), r = NULL){
+
+  xx <- x - object$mean.x
+  p <- dim(x)[1]
+  common.method <- match.arg(common.method, c('restricted', 'unrestricted'))
+  if(object$q < 1){
+    warning(paste0('There should be at least one factor for common component estimation!'))
+    pre <- list(is = 0 * x, fc = matrix(0, nrow = p, ncol = h))
+  }
+  if(object$q >= 1){
+    if(common.method == 'restricted') pre <- common.restricted.predict(xx = xx, Gamma_c = object$acv$Gamma_c, q = object$q, r = r, h = h)
+    if(common.method == 'unrestricted') pre <- common.unrestricted.predict(xx = xx, cve = object$common.irf, h = h)
+  }
+  return(pre)
+
+}
+
 #' @title Blockwise VAR estimation under GDFM
-#' @description internal function
 #' @references Forni, M., Hallin, M., Lippi, M. & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @keywords internal
@@ -67,52 +107,9 @@ common.irf.estimation <- function(xx, Gamma_c, q, var.order = NULL, max.var.orde
 
     # out <- list(irf.array = irf.array, u.array = u.array, irf.est = irf.est, u.est = u.est)
     out <- list(irf.est = irf.est, u.est = u.est)
-    
+
     return(out)
   }
-}
-
-#' @title Forecasting the factor-driven common component
-#' @description Produces forecasts of the common component
-#' for a given forecasting horizon by estimating the best linear predictors
-#' @param object \code{fnets} object
-#' @param x input time series matrix, with each row representing a variable
-#' @param h forecasting horizon
-#' @param common.method a string specifying the method for common component forecasting; possible values are:
-#' \itemize{
-#'    \item{"restricted"}{ performs forecasting under a restrictive static factor model}
-#'    \item{"unrestricted"}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
-#' @param r number of static factors; if \code{common.method = "restricted"} and \code{r = NULL}, 
-#' it is estimated as the maximiser of the ratio of the successive eigenvalues 
-#' of the estimate of the common component covariance matrix, see Ahn and Horenstein (2013)
-#' @return a list containing
-#' \itemize{
-#' \item{is}{ in-sample estimator of the common component}
-#' \item{fc}{ forecasts of the common component for a given forecasting horizon \code{h}}
-#' \item{r}{ static factor number}
-#' \item{h}{ forecast horizon}
-#' }
-#' @example R/examples/predict.R
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
-#' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
-#' @references Forni, M., Hallin, M., Lippi, M. & Reichlin, L. (2005). The generalized dynamic factor model: one-sided estimation and forecasting. Journal of the American Statistical Association, 100(471), 830--840.
-#' @references Forni, M., Hallin, M., Lippi, M. & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
-#' @export
-common.predict <- function(object, x, h = 1, common.method = c('restricted', 'unrestricted'), r = NULL){
-
-  xx <- x - object$mean.x
-  p <- dim(x)[1]
-  common.method <- match.arg(common.method, c('restricted', 'unrestricted'))
-  if(object$q < 1){
-    warning(paste0('There should be at least one factor for common component estimation!'))
-    pre <- list(is = 0 * x, fc = matrix(0, nrow = p, ncol = h))
-  }
-  if(object$q >= 1){
-    if(common.method == 'restricted') pre <- common.restricted.predict(xx = xx, Gamma_c = object$acv$Gamma_c, q = object$q, r = r, h = h)
-    if(common.method == 'unrestricted') pre <- common.unrestricted.predict(xx = xx, cve = object$common.irf, h = h)
-  }
-  return(pre)
-
 }
 
 #' @keywords internal

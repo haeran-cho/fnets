@@ -2,53 +2,52 @@
 % Please edit documentation in R/fnets.R
 \name{plot.fnets}
 \alias{plot.fnets}
-\title{Plot fnets object}
+\title{Plotting the networks estimated by fnets}
 \usage{
 \method{plot}{fnets}(
   x,
-  type = "network",
-  names = NULL,
-  groups = NULL,
+  type = c("granger", "pc", "lrpc"),
+  display = c("network", "heatmap"),
+  names = NA,
+  groups = NA,
   threshold = 0,
-  size = NULL,
   ...
 )
 }
 \arguments{
-\item{x}{fnets object}
+\item{x}{\code{fnets} object}
 
-\item{type}{whether to plot a "network" or "heatmap"}
+\item{type}{a string specifying which of the above three networks (i)--(iii) to visualise; possible values are
+\itemize{
+   \item{"granger"}{ directed network representing Granger causal linkages}
+   \item{"pc"}{ undirected network representing contemporaneous linkages; available when \code{x$lrpc.method = "par"}}
+   \item{"lrpc"}{ undirected network summarising Granger causal and contemporaneous linkages; available when \code{x$lrpc.method = "par"} or \code{x$lrpc.method = "npar"}}
+}}
 
-\item{names}{character vector of node names}
+\item{display}{a string specifying how to visualise the network; possible values are:
+\itemize{
+   \item{"network"}{ as an \code{igraph} object, see \code{\link[igraph]{plot.igraph}}}
+   \item{"heatmap"}{ as a heatmap, see \code{\link[fields]{imagePlot}}}
+}}
 
-\item{groups}{integer vector denoting groups for "network" plots}
+\item{names}{a character vector containing the names of the vertices}
 
-\item{threshold}{sets all elements less than this in absolute value to 0}
+\item{groups}{an integer vector denoting any group structure of the vertices}
 
-\item{size}{which type of degree to use for node size in "network" plots, one of "all", "out", "in", "total"}
+\item{threshold}{if \code{threshold > 0}, hard thresholding is performed on the matrix giving rise to the network of interest}
 
 \item{...}{additional arguments}
 }
 \description{
-plots the idiosyncratic component of the fnets object as a Granger causal network, either as a network graph or a heatmap
+Plotting method for S3 objects of class \code{fnets}.
+Produces a plot visualising three networks underlying factor-adjusted VAR processes:
+(i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices aggregated across the lags,
+(ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
+(iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
 }
-\examples{
-require(igraph)
-require(doParallel)
-require(lpSolve)
-set.seed(222)
-n <- 200
-p<- 100
-chi <- sim.factor.M2(n,p)
-xi <- sim.idio(n,p)
-sample.data <- chi$data + xi$data
-# model
-model <- fnets(sample.data, q=2, idio.method = "lasso")
-plot(model)
-# long-run partial correlation network
-net <- param.lrpc(model, sample.data, 1, n.cores = 1)
-plot(net)
+\details{
+See Barigozzi, Cho and Owens (2021) for further details.
 }
 \references{
-Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
+Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 }

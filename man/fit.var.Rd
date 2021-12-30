@@ -2,72 +2,76 @@
 % Please edit documentation in R/idio.R
 \name{fit.var}
 \alias{fit.var}
-\title{Regularised Yule-Walker estimation for VAR processes}
+\title{\code{l1}-regularised Yule-Walker estimation for VAR processes}
 \usage{
 fit.var(
   x,
-  lambda,
-  symmetric = "min",
-  idio.var.order = 1,
-  idio.method = c("ds", "lasso"),
-  n.cores = min(parallel::detectCores() - 1, 3),
-  niter = 100,
+  center = TRUE,
+  method = c("lasso", "ds"),
+  lambda = NULL,
+  var.order = 1,
+  cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
+  n.iter = 100,
   tol = 0,
-  do.plot = FALSE,
-  center = TRUE
+  n.cores = min(parallel::detectCores() - 1, 3)
 )
 }
 \arguments{
-\item{x}{input time series matrix, with each row representing a time series}
+\item{x}{input time series matrix, with each row representing a variable}
 
-\item{lambda}{regularisation parameter}
+\item{center}{whether to de-mean the input \code{x} row-wise}
 
-\item{symmetric}{type of symmetry to enforce on \code{Gamma}, one of 'min', 'max', 'avg', 'none'}
-
-\item{idio.var.order}{order of idiosyncratic VAR model}
-
-\item{idio.method}{A string specifying the type of l1-regularised estimator for the idiosyncratic VAR matrix, possible values are:
+\item{method}{a string specifying the method to be adopted for VAR process estimation; possible values are:
 \itemize{
-   \item{\code{'lasso'}}{ Lasso estimator}
-   \item{\code{'ds'}}{ Dantzig Selector}
+   \item{\code{"lasso"}}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
+   \item{\code{"ds"}}{ Dantzig Selector-type constrained \code{l1}-minimisation}
 }}
 
-\item{n.cores}{number of cores to use for parallel computing (\code{'ds'} only)}
+\item{lambda}{regularisation parameter; if \code{lambda = NULL}, cross validation is employed to select the parameter}
 
-\item{niter}{maximum number of descent steps (\code{'lasso'} only)}
+\item{var.order}{order of the VAR process; if a vector of integers is supplied, the order is chosen via cross validation}
 
-\item{tol}{numerical tolerance for increases in the loss function(\code{'lasso'} only)}
+\item{cv.args}{a list specifying arguments for the cross validation procedure
+for selecting the regularisation parameter (and VAR order). It contains:
+\itemize{
+   \item{\code{n.folds}}{ number of folds}
+   \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
+   \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
+}}
 
-\item{do.plot}{return a plot of the loss function against descent steps (\code{'lasso'} only)}
+\item{n.iter}{maximum number of descent steps; applicable when \code{method = "lasso"}}
 
-\item{center}{demean the input \code{x}}
+\item{tol}{numerical tolerance for increases in the loss function; applicable when \code{method = "lasso"}}
+
+\item{n.cores}{number of cores to use for parallel communing, see \code{\link[parallel]{makePSOCKcluster}}; applicable when \code{method = "ds"}}
 }
 \value{
-A list which contains the following fields:
-\itemize{
-\item{beta: VAR parameters}
-\item{lambda: regularisation parameter}
-\item{Gamma: Estimated noise covariance}
-}
+a list which contains the following fields:
+\item{beta}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
+\item{Gamma}{ estimate of the innovation covariance matrix}
+\item{lambda}{ regularisation parameter}
+\item{var.order}{ VAR order}
+\item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
 }
 \description{
-Returns parameter estimates for the idiosyncratic VAR and the corresponding Gamma matrix, either by the Dantzig selector or Lasso methods
+Estimates the VAR parameter matrices via \code{l1}-regularised Yule-Walker estimation
+and innovation covariance matrix via constrained \code{l1}-minimisation.
 }
 \details{
 Further information can be found in Barigozzi, Cho and Owens (2021).
 }
 \examples{
-require(fnets)
-require(doParallel)
-require(lpSolve)
-set.seed(222)
-n <- 200
-p<- 100
-chi <- sim.factor.M2(n,p)
-xi <- sim.idio(n,p)
-sample.data <- chi$data + xi$data
-fit.var(sample.data, .1, idio.method = "lasso")
+library(fnets)
+
+set.seed(123)
+n <- 500
+p <- 50
+idio <- sim.var(n, p)
+x <- idio$data
+
+fv <- fit.var(x, center = TRUE, method = 'lasso', var.order = 1)
+norm(fv$beta - t(idio$A), 'F')/norm(t(idio$A), 'F')
 }
 \references{
-Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
+Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 }

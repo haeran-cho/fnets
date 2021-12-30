@@ -7,23 +7,27 @@
 dyn.pca(xx, q = NULL, ic.op = 4, kern.const = 4)
 }
 \arguments{
-\item{xx}{centred input time series matrix, with each row representing a time series}
+\item{xx}{centred input time series matrix, with each row representing a variable}
 
-\item{q}{the number of factors, if q=NULL this is selected by the information criterion-based estimator of Hallin and Liska (2007)}
+\item{q}{number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007)}
 
-\item{ic.op}{an index number for the information criterion (1 to 6)}
+\item{ic.op}{choice of the information criterion. Currently the three options from Hallin and Liška (2007) (\code{ic.op = 1, 2} or \code{3}) and
+their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
+with \code{ic.op = 5} recommended as a default choice based on numerical experiments}
 
-\item{kern.const}{constant to determine bandwidth size}
+\item{kern.const}{constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA}
 }
 \value{
-A list containing
+a list containing
 \itemize{
-\item{\code{'q'}}{ number of factors}
-\item{\code{'spec'}}{ Spectral density matrices}
-\item{\code{'acv'}}{ Autocovariance matrices}
-\item{\code{'kern.const'}}{ Constant to determine bandwidth size}
+\item{q}{ number of factors}
+\item{hl}{ if \code{q = NULL}, the output from \code{\link[fnets]{hl.factor.number}}}
+\item{spec}{ a list containing the estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
+\item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
+\item{kern.const}{ input parameter}
 }
 }
 \description{
-Performs principal components analysis of the autocovariance matrices.
+Performs principal components analysis in frequency domain for identifying common and idiosyncratic components.
 }
+\keyword{internal}

@@ -2,44 +2,54 @@
 % Please edit documentation in R/fnets.R
 \name{hl.factor.number}
 \alias{hl.factor.number}
-\title{Factor number estimator of Hallin and Liska (2011)}
+\title{Factor number estimator of Hallin and Liška (2007)}
 \usage{
-hl.factor.number(x, q.max, mm, w = NULL, do.plot = TRUE, center = TRUE)
+hl.factor.number(x, q.max = NULL, mm, w = NULL, do.plot = FALSE, center = TRUE)
 }
 \arguments{
-\item{x}{input time series matrix, with each row representing a time series}
+\item{x}{input time series matrix, with each row representing a variable}
 
-\item{q.max}{the maximum number of factors to consider}
+\item{q.max}{maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}}
 
-\item{mm}{bandwidth scalar}
+\item{mm}{integer representing the kernel bandwidth}
 
-\item{w}{weight vector, defaults to Bartlett weights determined by \code{mm}}
+\item{w}{vector of length \code{2 * mm + 1} containing symmetric weights; if \code{w = NULL}, default weights are generated using the Bartlett kernel and \code{mm}}
 
-\item{do.plot}{return a plot of the information criteria}
+\item{do.plot}{whether to plot the values of six information criteria}
 
-\item{center}{demean the input \code{x}}
+\item{center}{whether to de-mean the input \code{x} row-wise}
 }
 \value{
-A list containing
+a list containing
 \itemize{
-\item{\code{'q.hat'}}{ Estimated factor numbers corresponding to each criterion}
-\item{\code{'Gamma_x'}}{ Autocovariance of x}
-\item{\code{'Sigma_x'}}{ Spectral density of x}
-\item{\code{'sv'}}{ singular value decomposition of Sigma_x}
+\item{q.hat}{ a vector containing minimisers of the six information criteria}
+\item{Gamma_x}{ an array containing the estimates of the autocovariance matrices of \code{x} at \code{2 * mm + 1} lags}
+\item{Sigma_x}{ an array containing the estimates of the spectral density matrices of \code{x} at \code{2 * mm + 1} Fourier frequencies}
+\item{sv}{ a list containing the singular value decomposition of \code{Sigma_x}}
 }
 }
 \description{
-Selects the factor number \code{q} based on 6 information criteria
+Estimates the number of factors by minimising an information criterion over sub-samples of the data.
+Currently the three information criteria proposed in Hallin and Liška (2007) (\code{ic.op = 1, 2} or \code{3})
+and their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
+with \code{ic.op = 5} recommended as a default choice based on numerical experiments.
+}
+\details{
+See Hallin and Liška (2007) for further details.
 }
 \examples{
-set.seed(222)
-n <- 200
-p<- 100
-chi <- sim.factor.M2(n,p)
-xi <- sim.idio(n,p)
-sample.data <- chi$data + xi$data
-hl.factor.number(sample.data,6, 10)
+library(fnets)
+
+set.seed(123)
+n <- 500
+p <- 50
+common <- sim.common2(n, p)
+idio <- sim.var(n, p)
+x <- common$data * apply(idio$data, 1, sd)/apply(common$data, 1, sd) + idio$data
+
+hl <- hl.factor.number(x, q.max = NULL, mm = floor(4 * (n/log(n))^(1/3)), do.plot = TRUE)
+hl$q
 }
 \references{
-Hallin, M., & Liška, R. (2007). Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
+Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 }

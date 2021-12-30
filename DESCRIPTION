@@ -1,25 +1,24 @@
 Package: fnets
 Type: Package
-Title: Factor-adjusted Network Analysis and Forecasting for High-dimensional Time Series
+Title: Factor-adjusted Network Estimation and Forecasting for High-dimensional Time Series
 Version: 0.1.0
 Authors@R: c(
     person("Matteo", "Barigozzi", email = "matteo.barigozzi@unibo.it", role = "aut"),
-    person("Haeran", "Cho", email = "haeran.cho@gmail.com", role = "aut"),
-    person("Dom", "Owens", email = "dom.owens@bristol.ac.uk", role = c("cre", "aut")))
+    person("Haeran", "Cho", email = "haeran.cho@gmail.com", role = c("cre", "aut")),
+    person("Dom", "Owens", email = "dom.owens@bristol.ac.uk", role = "aut"))
 Maintainer: Haeran Cho <haeran.cho@gmail.com>
-Description: Used for fitting the factor-adjusted VAR model proposed in Barigozzi, Cho and Owens (2021), where strong cross-sectional dependence is accounted for by factors and the remaining idiosyncratic dependence
-    is modelled by a sparse vector autoregression. Methods for estimating the Granger, Contemporaneous, and Long-Run Partial Correlation networks are provided, as well as forecasting methods for both components.
-Depends: 
-    R (>= 2.10)
+Description: Implements methods for network estimation and forecasting of high-dimensional time series exhibiting strong serial and cross-sectional correlations under a factor-adjusted vector autoregressive model.
+Depends: R (>= 3.1.2)
 Imports: 
-    igraph,
     lpSolve,
+    parallel,
+    doParallel,
     foreach,
     MASS,
-    doParallel,
-    RColorBrewer,
-    fields
-License: MIT + file LICENSE
+    fields,
+    igraph,
+    RColorBrewer
+License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1

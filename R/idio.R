@@ -6,30 +6,29 @@
 #' @param center whether to de-mean the input \code{x} row-wise
 #' @param method a string specifying the method to be adopted for VAR process estimation; possible values are:
 #' \itemize{
-#'    \item{"lasso"}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
-#'    \item{"ds"}{ Dantzig Selector-type constrained \code{l1}-minimisation}
+#'    \item{\code{"lasso"}}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
+#'    \item{\code{"ds"}}{ Dantzig Selector-type constrained \code{l1}-minimisation}
 #' }
 #' @param var.order order of the VAR process; if a vector of integers is supplied, the order is chosen via cross validation
 #' @param lambda regularisation parameter; if \code{lambda = NULL}, cross validation is employed to select the parameter
 #' @param cv.args a list specifying arguments for the cross validation procedure
 #' for selecting the regularisation parameter (and VAR order). It contains:
 #' \itemize{
-#'    \item{n.folds}{ number of folds}
-#'    \item{path.length}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
-#'    \item{do.plot}{ whether to plot the output of the cross validation step}
+#'    \item{\code{n.folds}}{ number of folds}
+#'    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
+#'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
 #' @param n.iter maximum number of descent steps; applicable when \code{method = "lasso"}
 #' @param tol numerical tolerance for increases in the loss function; applicable when \code{method = "lasso"}
 #' @param n.cores number of cores to use for parallel communing, see \code{\link[parallel]{makePSOCKcluster}}; applicable when \code{method = "ds"}
 #' @return a list which contains the following fields:
-#' \itemize{
 #' \item{beta}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
 #' \item{Gamma}{ estimate of the innovation covariance matrix}
 #' \item{lambda}{ regularisation parameter}
 #' \item{var.order}{ VAR order}
 #' \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
-#' }
-#' @example R/examples/idio.R
+#' @example R/examples/var_ex.R
+#' @importFrom parallel detectCores
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @export
 fit.var  <- function(x, center = TRUE, method = c('lasso', 'ds'),
@@ -52,8 +51,8 @@ fit.var  <- function(x, center = TRUE, method = c('lasso', 'ds'),
   mg <- make.gg(acv$Gamma_i, icv$var.order)
   gg <- mg$gg; GG <- mg$GG
 
-  if(idio.method == 'lasso') ive <- var.lasso(GG, gg, lambda = icv$lambda, symmetric = 'min', n.iter = n.iter, tol = tol)
-  if(idio.method == 'ds') ive <- var.dantzig(GG, gg, lambda = icv$lambda, symmetric = 'min', n.cores = n.cores)
+  if(method == 'lasso') ive <- var.lasso(GG, gg, lambda = icv$lambda, symmetric = 'min', n.iter = n.iter, tol = tol)
+  if(method == 'ds') ive <- var.dantzig(GG, gg, lambda = icv$lambda, symmetric = 'min', n.cores = n.cores)
   ive$var.order <- icv$var.order
   ive$mean.x <- mean.x
 
@@ -117,6 +116,10 @@ var.lasso <- function(GG, gg, lambda, symmetric = 'min', n.iter = 100, tol = 0){
 }
 
 #' @title Dantzig selector-type estimator of VAR processes via constrained \code{l1}-minimisation
+#' @importFrom parallel makePSOCKcluster stopCluster detectCores
+#' @importFrom doParallel registerDoParallel
+#' @importFrom foreach foreach %dopar%
+#' @importFrom lpSolve lp
 #' @keywords internal
 var.dantzig <- function(GG, gg, lambda, symmetric = 'min', n.cores = min(parallel::detectCores() - 1, 3)){
 
@@ -132,6 +135,7 @@ var.dantzig <- function(GG, gg, lambda, symmetric = 'min', n.cores = min(paralle
   cl <- parallel::makePSOCKcluster(n.cores)
   doParallel::registerDoParallel(cl)
 
+  ii <- 1
   beta <- foreach::foreach(ii = 1:p, .combine = 'cbind', .multicombine = TRUE, .export = c('lp')) %dopar% {
     b1 <- rep(lambda, p * d) - gg[, ii]
     b2 <- rep(lambda, p * d) + gg[, ii]
@@ -152,6 +156,7 @@ var.dantzig <- function(GG, gg, lambda, symmetric = 'min', n.cores = min(paralle
 }
 
 #' @title Cross validation for factor-adjusted VAR estimation
+#' @importFrom graphics abline legend matplot
 #' @keywords internal
 yw.cv <- function(xx, method = c('lasso', 'ds'),
                   lambda.max = NULL, var.order = 1,
@@ -205,19 +210,16 @@ yw.cv <- function(xx, method = c('lasso', 'ds'),
 }
 
 #' @title Forecasting idiosyncratic VAR process
-#' @description Produces forecasts of the idiosyncratic VAR process 
+#' @description Produces forecasts of the idiosyncratic VAR process
 #' for a given forecasting horizon by estimating the best linear predictors
 #' @param object \code{fnets} object
 #' @param x input time series matrix, with each row representing a variable
 #' @param cpre output of \code{\link[fnets]{common.predict}}
 #' @param h forecast horizon
 #' @return a list containing
-#' \itemize{
 #' \item{is}{ in-sample estimator of the idiosyncratic component}
 #' \item{fc}{ forecasts of the idiosyncratic component for a given forecasting horizon \code{h}}
 #' \item{h}{ forecast horizon}
-#' }
-#' @example R/examples/predict.R
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @export
 idio.predict <- function(object, x, cpre, h = 1){
@@ -239,7 +241,7 @@ idio.predict <- function(object, x, cpre, h = 1){
 
   out <- list(is = is[, 1:n], fc = fc, h = h)
   return(out)
-  
+
 }
 
 #' @keywords internal

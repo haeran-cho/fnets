@@ -2,43 +2,29 @@
 % Please edit documentation in R/idio.R
 \name{idio.predict}
 \alias{idio.predict}
-\title{Prediction for the idiosyncratic VAR process}
+\title{Forecasting idiosyncratic VAR process}
 \usage{
 idio.predict(object, x, cpre, h = 1)
 }
 \arguments{
 \item{object}{\code{fnets} object}
 
-\item{x}{input time series matrix, with each row representing a time series}
+\item{x}{input time series matrix, with each row representing a variable}
 
-\item{cpre}{estimated common component}
+\item{cpre}{output of \code{\link[fnets]{common.predict}}}
 
 \item{h}{forecast horizon}
 }
 \value{
-A list containing
-\itemize{
-\item{\code{'is'}}{ in-sample estimation}
-\item{\code{'fc'}}{ forecast}
-\item{\code{'h'}}{ forecast horizon}
-}
+a list containing
+\item{is}{ in-sample estimator of the idiosyncratic component}
+\item{fc}{ forecasts of the idiosyncratic component for a given forecasting horizon \code{h}}
+\item{h}{ forecast horizon}
 }
 \description{
-Predicts idiosyncratic components from a \code{fnets} object for new data
-}
-\examples{
-require(fnets)
-set.seed(222)
-n <- 200
-p<- 100
-chi <- sim.factor.M2(n,p)
-xi <- sim.idio(n,p)
-sample.data <- chi$data + xi$data
-model <- fnets(sample.data, q=2, idio.method = "lasso")
-pr <- predict(model,sample.data, common.method = "static")
-cpre <- common.predict(model,sample.data, common.method = "static")
-ip <- idio.predict(model,sample.data, cpre)
+Produces forecasts of the idiosyncratic VAR process
+for a given forecasting horizon by estimating the best linear predictors
 }
 \references{
-Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
+Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 }

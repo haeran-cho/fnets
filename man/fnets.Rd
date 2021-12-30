@@ -2,83 +2,116 @@
 % Please edit documentation in R/fnets.R
 \name{fnets}
 \alias{fnets}
-\title{Factor-adjusted network analysis}
+\title{Factor-adjusted network estimation}
 \usage{
 fnets(
   x,
+  center = TRUE,
   q = NULL,
-  ic.op = 4,
+  ic.op = 5,
   kern.const = 4,
-  common.var.args = list(var.order = 1, max.var.order = NULL, trunc.lags = 20, n.perm =
-    10),
+  common.args = list(var.order = 1, max.var.order = NULL, trunc.lags = 20, n.perm = 10),
   idio.var.order = 1,
-  idio.method = c("ds", "lasso"),
-  idio.cv.args = list(n.folds = 1, path.length = 10, symmetric = "min", cv.plot = TRUE),
-  center = TRUE
+  idio.method = c("lasso", "ds"),
+  lrpc.method = c("par", "npar", "none"),
+  cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE)
 )
 }
 \arguments{
-\item{x}{input time series matrix, with each row representing a time series}
+\item{x}{input time series matrix, with each row representing a variable}
 
-\item{q}{the number of factors, if q=NULL this is selected by the information criterion-based estimator of Hallin and Liska (2007)}
+\item{center}{whether to de-mean the input \code{x} row-wise}
 
-\item{ic.op}{an index number for the information criterion}
+\item{q}{number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007), see \code{\link[fnets]{hl.factor.number}} for further details}
 
-\item{kern.const}{constant to determine bandwidth size}
+\item{ic.op}{choice of the information criterion, see \code{\link[fnets]{hl.factor.number}} for further details}
 
-\item{common.var.args}{A list specifying the estimator for the common component. This contains:
+\item{kern.const}{constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA}
+
+\item{common.args}{a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
 \itemize{
-   \item{\code{'var.order'}}{ the order of the VAR model, if NULL then selected blockwise by BIC}
-   \item{\code{'max.var.order'}}{ the maximum order of the VAR model for the BIC to consider}
-   \item{\code{'trunc.lags'}}{ the order of the MA representation}
-   \item{\code{'n.perm'}}{ number of cross-sectional permutations}
+   \item{\code{var.order}}{ order of the blockwise VAR representation of the common component. If \code{var.order = NULL}, it is selected blockwise by Schwarz criterion}
+   \item{\code{max.var.order}}{ maximum blockwise VAR order for the Schwarz criterion}
+   \item{\code{trunc.lags}}{ truncation lag for impulse response function estimation}
+   \item{\code{n.perm}}{ number of cross-sectional permutations involved in impluse response function estimation}
 }}
 
-\item{idio.var.order}{order of idiosyncratic VAR model}
+\item{idio.var.order}{order of the idiosyncratic VAR process; if a vector of integers is supplied, the order is chosen via cross validation}
 
-\item{idio.method}{A string specifying the type of l1-regularised estimator for the idiosyncratic VAR matrix, possible values are:
+\item{idio.method}{a string specifying the method to be adopted for idiosyncratic VAR process estimation; possible values are:
 \itemize{
-   \item{\code{'lasso'}}{ Lasso estimator}
-   \item{\code{'ds'}}{ Dantzig Selector}
+   \item{"lasso"}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
+   \item{"ds"}{ Dantzig Selector-type constrained \code{l1}-minimisation}
 }}
 
-\item{idio.cv.args}{A list specifying arguments to the cross-validation (CV) procedure for the idiosyncratic VAR. This contains:
+\item{lrpc.method}{a string specifying the type of estimator for long-run partial correlation matrix estimation; possible values are:
 \itemize{
-   \item{\code{'n.folds'}}{ number of folds}
-   \item{\code{'path.length'}}{ number of lambda values to consider}
-   \item{\code{'symmetric'}}{ symmetrisation method for Gamma matrix}
-   \item{\code{'cv.plot'}}{ Boolean selecting whether to plot the CV curve}
+   \item{\code{"par"}}{ parametric estimator based on the VAR model assumption}
+   \item{\code{"npar"}}{ nonparametric estimator from inverting the long-run covariance matrix of the idiosyncratic component via constrained \code{l1}-minimisation}
+   \item{\code{"none"}}{ do not estimate the long-run partial correlation matrix}
 }}
 
-\item{center}{demean the input \code{x}}
+\item{cv.args}{a list specifying arguments for the cross validation procedures
+for selecting the tuning parameters involved in VAR parameter and (long-run) partial correlation matrix estimation. It contains:
+\itemize{
+   \item{\code{n.folds}}{ number of folds}
+   \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
+   \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
+}}
 }
 \value{
-An S3 object of class \code{fnets}, which contains the following fields:
+an S3 object of class \code{fnets}, which contains the following fields:
+\item{q}{ number of factors}
+\item{spec}{ a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
+\item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
+\item{common.irf}{ if \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})
+and common shocks (an array of dimension \code{(q, n)}) for the common component}
+\item{idio.var}{ a list containing the following fields:
 \itemize{
-\item{\code{'q'}}{ Number of factors}
-\item{\code{'spec'}}{ Spectral density matrices}
-\item{\code{'acv'}}{ Autocovariance matrices}
-\item{\code{'common.var'}}{ Estimated common component}
-\item{\code{'idio.var'}}{ Estimated idiosyncratic component}
-\item{\code{'mean.x'}}{ Removed means of \code{x} }
-\item{\code{'kern.const'}}{ Constant to determine bandwidth size}
-}
+\item{beta}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
+\item{Gamma}{ estimate of the innovation covariance matrix}
+\item{lambda}{ regularisation parameter}
+\item{var.order}{ VAR order}
+}}
+\item{lrpc}{ see the output of \code{\link[fnets]{par.lrpc}} if \code{lrpc.method = 'par'}
+and that of \code{\link[fnets]{npar.lrpc}} if \code{lrpc.method = 'npar'}}
+\item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
+\item{idio.method}{ input parameter}
+\item{lrpc.method}{ input parameter}
+\item{kern.const}{ input parameter}
 }
 \description{
-This function estimates the spectral density and autocovariance matrices of the common and the idiosyncratic components, impulse response function and common shocks, and (sparse) VAR transition matrix and innovation covariance matrix.
+Operating under factor-adjusted vector autoregressive (VAR) model,
+the function estimates the spectral density and autocovariance matrices of the factor-driven common component and the idiosyncratic VAR process,
+the impulse response functions and common shocks for the common component,
+and VAR parameters and innovation covariance matrix for the idiosyncratic component.
 }
 \details{
-Further information can be found in Barigozzi, Cho and Owens (2021).
+See Barigozzi, Cho and Owens (2021) for further details.
 }
 \examples{
-set.seed(222)
-n <- 200
-p<- 100
-chi <- sim.factor.M2(n,p)
-xi <- sim.idio(n,p)
-sample.data <- chi$data + xi$data
-fnets(sample.data, q=2, idio.method = "lasso")
+\dontrun{
+set.seed(123)
+n <- 500
+p <- 50
+common <- sim.common1(n, p)
+idio <- sim.var(n, p)
+x <- common$data + idio$data
+out <- fnets(x, q = NULL, idio.var.order = 1, idio.method = "lasso",
+lrpc.method = "par", cv.args = list(n.folds = 1, path.length = 10, do.plot = TRUE))
+pre <- predict(out, x, h = 1, common.method = 'unrestricted')
+cpre <- common.predict(out, x, h = 1, common.method = 'restricted', r = NULL)
+ipre <- idio.predict(out, x, cpre, h = 1)
+
+plot(out, type = 'granger', display = 'network', threshold = .05)
+plot(out, type = 'lrpc', display = 'heatmap', threshold = .05)
+}
 }
 \references{
-Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
+Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+
+Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
+}
+\seealso{
+\code{\link[fnets]{predict.fnets}}, \code{\link[fnets]{plot.fnets}}
 }

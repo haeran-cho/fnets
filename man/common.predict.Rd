@@ -2,50 +2,50 @@
 % Please edit documentation in R/common.R
 \name{common.predict}
 \alias{common.predict}
-\title{Prediction for the factor-driven common component}
+\title{Forecasting the factor-driven common component}
 \usage{
-common.predict(object, x, h = 1, common.method = c("static", "var"), r = NULL)
+common.predict(
+  object,
+  x,
+  h = 1,
+  common.method = c("restricted", "unrestricted"),
+  r = NULL
+)
 }
 \arguments{
 \item{object}{\code{fnets} object}
 
-\item{x}{input time series matrix, with each row representing a time series}
+\item{x}{input time series matrix, with each row representing a variable}
 
-\item{h}{forecast horizon}
+\item{h}{forecasting horizon}
 
-\item{common.method}{which of "static" or "var" to forecast the common component with}
+\item{common.method}{a string specifying the method for common component forecasting; possible values are:
+\itemize{
+   \item{\code{"restricted"}}{ performs forecasting under a restrictive static factor model}
+   \item{\code{"unrestricted"}}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
+}}
 
-\item{r}{factor number, if \code{r = NULL} this is selected using the maximal eigenratio}
+\item{r}{number of static factors; if \code{common.method = "restricted"} and \code{r = NULL},
+it is estimated as the maximiser of the ratio of the successive eigenvalues
+of the estimate of the common component covariance matrix, see Ahn and Horenstein (2013)}
 }
 \value{
-A list containing
-\itemize{
-\item{is}{in-sample estimator of the common component}
-\item{fc}{forecasts of the common component for a given forecasting horizon \code{h}}
-\item{r}{factor number}
-\item{h}{forecast horizon}
-}
+a list containing
+\item{is}{ in-sample estimator of the common component}
+\item{fc}{ forecasts of the common component for a given forecasting horizon \code{h}}
+\item{r}{ static factor number}
+\item{h}{ forecast horizon}
 }
 \description{
-Predicts common component from a \code{fnets} object for new data
-}
-\examples{
-require(fnets)
-set.seed(222)
-n <- 200
-p<- 100
-chi <- sim.factor.M2(n,p)
-xi <- sim.idio(n,p)
-sample.data <- chi$data + xi$data
-model <- fnets(sample.data, q=2, idio.method = "lasso")
-pr <- predict(model,sample.data, common.method = "static")
-cpre <- common.predict(model,sample.data, common.method = "static")
-ip <- idio.predict(model,sample.data, cpre)
+Produces forecasts of the common component
+for a given forecasting horizon by estimating the best linear predictors
 }
 \references{
-Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
+Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 
-Forni, M., Hallin, M., Lippi, M., & Reichlin, L. (2005). The generalized dynamic factor model: one-sided estimation and forecasting. Journal of the American Statistical Association, 100(471), 830--840.
+Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 
-Forni, M., Hallin, M., Lippi, M., & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
+Forni, M., Hallin, M., Lippi, M. & Reichlin, L. (2005). The generalized dynamic factor model: one-sided estimation and forecasting. Journal of the American Statistical Association, 100(471), 830--840.
+
+Forni, M., Hallin, M., Lippi, M. & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
 }

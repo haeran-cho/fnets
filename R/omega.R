@@ -7,19 +7,31 @@
 #' @param cv.args a list specifying arguments for the cross validation procedure
 #' for selecting the tuning parameter involved in long-run partial correlation matrix estimation. It contains:
 #' \itemize{
-#'    \item{n.folds}{ number of folds}
-#'    \item{path.length}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
-#'    \item{do.plot}{ whether to plot the output of the cross validation step}
+#'    \item{\code{n.folds}}{ number of folds}
+#'    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
+#'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
 #' @param correct.zero whether to correct for any zero-entries in the diagonals of the inverse of long-run covariance matrix
 #' @param n.cores number of cores to use for parallel communing, see \code{\link[parallel]{makePSOCKcluster}}
 #' @return a list containing
-#' \itemize{
 #' \item{Omega}{ estimated inverse of the long-run covariance matrix}
 #' \item{lrpc}{ estimated long-run partial correlation matrix}
 #' \item{eta}{ regularisation parameter}
+#' @examples
+#' \dontrun{
+#' set.seed(123)
+#' n <- 500
+#' p <- 50
+#' common <- sim.common1(n, p)
+#' idio <- sim.var(n, p)
+#' x <- common$data + idio$data
+#' out <- fnets(x, q = NULL, idio.method = 'lasso', lrpc.method = 'none')
+#' nlrpc <- npar.lrpc(out, x, cv.args = list(n.folds = 1, path.length = 10, do.plot = TRUE))
+#' out$lrpc <- nlrpc
+#' out$lrpc.method <- 'npar'
+#' plot(out, type = 'lrpc', display = 'heatmap', threshold = .05)
 #' }
-#' @example R/examples/nonparlrpc.R
+#' @importFrom parallel detectCores
 #' @export
 npar.lrpc <- function(object, x, eta = NULL,
                       cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
@@ -31,7 +43,7 @@ npar.lrpc <- function(object, x, eta = NULL,
 
   if(is.null(eta)){
     dcv <- direct.cv(object, xx, target = 'spec', symmetric = 'min',
-                     n.folds = cv.args$n.folds, path.length = cv.args$path.length, 
+                     n.folds = cv.args$n.folds, path.length = cv.args$path.length,
                      q = object$q, kern.const = object$kern.const, n.cores = n.cores,
                      do.plot = cv.args$do.plot)
     eta <- dcv$eta
@@ -55,22 +67,35 @@ npar.lrpc <- function(object, x, eta = NULL,
 #' @param cv.args a list specifying arguments for the cross validation procedure
 #' for selecting the tuning parameter involved in long-run partial correlation matrix estimation. It contains:
 #' \itemize{
-#'    \item{n.folds}{ number of folds}
-#'    \item{path.length}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
-#'    \item{do.plot}{ whether to plot the output of the cross validation step}
+#'    \item{\code{n.folds}}{ number of folds}
+#'    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
+#'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
 #' @param correct.zero whether to correct for any zero-entries in the diagonals of the inverse of long-run covariance matrix
 #' @param n.cores number of cores to use for parallel communing, see \code{\link[parallel]{makePSOCKcluster}}
 #' @return a list containing
-#' \itemize{
 #' \item{Delta}{ estimated inverse of the innovation covariance matrix}
 #' \item{Omega}{ estimated inverse of the long-run covariance matrix}
 #' \item{pc}{ estimated innovation partial correlation matrix}
 #' \item{lrpc}{ estimated long-run partial correlation matrix}
 #' \item{eta}{ regularisation parameter}
-#' }
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
-#' @example R/examples/paramlrpc.R
+#' @examples
+#' \dontrun{
+#' set.seed(123)
+#' n <- 500
+#' p <- 50
+#' common <- sim.common1(n, p)
+#' idio <- sim.var(n, p)
+#' x <- common$data + idio$data
+#' out <- fnets(x, q = NULL, idio.method = 'lasso', lrpc.method = 'none')
+#' plrpc <- par.lrpc(out, x, cv.args = list(n.folds = 1, path.length = 10, do.plot = TRUE))
+#' out$lrpc <- plrpc
+#' out$lrpc.method <- 'par'
+#' plot(out, type = 'pc', display = 'network', threshold = .05)
+#' plot(out, type = 'lrpc', display = 'heatmap', threshold = .05)
+#' }
+#' @importFrom parallel detectCores
 #' @export
 par.lrpc <- function(object, x, eta = NULL,
                        cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
@@ -89,7 +114,7 @@ par.lrpc <- function(object, x, eta = NULL,
 
   if(is.null(eta)){
     dcv <- direct.cv(object, xx, target = 'acv', symmetric = 'min',
-                     n.folds = cv.args$n.folds, path.length = cv.args$path.length, 
+                     n.folds = cv.args$n.folds, path.length = cv.args$path.length,
                      q = object$q, kern.const = object$kern.const, n.cores = n.cores,
                      do.plot = cv.args$do.plot)
     eta <- dcv$eta
@@ -106,6 +131,8 @@ par.lrpc <- function(object, x, eta = NULL,
 }
 
 #' @keywords internal
+#' @importFrom parallel detectCores
+#' @importFrom graphics abline
 direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min', 'max', 'avg', 'none'),
                       n.folds = 1, path.length = 10, q = 0, kern.const = 4, n.cores = min(parallel::detectCores() - 1, 3),
                       do.plot = FALSE){
@@ -159,17 +186,21 @@ direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min'
   eta.min <- eta.path[which.min(cv.err)]
 
   if(do.plot){
-    plot(eta.path, cv.err, type = 'b', col = 2, pch = 2, log = 'x', 
+    plot(eta.path, cv.err, type = 'b', col = 2, pch = 2, log = 'x',
          xlab = 'eta (log scale)', ylab = 'CV error', main = 'CV for (LR)PC matrix estimation')
     abline(v = eta.min)
   }
-  
+
   out <- list(eta = eta.min, cv.error = cv.err, eta.path = eta.path)
   return(out)
 
 }
 
 #' @keywords internal
+#' @importFrom parallel makePSOCKcluster stopCluster detectCores
+#' @importFrom doParallel registerDoParallel
+#' @importFrom foreach foreach %dopar%
+#' @importFrom lpSolve lp
 direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', 'none'),
                            correct.zero = FALSE,
                            n.cores = min(parallel::detectCores() - 1, 3)){
@@ -183,6 +214,7 @@ direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', '
   cl <- parallel::makePSOCKcluster(n.cores)
   doParallel::registerDoParallel(cl)
 
+  ii <- 1
   DD <- foreach::foreach(ii = 1:p, .combine = 'cbind', .multicombine = TRUE, .export = c('lp')) %dopar% {
     ee <- rep(0, p)
     ee[ii] <- 1
