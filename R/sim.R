@@ -9,11 +9,11 @@
 #' \item{data}{ generated series}
 #' \item{q}{ number of factors}
 #' }
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) fnets: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @examples
-#' common <- sim.factor.M1(100, 10)
+#' common <- sim.factor.M1(500, 50)
 #' @export
-sim.factor.M1 <- function(n, p, q){
+sim.factor.M1 <- function(n, p, q = 2){
   
   trunc.lags <- min(20, round(n/log(n)))
   chi <- matrix(0, p, n)
@@ -42,9 +42,9 @@ sim.factor.M1 <- function(n, p, q){
 #' \item{q}{ number of factors}
 #' \item{r}{ number of static factors}
 #' }
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) fnets: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @examples
-#' common <- sim.factor.M2(100, 10)
+#' common <- sim.factor.M2(500, 50)
 #' @export
 sim.factor.M2 <- function(n, p, q = 2){
   lags <- 1
@@ -76,10 +76,11 @@ sim.factor.M2 <- function(n, p, q = 2){
 #' \itemize{
 #' \item{data}{ generated series}
 #' \item{A}{ transition matrix}
+#' \item{Gamma}{ innovation covariance matrix}
 #' }
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) fnets: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @examples
-#' sim.idio(100, 10, A = diag(0.3, 10))
+#' idio <- sim.idio(500, 50)
 #' @export
 sim.idio <- function(n, p, Gamma = diag(1, p)){
   burnin <-100
@@ -93,7 +94,7 @@ sim.idio <- function(n, p, Gamma = diag(1, p)){
   for(tt in 2:(n + burnin)) xi[, tt] <- xi[, tt] + A %*% xi[, tt - 1]
   xi <- xi[, -(1:burnin)]
 
-  return(list(data = xi, A = A))
+  return(list(data = xi, A = A, Gamma = Gamma))
   
 }
 

@@ -6,10 +6,11 @@
 #' @details See Barigozzi, Cho and Owens (2021) for further details.
 #'
 #' @param x input time series matrix, with each row representing a variable
-#' @param q number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007)
-#' @param ic.op choice of the information criterion. See \link[fnets]{hl.factor.number} for further details.
+#' @param center whether to de-mean the input \code{x} row-wise
+#' @param q number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007), see \code{\link[fnets]{hl.factor.number}} for further details
+#' @param ic.op choice of the information criterion, see \code{\link[fnets]{hl.factor.number}} for further details
 #' @param kern.const constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA
-#' @param common.var.args a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. This contains:
+#' @param common.var.args a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
 #' \itemize{
 #'    \item{var.order}{ order of the blockwise VAR representation of the common component. If \code{var.order = NULL}, it is selected blockwise by Schwarz criterion}
 #'    \item{max.var.order}{ maximum blockwise VAR order for the Schwarz criterion}
@@ -17,19 +18,24 @@
 #'    \item{n.perm}{ number of cross-sectional permutations involved in impluse response function estimation}
 #' }
 #' @param idio.var.order order of the idiosyncratic VAR process; if a vector of integers is supplied, the order is chosen via cross validation
-#' @param idio.method a string specifying the type of l1-regularised estimator to be adopted for idiosyncratic VAR process estimation; possible values are:
+#' @param idio.method a string specifying the type of \code{l1}-regularised estimator to be adopted for idiosyncratic VAR process estimation; possible values are:
 #' \itemize{
-#'    \item{"lasso"}{ Lasso-type l1-regularised M-estimation}
-#'    \item{"ds"}{ Dantzig Selector-type constrained l1-minimisation}
+#'    \item{"lasso"}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
+#'    \item{"ds"}{ Dantzig Selector-type constrained \code{l1}-minimisation}
 #' }
-#' @param idio.cv.args a list specifying arguments for the cross validation procedure.This contains:
+#' @param lrpc.method a string specifying the type of estimator for long-run partial correlation matrix estimation; possible values are:
+#' \itemize{
+#'    \item{"param"}{ parametric estimator based on the VAR model assumption}
+#'    \item{"nonpar"}{ nonparametric estimator from inverting the long-run covariance matrix of the idiosyncratic component via constrained \code{l1}-minimisation}
+#'    \item{"none"}{ do not estimate the long-run partial correlation matrix}
+#' }
+#' @param cv.args a list specifying arguments for the cross validation procedures 
+#' for selecting the tuning parameters involved in VAR parameter and (long-run) partial correlation matrix estimation. It contains:
 #' \itemize{
 #'    \item{n.folds}{ number of folds}
-#'    \item{path.length}{ number of penalty parameter values to consider}
-#'    \item{symmetric}{ symmetrisation method for the VAR innovation covariance matrix}
-#'    \item{cv.plot}{ whether to plot the output of the cross validation step}
+#'    \item{path.length}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
+#'    \item{do.plot}{ whether to plot the output of the cross validation step}
 #' }
-#' @param center whether to de-mean the input \code{x} row-wise
 #' @return an S3 object of class \code{fnets}, which contains the following fields:
 #' \itemize{
 #' \item{q}{ number of factors}
@@ -37,23 +43,25 @@
 #' \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
 #' \item{common.var}{ if \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)}) 
 #' and common shocks (an array of dimension \code{(q, n)}) for the common component}
-#' \item{idio.var'}}{ Estimated idiosyncratic component}
+#' \item{idio.var}}{ Estimated idiosyncratic component}
 #' \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
 #' \item{kern.const}{ input parameter}
 #' }
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) fnets: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 #' @example R/examples/fnets.R
+#' @seealso \code{\link[fnets]{predict.fnets}}, \code{\link[fnets]{plot.fnets}}
 #' @export
-fnets <- function(x, q = NULL, ic.op = 4, kern.const = 4,
+fnets <- function(x, center = TRUE, q = NULL, ic.op = 4, kern.const = 4,
                   common.var.args = list(var.order = 1, max.var.order = NULL, trunc.lags = 20, n.perm = 10),
                   idio.var.order = 1, idio.method = c('ds', 'lasso'),
-                  idio.cv.args = list(n.folds = 1, path.length = 10, symmetric = 'min', cv.plot = TRUE),
-                  center = TRUE){
+                  lrpc.method = c('param', 'nonpar', 'none'),
+                  cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE)){
   p <- dim(x)[1]
   n <- dim(x)[2]
 
   idio.method <- match.arg(idio.method, c('lasso', 'ds'))
+  lrpc.method <- match.arg(lrpc.method, c('param', 'nonpar', 'none'))
   if(center) mean.x <- apply(x, 1, mean) else mean.x <- rep(0, p)
   xx <- x - mean.x
 
@@ -69,19 +77,29 @@ fnets <- function(x, q = NULL, ic.op = 4, kern.const = 4,
                                trunc.lags = common.var.args$trunc.lags, n.perm = common.var.args$n.perm)
 
   ## idio estimation
-  mg <- make.gg(acv$Gamma_i, idio.var.order)
-  gg <- mg$gg; GG <- mg$GG
 
-  icv <- idio.cv(xx, lambda.max = max(abs(GG)), var.order = idio.var.order, idio.method = idio.method,
-          path.length = idio.cv.args$path.length, n.folds = idio.cv.args$n.folds,
-          q = q, kern.const = kern.const, cv.plot = idio.cv.args$n.folds)
-  if(idio.method == 'lasso') ive <- var.lasso(GG, gg, lambda = icv$lambda, symmetric = idio.cv.args$symmetric)
-  if(idio.method == 'ds') ive <- var.dantzig(GG, gg, lambda = icv$lambda, symmetric = idio.cv.args$symmetric)
+  if(cv.args$do.plot) par(mfrow = c(1, 1 + lrpc.method %in% c('param', 'nonpar')))
+    
+  icv <- idio.cv(xx, lambda.max = NULL, var.order = idio.var.order, idio.method = idio.method,
+          path.length = cv.args$path.length, n.folds = cv.args$n.folds,
+          q = q, kern.const = kern.const, do.plot = cv.args$do.plot)
+  mg <- make.gg(acv$Gamma_i, icv$var.order)
+  gg <- mg$gg; GG <- mg$GG
+  if(idio.method == 'lasso') ive <- var.lasso(GG, gg, lambda = icv$lambda, symmetric = 'min')
+  if(idio.method == 'ds') ive <- var.dantzig(GG, gg, lambda = icv$lambda, symmetric = 'min')
 
   out <- list(q = q, spec = spec, acv = acv,
               common.var = cve, idio.var = ive, mean.x = mean.x,
               kern.const = kern.const)
   attr(out, 'class') <- 'fnets'
+  
+  ## lrpc estimation
+  if(lrpc.method %in% c('param', 'nonpar')){
+    
+    
+    out$lrpc <- lrpc
+  }
+  
   return(out)
 
 }
@@ -288,7 +306,7 @@ hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = TRUE, cent
 #' \item{mean.x}{ \code{mean.x} argument from \code{object}}
 #' }
 #' @example R/examples/predict.R
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) fnets: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 #' @export
 predict.fnets <- function(object, x, h = 1, common.method = c('restricted', 'unrestricted'), r = NULL, ...){
@@ -318,7 +336,7 @@ predict.fnets <- function(object, x, h = 1, common.method = c('restricted', 'unr
 #' @param threshold if \code{threshold > 0} hard thresholding is applied to the aggregated VAR transition matrix before plotting
 #' @param size a string specifying the type of degree to be used when \code{display = "network"}; possible values are \code{"all"}, \code{"out"}, \code{"in"} or \code{"total"}
 #' @param ... additional arguments
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @example R/examples/plot.R
 #' @export
 plot.fnets <- function(x, display = "network", names = NULL, groups = NULL, threshold = 0, size = NULL, ...){
