@@ -260,7 +260,7 @@ make.gg <- function(acv, d){
 
 #' @keywords internal
 f.func <- function(GG, gg, A){
-  return(0.5 * norm((GG %*% (A) - gg) , "F")) 
+  return(.5 * trace(2 * GG - t(A) %*% gg - t(gg) %*% A)) 
 }
 
 #' @keywords internal
