@@ -1,52 +1,55 @@
-
-#' @title Factor-adjusted network analysis
-#' @description This function estimates the spectral density and autocovariance matrices of the common and the idiosyncratic components, impulse response function and common shocks, and (sparse) VAR transition matrix and innovation covariance matrix.
-#' @details
-#'  Further information can be found in Barigozzi, Cho and Owens (2021).
+#' @title Factor-adjusted network estimation
+#' @description Operating under factor-adjusted vector autoregressive (VAR) model, 
+#' the function estimates the spectral density and autocovariance matrices of the factor-driven common component and the idiosyncratic VAR process,
+#' the impulse response functions and common shocks for the common component, 
+#' and VAR parameters and innovation covariance matrix for the idiosyncratic component.
+#' @details See Barigozzi, Cho and Owens (2021) for further details.
 #'
-#' @param x input time series matrix, with each row representing a time series
-#' @param q the number of factors, if q=NULL this is selected by the information criterion-based estimator of Hallin and Liska (2007)
-#' @param ic.op an index number for the information criterion
-#' @param kern.const constant to determine bandwidth size
-#' @param common.var.args A list specifying the estimator for the common component. This contains:
+#' @param x input time series matrix, with each row representing a variable
+#' @param q number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007)
+#' @param ic.op choice of the information criterion. See \link[fnets]{hl.factor.number} for further details.
+#' @param kern.const constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA
+#' @param common.var.args a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. This contains:
 #' \itemize{
-#'    \item{\code{'var.order'}}{ the order of the VAR model, if NULL then selected blockwise by BIC}
-#'    \item{\code{'max.var.order'}}{ the maximum order of the VAR model for the BIC to consider}
-#'    \item{\code{'trunc.lags'}}{ the order of the MA representation}
-#'    \item{\code{'n.perm'}}{ number of cross-sectional permutations}
+#'    \item{var.order}{ order of the blockwise VAR representation of the common component. If \code{var.order = NULL}, it is selected blockwise by Schwarz criterion}
+#'    \item{max.var.order}{ maximum blockwise VAR order for the Schwarz criterion}
+#'    \item{trunc.lags}{ truncation lag for impulse response function estimation}
+#'    \item{n.perm}{ number of cross-sectional permutations involved in impluse response function estimation}
 #' }
-#' @param idio.var.order order of idiosyncratic VAR model
-#' @param idio.method A string specifying the type of l1-regularised estimator for the idiosyncratic VAR matrix, possible values are:
+#' @param idio.var.order order of the idiosyncratic VAR process; if a vector of integers is supplied, the order is chosen via cross validation
+#' @param idio.method a string specifying the type of l1-regularised estimator to be adopted for idiosyncratic VAR process estimation; possible values are:
 #' \itemize{
-#'    \item{\code{'lasso'}}{ Lasso estimator}
-#'    \item{\code{'ds'}}{ Dantzig Selector}
+#'    \item{"lasso"}{ Lasso-type l1-regularised M-estimation}
+#'    \item{"ds"}{ Dantzig Selector-type constrained l1-minimisation}
 #' }
-#' @param idio.cv.args  A list specifying arguments to the cross-validation (CV) procedure for the idiosyncratic VAR. This contains:
+#' @param idio.cv.args a list specifying arguments for the cross validation procedure.This contains:
 #' \itemize{
-#'    \item{\code{'n.folds'}}{ number of folds}
-#'    \item{\code{'path.length'}}{ number of lambda values to consider}
-#'    \item{\code{'symmetric'}}{ symmetrisation method for Gamma matrix}
-#'    \item{\code{'cv.plot'}}{ Boolean selecting whether to plot the CV curve}
+#'    \item{n.folds}{ number of folds}
+#'    \item{path.length}{ number of penalty parameter values to consider}
+#'    \item{symmetric}{ symmetrisation method for the VAR innovation covariance matrix}
+#'    \item{cv.plot}{ whether to plot the output of the cross validation step}
 #' }
-#' @param center demean the input \code{x}
-#' @return An S3 object of class \code{fnets}, which contains the following fields:
+#' @param center whether to de-mean the input \code{x} row-wise
+#' @return an S3 object of class \code{fnets}, which contains the following fields:
 #' \itemize{
-#' \item{\code{'q'}}{ Number of factors}
-#' \item{\code{'spec'}}{ Spectral density matrices}
-#' \item{\code{'acv'}}{ Autocovariance matrices}
-#' \item{\code{'common.var'}}{ Estimated common component}
-#' \item{\code{'idio.var'}}{ Estimated idiosyncratic component}
-#' \item{\code{'mean.x'}}{ Removed means of \code{x} }
-#' \item{\code{'kern.const'}}{ Constant to determine bandwidth size}
+#' \item{q}{ number of factors}
+#' \item{spec}{ a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
+#' \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
+#' \item{common.var}{ if \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)}) 
+#' and common shocks (an array of dimension \code{(q, n)}) for the common component}
+#' \item{idio.var'}}{ Estimated idiosyncratic component}
+#' \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
+#' \item{kern.const}{ input parameter}
 #' }
-#' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) fnets: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 #' @example R/examples/fnets.R
 #' @export
 fnets <- function(x, q = NULL, ic.op = 4, kern.const = 4,
-                           common.var.args = list(var.order = 1, max.var.order = NULL, trunc.lags = 20, n.perm = 10),
-                           idio.var.order = 1, idio.method = c('ds', 'lasso'),
-                           idio.cv.args = list(n.folds = 1, path.length = 10, symmetric = 'min', cv.plot = TRUE),
-                           center = TRUE){
+                  common.var.args = list(var.order = 1, max.var.order = NULL, trunc.lags = 20, n.perm = 10),
+                  idio.var.order = 1, idio.method = c('ds', 'lasso'),
+                  idio.cv.args = list(n.folds = 1, path.length = 10, symmetric = 'min', cv.plot = TRUE),
+                  center = TRUE){
   p <- dim(x)[1]
   n <- dim(x)[2]
 
@@ -84,19 +87,21 @@ fnets <- function(x, q = NULL, ic.op = 4, kern.const = 4,
 }
 
 #' @title Dynamic PCA
-#' @description Performs principal components analysis of the autocovariance matrices.
-#' @param xx centred input time series matrix, with each row representing a time series
-#' @param q the number of factors, if q=NULL this is selected by the information criterion-based estimator of Hallin and Liska (2007)
-#' @param ic.op an index number for the information criterion (1 to 6)
-#' @param kern.const constant to determine bandwidth size
-#' @return A list containing
+#' @description Performs principal components analysis in frequency domain for identifying common and idiosyncratic components.
+#' @param xx centred input time series matrix, with each row representing a variable
+#' @param q number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007)
+#' @param ic.op choice of the information criterion. Currently the three options from Hallin and Liška (2007) (\code{ic.op = 1, 2} or \code{3}) and 
+#' their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
+#' with \code{ic.op = 5} recommended as a default choice based on numerical experiments
+#' @param kern.const constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA
+#' @return a list containing
 #' \itemize{
-#' \item{\code{'q'}}{ number of factors}
-#' \item{\code{'spec'}}{ Spectral density matrices}
-#' \item{\code{'acv'}}{ Autocovariance matrices}
-#' \item{\code{'kern.const'}}{ Constant to determine bandwidth size}
+#' \item{q}{ number of factors}
+#' \item{spec}{ a list containing the estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
+#' \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
+#' \item{kern.const}{ input parameter}
 #' }
-# #' @export
+#' @keywords internal
 dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.const = 4){
 
   p <- dim(xx)[1]
@@ -154,32 +159,36 @@ dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.const = 4){
 
 }
 
-#' @title Factor number estimator of Hallin and Liska (2011)
-#' @description Selects the factor number \code{q} based on 6 information criteria
-#' @param x input time series matrix, with each row representing a time series
-#' @param q.max the maximum number of factors to consider
-#' @param mm bandwidth scalar
-#' @param w weight vector, defaults to Bartlett weights determined by \code{mm}
-#' @param do.plot return a plot of the information criteria
-#' @param center demean the input \code{x}
-#' @return A list containing
+#' @title Factor number estimator of Hallin and Liška (2007)
+#' @description Estimates the number of factors by minimising an information criterion over sub-samples of the data.
+#' Currently the three information criteria proposed in Hallin and Liška (2007) (\code{ic.op = 1, 2} or \code{3})
+#' and their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
+#' with \code{ic.op = 5} recommended as a default choice based on numerical experiments.
+#' @details See Hallin and Liška (2007) for further details.
+#' @param x input time series matrix, with each row representing a variable
+#' @param q.max maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}
+#' @param mm integer representing the kernel bandwidth
+#' @param w vector of length \code{2 * mm + 1} containing symmetric weights; if \code{w = NULL}, default weights are generated using the Bartlett kernel and \code{mm}
+#' @param do.plot whether to produce a plot of six information criteria values
+#' @param center whether to de-mean the input \code{x} row-wise
+#' @return a list containing
 #' \itemize{
-#' \item{\code{'q.hat'}}{ Estimated factor numbers corresponding to each criterion}
-#' \item{\code{'Gamma_x'}}{ Autocovariance of x}
-#' \item{\code{'Sigma_x'}}{ Spectral density of x}
-#' \item{\code{'sv'}}{ singular value decomposition of Sigma_x}
+#' \item{q.hat}{ a vector containing minimisers of the six information criteria}
+#' \item{Gamma_x}{ an array containing the estimates of the autocovariance matrices of \code{x} at \code{2 * mm + 1} lags}
+#' \item{Sigma_x}{ an array containing the estimates of the spectral density matrices of \code{x} at \code{2 * mm + 1} Fourier frequencies}
+#' \item{sv}{ a list containing the singular value decomposition of \code{Sigma_x}}
 #' }
 #' @example R/examples/hlfactornumber.R
-#' @references Hallin, M., & Liška, R. (2007). Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
+#' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 #' @export
-hl.factor.number <- function(x, q.max, mm, w=NULL, do.plot = TRUE, center = TRUE){
+hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = TRUE, center = TRUE){
   p <- dim(x)[1]; n <- dim(x)[2]
-
+  q.max <- min(50, floor(sqrt(min(n - 1, p))))
+  
   if(center) mean.x <- apply(x, 1, mean) else mean.x <- rep(0, p)
   xx <- x - mean.x
 
   if(is.null(w)) w <- Bartlett.weights(((-mm):mm)/mm)
-
 
   p.seq <- floor(3*p/4 + (1:10) * p/40)
   n.seq <- n - (9:0) * floor(n/20)
@@ -236,18 +245,19 @@ hl.factor.number <- function(x, q.max, mm, w=NULL, do.plot = TRUE, center = TRUE
       q.hat[ii] <- q.mat[which(ss[-length(const.seq)] != 0 & ss[-1] == 0)[1] + 1, 10, ii] - 1
     }
   }
+  
   if(do.plot){
-  par(mfrow = c(2, 3))
-  for(ii in 1:6){
-    plot(const.seq, q.mat[, 10, ii] - 1, type = 'b', pch = 1, col = 2, bty = 'n', axes = FALSE, xlab = 'constant', ylab = '', main = paste('IC ', ii))
-    box()
-    axis(1, at = pretty(range(const.seq)))
-    axis(2, at = pretty(range(q.mat[, 10, ii] - 1)), col = 2, col.ticks = 2, col.axis = 2)
-    par(new = TRUE)
-    plot(const.seq, Sc[, ii], col = 4, pch = 2, type = 'b', bty = 'n', axes = FALSE, xlab = '', ylab = '')
-    axis(4, at = pretty(range(Sc[, ii])), col = 4, col.ticks = 4, col.axis = 4)
-    legend('topright', legend = c('q', 'Sc'), col = c(2, 4), lty = c(1, 1), pch = c(1, 2), bty = 'n')
-  }
+    par(mfrow = c(2, 3))
+    for(ii in 1:6){
+      plot(const.seq, q.mat[, 10, ii] - 1, type = 'b', pch = 1, col = 2, bty = 'n', axes = FALSE, xlab = 'constant', ylab = '', main = paste('IC ', ii))
+      box()
+      axis(1, at = pretty(range(const.seq)))
+      axis(2, at = pretty(range(q.mat[, 10, ii] - 1)), col = 2, col.ticks = 2, col.axis = 2)
+      par(new = TRUE)
+      plot(const.seq, Sc[, ii], col = 4, pch = 2, type = 'b', bty = 'n', axes = FALSE, xlab = '', ylab = '')
+      axis(4, at = pretty(range(Sc[, ii])), col = 4, col.ticks = 4, col.axis = 4)
+      legend('topright', legend = c('q', 'Sc'), col = c(2, 4), lty = c(1, 1), pch = c(1, 2), bty = 'n')
+    }
   }
 
   ls <- list(q.hat = q.hat, Gamma_x = Gamma_x, Sigma_x = Sigma_x, sv = sv)
@@ -255,94 +265,112 @@ hl.factor.number <- function(x, q.max, mm, w=NULL, do.plot = TRUE, center = TRUE
 
 }
 
-#' @title Prediction by fnets
+#' @title Forecasting by fnets
 #' @method predict fnets
-#' @description Predicts common and idiosyncratic components from a \code{fnets} object for new data
+#' @description Produces forecasts of the data for a given forecasting horizon by 
+#' separately estimating the best linear predictors of common and idiosyncratic components 
 #' @param object \code{fnets} object
-#' @param x input time series matrix, with each row representing a time series
-#' @param h forecast horizon
-#' @param common.method which of "static" or "var" to forecast the common component with
-#' @param r factor number, if r=NULL this is selected using the maximal eigenratio
-#' @param ... further arguments
-#' @return A list containing
+#' @param x input time series matrix, with each row representing a variable
+#' @param h forecasting horizon
+#' @param common.method a string specifying the method for common component forecasting; possible values are:
 #' \itemize{
-#' \item{\code{'fitted'}}{ \code{x} in-sample estimation}
-#' \item{\code{'forecast'}}{ \code{x} forecast}
-#' \item{\code{'common.pred'}}{ Prediction for the factor-driven common component}
-#' \item{\code{'idio.pred'}}{ Prediction for the idiosyncratic component}
-#' \item{\code{'x.mean'}}{ removed mean of \code{x} }
+#'    \item{"restricted"}{ performs forecasting under a restrictive static factor model}
+#'    \item{"unrestricted"}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
+#' @param r number of static factors; if \code{common.method = "restricted"} and \code{r = NULL}, 
+#' it is estimated as the maximiser of the ratio of the successive eigenvalues of the estimate of the common component covariance matrix,
+#' see Ahn and Horenstein (2013)
+#' @param ... further arguments
+#' @return a list containing
+#' \itemize{
+#' \item{forecast}{ forecasts for the given forecasting horizon}
+#' \item{common.pred}{ a list containing forecasting results for the common component}
+#' \item{idio.pred}{ a list containing forecasting results for the idiosyncratic component}
+#' \item{mean.x}{ \code{mean.x} argument from \code{object}}
 #' }
 #' @example R/examples/predict.R
-#' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) fnets: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 #' @export
-predict.fnets <- function(object, x, h = 1, common.method = c('static', 'var'), r = NULL, ...){
+predict.fnets <- function(object, x, h = 1, common.method = c('restricted', 'unrestricted'), r = NULL, ...){
 
   cpre <- common.predict(object, x, h, common.method, r)
   ipre <- idio.predict(object, x, cpre, h)
 
-  out <- list(fitted = cpre$is + ipre$is, forecast = cpre$fc + ipre$fc,
-              common.pred = cpre, idio.pred = ipre, x.mean = object$mean.x)
+  out <- list(forecast = cpre$fc + ipre$fc,
+              common.pred = cpre, idio.pred = ipre, 
+              mean.x = object$mean.x)
   return(out)
 
 }
 
-#' @title Plot fnets object
+#' @title Plotting the output from network estimation via fnets
 #' @method plot fnets
-#' @description plots the idiosyncratic component of the fnets object as a Granger causal network, either as a network graph or a heatmap
-#' @param x fnets object
-#' @param type whether to plot a "network" or "heatmap"
-#' @param names character vector of node names
-#' @param groups integer vector denoting groups for "network" plots
-#' @param threshold sets all elements less than this in absolute value to 0
-#' @param size which type of degree to use for node size in "network" plots, one of "all", "out", "in", "total"
+#' @description Plotting method for S3 objects of class \code{fnets}. 
+#' Produces a plot visualising the Granger causal network which is determined by
+#' aggregating the estimated VAR transition matrices across the lags.
+#' @param x \code{fnets} object
+#' @param display a string specifying which to be plotted as visualisation of the Granger network underpinning the idiosyncratic VAR process; possible values are:
+#' \itemize{
+#'    \item{"network"}{ an \code{igraph} object}
+#'    \item{"heatmap"}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
+#' @param names a character vector containing the names of the vertices
+#' @param groups an integer vector denoting any group structure of the vertices
+#' @param threshold if \code{threshold > 0} hard thresholding is applied to the aggregated VAR transition matrix before plotting
+#' @param size a string specifying the type of degree to be used when \code{display = "network"}; possible values are \code{"all"}, \code{"out"}, \code{"in"} or \code{"total"}
 #' @param ... additional arguments
-#' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
 #' @example R/examples/plot.R
 #' @export
-plot.fnets <- function(x, type = "network",  names = NULL, groups = NULL, threshold = 0, size = NULL, ...){
-  A <- abs(t(x$idio.var$beta)) ## absolute value graph
+plot.fnets <- function(x, display = "network", names = NULL, groups = NULL, threshold = 0, size = NULL, ...){
+  
+  A <- abs(t(x$idio.var$beta)) 
   A[A < threshold] <- 0
   p <- dim(A)[1]
   d <- dim(A)[2]/dim(A)[1]
 
-  mark.groups <- list()
-  perm <- c()
   if(!is.null(groups)){
-    for (ii in unique(groups)) {
+    perm <- c()
+    for(ii in unique(groups)){
       permii <- which(groups == ii)
-      mark.groups[[ii]] <- permii
       perm <- c(perm, permii)
     }
-  } else perm <- 1:p
+  } else{
+    perm <- 1:p
+    groups <- rep(1, p)
+  }
+  grp.col <- rep(rainbow(max(groups), alpha = 0.2), table(groups))
 
   # Granger causal network
   granger.mat <- matrix(0, p, p)
   for(ll in 1:d) granger.mat <- granger.mat + A[, (ll - 1) * p + 1:p]
-  granger.mat <- granger.mat[perm,perm]
+  granger.mat <- granger.mat[perm, perm]
 
-  if(type=="network"){
-    granger <- igraph::graph_from_adjacency_matrix(granger.mat, mode = "directed", weighted=TRUE, diag = FALSE)
-    if(!is.null(size)) {degree <- igraph::degree(granger, mode = size, normalized = F)
-    degree <- degree/max(degree)*15 }else degree <- rep(15, p)
+  if(display == "network"){
+    granger <- igraph::graph_from_adjacency_matrix(granger.mat, 
+                                                   mode = "directed", weighted = TRUE, diag = FALSE)
+    if(!is.null(size)) {
+      degree <- igraph::degree(granger, mode = size, normalized = FALSE)
+      degree <- degree/max(degree) * 15 
+    } else degree <- rep(15, p)
     if(!is.null(names)) V(granger)$name <- names[perm]
     l_granger <- igraph::layout_in_circle(granger)
-    par(mfrow = c(1,1))
-    plot.igraph(granger, main = "Granger", vertex.label = V(granger)$name, layout = l_granger, vertex.label.font = 2,
+    plot.igraph(granger, main = "Granger network", vertex.label = V(granger)$name, layout = l_granger, vertex.label.font = 2,
               vertex.label.color = "black", edge.color = "gray40", edge.arrow.size = 0.1, vertex.size = degree,
-              vertex.shape ="circle", vertex.color = groups[perm], vertex.label.cex = 0.8)
+              vertex.shape = "circle", vertex.color = grp.col, vertex.label.cex = 0.8)
   }
-  else if(type=="heatmap"){
+  else if(display == "heatmap"){
     mv <- max(abs(granger.mat)) * 1.01
-    mv <- max(mv,1e-4)
+    mv <- max(mv, 1e-4)
     fields::imagePlot(granger.mat, axes = FALSE,
                       col = (RColorBrewer::brewer.pal(9, 'Reds') ),
                       breaks = seq(0, mv, length.out = 10),
-                      main = "Granger" )
+                      main = "Granger network")
     if(is.null(names)) names <- 1:p
-    axis(1, at = (1:p - .5)/p, labels = names, las = 2, cex.axis = .6)
-    axis(2, at = (1:p - .5)/p, labels = names, las = 2, cex.axis = .6)
+    for(ii in 1:p) mtext(text = names[perm[ii]], at = (ii - 1)/(p - 1), side = 1, las = 2, cex = .6, col = grp.col[ii])
+    for(ii in 1:p) mtext(text = names[perm[ii]], at = (ii - 1)/(p - 1), side = 2, las = 2, cex = .6, col = grp.col[ii])
   }
-  else warning(paste("type must be one of `network` or `heatmap`"))
+  else warning(paste("display must be either 'network' or 'heatmap'"))
+  
 }
 
 
