@@ -1,15 +1,18 @@
-#' @title Nonparametric partial coherence matrix estimation
-#' @description Returns a non-parametric estimate of the partial coherence matrix, possibly using cross-validation
+#' @title Nonparametric estimation of long-run partial correlations of factor-adjusted VAR processes
+#' @description Returns a nonparametric estimate of long-run partial correlations of the VAR process
+#' from the inverse of long-run covariance matrix obtained via constrained \code{l1}-minimisation.
 #' @param object \code{fnets} object
-#' @param x input time series matrix, with each row representing a variable
-#' @param eta regularisation parameter, if \code{eta = NULL} this is selected by cross-validation
-#' @param cv.args A list specifying arguments to the cross-validation (CV) procedure containing:
+#' @param x input time series matrix; with each row representing a variable
+#' @param eta regularisation parameter; if \code{eta = NULL}, it is selected by cross validation
+#' @param cv.args a list specifying arguments for the cross validation procedure
+#' for selecting the tuning parameter involved in long-run partial correlation matrix estimation. It contains:
 #' \itemize{
 #'    \item{n.folds}{ number of folds}
-#'    \item{path.length}{ number of lambda values to consider}
+#'    \item{path.length}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
+#'    \item{do.plot}{ whether to plot the output of the cross validation step}
 #' }
-#' @param correct.zero.diag correct for 0 entries on the diagonal
-#' @param n.cores number of cores to use for parallel computing
+#' @param correct.zero whether to correct for any zero-entries in the diagonals of the inverse of long-run covariance matrix
+#' @param n.cores number of cores to use for parallel communing, see \code{\link[parallel]{makePSOCKcluster}}
 #' @return a list containing
 #' \itemize{
 #' \item{Omega}{ estimated inverse of the long-run covariance matrix}
@@ -18,10 +21,9 @@
 #' }
 #' @example R/examples/nonparlrpc.R
 #' @export
-nonpar.lrpc <- function(object, x, eta = NULL,
-                       n.folds = 1, path.length = 10, do.plot = FALSE,
-                       correct.zero.diag = FALSE,
-                       n.cores = min(parallel::detectCores() - 1, 3)){
+npar.lrpc <- function(object, x, eta = NULL,
+                      cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
+                      correct.zero = TRUE, n.cores = min(parallel::detectCores() - 1, 3)){
 
   xx <- x - object$mean.x
   p <- dim(x)[1]
@@ -29,12 +31,13 @@ nonpar.lrpc <- function(object, x, eta = NULL,
 
   if(is.null(eta)){
     dcv <- direct.cv(object, xx, target = 'spec', symmetric = 'min',
-                     path.length = cv.args$path.length, n.folds = cv.args$n.folds,
-                     q = object$q, kern.const = object$kern.const, n.cores = n.cores)
+                     n.folds = cv.args$n.folds, path.length = cv.args$path.length, 
+                     q = object$q, kern.const = object$kern.const, n.cores = n.cores,
+                     do.plot = cv.args$do.plot)
     eta <- dcv$eta
   }
   DD <- direct.inv.est(GG, eta = eta, symmetric = 'min',
-                       correct.zero.diag = correct.zero.diag, n.cores = n.cores)$DD
+                       correct.zero = correct.zero, n.cores = n.cores)$DD
   lrpc <- - t(t(DD)/sqrt(diag(DD)))/sqrt(diag(DD))
   out <- list(Omega = DD, lrpc = lrpc, eta = eta)
 
@@ -42,18 +45,22 @@ nonpar.lrpc <- function(object, x, eta = NULL,
 
 }
 
-#' @title Parametric partial coherence matrix estimation
-#' @description Returns a parametric estimate of the partial coherence matrix, possibly using cross-validation
+#' @title Parametric estimation of long-run partial correlations of factor-adjusted VAR processes
+#' @description Returns a parametric estimate of long-run partial correlations of the VAR process
+#' from the VAR parameter estimates and the inverse of innovation covariance matrix obtained via constrained \code{l1}-minimisation.
+#' @details See Barigozzi, Cho and Owens (2021) for further details.
 #' @param object \code{fnets} object
-#' @param x input time series matrix, with each row representing a variable
-#' @param eta regularisation parameter, if \code{eta = NULL} this is selected by cross-validation
-#' @param cv.args A list specifying arguments to the cross-validation (CV) procedure containing:
+#' @param x input time series matrix; with each row representing a variable
+#' @param eta regularisation parameter; if \code{eta = NULL}, it is selected by cross validation
+#' @param cv.args a list specifying arguments for the cross validation procedure
+#' for selecting the tuning parameter involved in long-run partial correlation matrix estimation. It contains:
 #' \itemize{
 #'    \item{n.folds}{ number of folds}
-#'    \item{path.length}{ number of lambda values to consider}
+#'    \item{path.length}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
+#'    \item{do.plot}{ whether to plot the output of the cross validation step}
 #' }
-#' @param correct.zero.diag correct for 0 entries on the diagonal
-#' @param n.cores number of cores to use for parallel computing
+#' @param correct.zero whether to correct for any zero-entries in the diagonals of the inverse of long-run covariance matrix
+#' @param n.cores number of cores to use for parallel communing, see \code{\link[parallel]{makePSOCKcluster}}
 #' @return a list containing
 #' \itemize{
 #' \item{Delta}{ estimated inverse of the innovation covariance matrix}
@@ -65,10 +72,10 @@ nonpar.lrpc <- function(object, x, eta = NULL,
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @example R/examples/paramlrpc.R
 #' @export
-param.lrpc <- function(object, x, eta = NULL,
-                      cv.args = list(n.folds = 1, path.length = 10),
-                      correct.zero.diag = FALSE,
-                      n.cores = min(parallel::detectCores() - 1, 3)){
+par.lrpc <- function(object, x, eta = NULL,
+                       cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
+                       correct.zero = TRUE,
+                       n.cores = min(parallel::detectCores() - 1, 3)){
 
   xx <- x - object$mean.x
   p <- dim(x)[1]
@@ -82,13 +89,13 @@ param.lrpc <- function(object, x, eta = NULL,
 
   if(is.null(eta)){
     dcv <- direct.cv(object, xx, target = 'acv', symmetric = 'min',
-                     path.length = cv.args$path.length, n.folds = cv.args$n.folds,
+                     n.folds = cv.args$n.folds, path.length = cv.args$path.length, 
                      q = object$q, kern.const = object$kern.const, n.cores = n.cores,
                      do.plot = cv.args$do.plot)
     eta <- dcv$eta
   }
   Delta <- direct.inv.est(GG, eta = eta, symmetric = 'min',
-                          correct.zero.diag = correct.zero.diag, n.cores = n.cores)$DD
+                          correct.zero = correct.zero, n.cores = n.cores)$DD
   Omega <- 2 * pi * t(A1) %*% Delta %*% A1
   pc <- - t(t(Delta)/sqrt(diag(Delta)))/sqrt(diag(Delta))
   lrpc <- - t(t(Omega)/sqrt(diag(Omega)))/sqrt(diag(Omega))
@@ -100,7 +107,7 @@ param.lrpc <- function(object, x, eta = NULL,
 
 #' @keywords internal
 direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min', 'max', 'avg', 'none'),
-                      path.length = 10, n.folds = 1, q = 0, kern.const = 4, n.cores = min(parallel::detectCores() - 1, 3),
+                      n.folds = 1, path.length = 10, q = 0, kern.const = 4, n.cores = min(parallel::detectCores() - 1, 3),
                       do.plot = FALSE){
 
   n <- ncol(xx)
@@ -110,7 +117,7 @@ direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min'
   if(target == 'spec'){
     GG <- Re(object$spec$Sigma_i[,, 1])
     eta.max <- max(abs(GG))
-    eta.path <- round(exp(seq(log(eta.max), log(eta.max * .1), length.out = path.length)), digits = 10)
+    eta.path <- round(exp(seq(log(eta.max), log(eta.max * .01), length.out = path.length)), digits = 10)
   }
   if(target == 'acv'){
     A <- t(object$idio.var$beta)
@@ -164,7 +171,7 @@ direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min'
 
 #' @keywords internal
 direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', 'none'),
-                           correct.zero.diag = FALSE,
+                           correct.zero = FALSE,
                            n.cores = min(parallel::detectCores() - 1, 3)){
 
   p <- dim(GG)[1]
@@ -189,7 +196,7 @@ direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', '
 
   DD <- make.symmetric(DD, symmetric)
 
-  if(correct.zero.diag){
+  if(correct.zero){
     tmp <- gen.inverse(GG)
     ind <- which(diag(DD) == 0)
     diag(DD)[ind] <- tmp[ind]
@@ -201,27 +208,6 @@ direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', '
 }
 
 #' @keywords internal
-make.symmetric <- function(DD, symmetric){
-
-  symmetric <- match.arg(symmetric, c('min', 'max', 'avg', 'none'))
-  if(symmetric != 'none'){
-    if(symmetric == 'min'){
-      DD[abs(DD) > t(abs(DD))] <- 0
-      DD <- DD + t(DD)
-      diag(DD) <- diag(DD)/2
-    }
-    if(symmetric == 'max'){
-      DD[abs(DD) < t(abs(DD))] <- 0
-      DD <- DD + t(DD)
-      diag(DD) <- diag(DD)/2
-    }
-    if(symmetric == 'avg') DD <- (DD + t(DD))/2
-  }
-  DD
-  
-}
-
-#' @keywords internal
 gen.inverse <- function(GG){
 
   p <- dim(GG)[1]
@@ -229,88 +215,5 @@ gen.inverse <- function(GG){
   L <- GG * 0
   diag(L)[sv$d > 0] <- sv$d[sv$d > 0]
   return(diag(sv$u %*% L %*% t(sv$u)))
-
-}
-
-
-#' @title Plot fnets.lrpc object
-#' @method plot fnets.lrpc
-#' @description plots the fnets.lrpc object as a Long-Run Partial Correlation network, and if available as a Contemporaneous network,
-#'     either as a network graph or a heatmap
-#' @param x fnets.lrpc object
-#' @param type whether to plot a "network" or "heatmap"
-#' @param names character vector of node names
-#' @param groups integer vector denoting groups for "network" plots
-#' @param threshold sets all elements less than this in absolute value to 0
-#' @param size which type of degree to use for node size in "network" plots, one of "all", "out", "in", "total"
-#' @param ... additional arguments
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
-#' @export
-plot.fnets.lrpc <- function(x, type = "network", names = NULL, groups = NULL, threshold = 0, size = NULL, ...){
-  O <- x$Omega
-  p <- dim(O)[1]
-
-  mark.groups <- list()
-  perm <- c()
-  if(!is.null(groups)){
-    for (ii in unique(groups)) {
-      permii <- which(groups == ii)
-      mark.groups[[ii]] <- permii
-      perm <- c(perm, permii)
-    }
-  } else perm <- 1:p
-  # Granger causal network
-
-  # Long-Run Partial Correlation network
-  O <- O[perm,perm]
-  if(type=="network"){
-    omega <- igraph::graph_from_adjacency_matrix(O, mode = "undirected", weighted=TRUE, diag = FALSE)
-    if(!is.null(size)) {degreeO <- igraph::degree(omega, mode = size, normalized = F)
-    degreeO <- degreeO/max(degreeO)*15 }else degreeO <- rep(15, p)
-    if(!is.null(names)) V(omega)$name <- names[perm]
-    l_omega <- igraph::layout_in_circle(omega)
-    # Contemporaneous
-    if(!is.null(x$Delta)){
-      Delta <- x$Delta[perm,perm]
-      contemp <- igraph::graph_from_adjacency_matrix(x$Delta, mode = "undirected", weighted=TRUE, diag = FALSE)
-      if(!is.null(size)) {degreeC <- igraph::degree(contemp, mode = size, normalized = F)
-      degreeC <- degreeC/max(degreeC)*15 }else degreeC <- rep(15, p)
-      if(!is.null(names)) V(contemp)$name <- names[perm]
-      l_contemp <- igraph::layout_in_circle(contemp)
-
-      par(mfrow = c(1,2))
-      plot.igraph(contemp, main = "Contemporaneous", vertex.label = V(contemp)$name, layout = l_contemp, vertex.label.font = 2,
-                  vertex.label.color = "black", edge.color = "gray40", edge.arrow.size = 0.1, vertex.size = degreeC,
-                  vertex.shape ="circle", vertex.color = groups[perm], vertex.label.cex = 0.8)
-    } else par(mfrow = c(1,1))
-    if(!is.null(names)) V(omega)$name <- names
-    plot.igraph(omega, main = "Long-Run Partial Correlation", vertex.label = V(omega)$name, layout = l_omega, vertex.label.font = 2,
-                vertex.label.color = "black", edge.color = "gray40", edge.arrow.size = 0.1, vertex.size = degreeO,
-                vertex.shape ="circle", vertex.color = groups[perm], vertex.label.cex = 0.8)
-  }
-  else if(type=="heatmap"){ ## HEATMAP
-
-    mv <- max(abs(O)) * 1.01
-    mv <- max(mv,1e-4)
-    fields::imagePlot(O, axes = FALSE,
-                      col = rev(RColorBrewer::brewer.pal(11, 'RdBu')),
-                      breaks = seq(-mv, mv, length.out = 12),
-                      main = "Omega" )
-    if(is.null(names)) names <- 1:p
-    axis(1, at = (1:p - .5)/p, labels = names, las = 2, cex.axis = .6)
-    axis(2, at = (1:p - .5)/p, labels = names, las = 2, cex.axis = .6)
-    if(!is.null(x$Delta)){
-      Delta <- x$Delta[perm,perm]
-      mv <- max(abs(Delta)) * 1.01
-      mv <- max(mv,1e-4)
-      fields::imagePlot(Delta, axes = FALSE,
-                        col = rev(RColorBrewer::brewer.pal(11, 'RdBu')),
-                        breaks = seq(-mv, mv, length.out = 12),
-                        main = "Delta" )
-      if(is.null(names)) names <- 1:p
-      axis(1, at = (1:p - .5)/p, labels = names, las = 2, cex.axis = .6)
-      axis(2, at = (1:p - .5)/p, labels = names, las = 2, cex.axis = .6)
-    }
-  } else  warning(paste("type must be one of `network` or `heatmap`"))
 
 }

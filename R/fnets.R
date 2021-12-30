@@ -10,7 +10,7 @@
 #' @param q number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007), see \code{\link[fnets]{hl.factor.number}} for further details
 #' @param ic.op choice of the information criterion, see \code{\link[fnets]{hl.factor.number}} for further details
 #' @param kern.const constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA
-#' @param common.var.args a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
+#' @param common.args a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
 #' \itemize{
 #'    \item{var.order}{ order of the blockwise VAR representation of the common component. If \code{var.order = NULL}, it is selected blockwise by Schwarz criterion}
 #'    \item{max.var.order}{ maximum blockwise VAR order for the Schwarz criterion}
@@ -25,8 +25,8 @@
 #' }
 #' @param lrpc.method a string specifying the type of estimator for long-run partial correlation matrix estimation; possible values are:
 #' \itemize{
-#'    \item{"param"}{ parametric estimator based on the VAR model assumption}
-#'    \item{"nonpar"}{ nonparametric estimator from inverting the long-run covariance matrix of the idiosyncratic component via constrained \code{l1}-minimisation}
+#'    \item{"par"}{ parametric estimator based on the VAR model assumption}
+#'    \item{"npar"}{ nonparametric estimator from inverting the long-run covariance matrix of the idiosyncratic component via constrained \code{l1}-minimisation}
 #'    \item{"none"}{ do not estimate the long-run partial correlation matrix}
 #' }
 #' @param cv.args a list specifying arguments for the cross validation procedures 
@@ -41,7 +41,7 @@
 #' \item{q}{ number of factors}
 #' \item{spec}{ a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
 #' \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
-#' \item{common.var}{ if \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)}) 
+#' \item{common.irf}{ if \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)}) 
 #' and common shocks (an array of dimension \code{(q, n)}) for the common component}
 #' \item{idio.var}{ a list containing the following fields:
 #' \itemize{
@@ -50,7 +50,11 @@
 #' \item{lambda}{ regularisation parameter}
 #' \item{var.order}{ VAR order}
 #' }}
+#' \item{lrpc}{ see the output of \code{\link[fnets]{par.lrpc}} if \code{lrpc.method = 'par'}
+#' and that of \code{\link[fnets]{npar.lrpc}} if \code{lrpc.method = 'npar'}}
 #' \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
+#' \item{idio.method}{ input parameter}
+#' \item{lrpc.method}{ input parameter}
 #' \item{kern.const}{ input parameter}
 #' }
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
@@ -58,16 +62,16 @@
 #' @example R/examples/fnets.R
 #' @seealso \code{\link[fnets]{predict.fnets}}, \code{\link[fnets]{plot.fnets}}
 #' @export
-fnets <- function(x, center = TRUE, q = NULL, ic.op = 4, kern.const = 4,
-                  common.var.args = list(var.order = 1, max.var.order = NULL, trunc.lags = 20, n.perm = 10),
+fnets <- function(x, center = TRUE, q = NULL, ic.op = 5, kern.const = 4,
+                  common.args = list(var.order = 1, max.var.order = NULL, trunc.lags = 20, n.perm = 10),
                   idio.var.order = 1, idio.method = c('lasso', 'ds'),
-                  lrpc.method = c('param', 'nonpar', 'none'),
+                  lrpc.method = c('par', 'npar', 'none'),
                   cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE)){
   p <- dim(x)[1]
   n <- dim(x)[2]
 
   idio.method <- match.arg(idio.method, c('lasso', 'ds'))
-  lrpc.method <- match.arg(lrpc.method, c('param', 'nonpar', 'none'))
+  lrpc.method <- match.arg(lrpc.method, c('par', 'npar', 'none'))
   if(center) mean.x <- apply(x, 1, mean) else mean.x <- rep(0, p)
   xx <- x - mean.x
 
@@ -77,17 +81,17 @@ fnets <- function(x, center = TRUE, q = NULL, ic.op = 4, kern.const = 4,
   spec <- dpca$spec
   acv <- dpca$acv
 
-  ## common estimation
-  cve <- common.var.estimation(xx, Gamma_c = acv$Gamma_c, q = q,
-                               var.order = common.var.args$var.order, max.var.order = common.var.args$max.var.order,
-                               trunc.lags = common.var.args$trunc.lags, n.perm = common.var.args$n.perm)
+  ## common VAR estimation
+  cve <- common.irf.estimation(xx, Gamma_c = acv$Gamma_c, q = q,
+                               var.order = common.args$var.order, max.var.order = common.args$max.var.order,
+                               trunc.lags = common.args$trunc.lags, n.perm = common.args$n.perm)
 
   ## idio estimation
-
-  if(cv.args$do.plot) par(mfrow = c(1, 1 + lrpc.method %in% c('param', 'nonpar')))
+  if(cv.args$do.plot) par(mfrow = c(1, 1 + lrpc.method %in% c('par', 'npar')))
     
-  icv <- yw.cv(xx, lambda.max = NULL, var.order = idio.var.order, method = idio.method,
-               path.length = cv.args$path.length, n.folds = cv.args$n.folds,
+  icv <- yw.cv(xx, method = idio.method,
+               lambda.max = NULL, var.order = idio.var.order, 
+               n.folds = cv.args$n.folds, path.length = cv.args$path.length, 
                q = q, kern.const = kern.const, do.plot = cv.args$do.plot)
   mg <- make.gg(acv$Gamma_i, icv$var.order)
   gg <- mg$gg; GG <- mg$GG
@@ -96,16 +100,16 @@ fnets <- function(x, center = TRUE, q = NULL, ic.op = 4, kern.const = 4,
   ive$var.order <- icv$var.order
   
   out <- list(q = q, spec = spec, acv = acv,
-              common.var = cve, idio.var = ive, mean.x = mean.x,
-              kern.const = kern.const)
+              common.irf = cve, idio.var = ive, mean.x = mean.x,
+              idio.method = idio.method, lrpc.method = lrpc.method, kern.const = kern.const)
   attr(out, 'class') <- 'fnets'
   
   ## lrpc estimation
-  if(lrpc.method %in% c('param', 'nonpar')){
-    
-    
+  if(lrpc.method %in% c('par', 'npar')){
+    if(lrpc.method == 'par') lrpc <- par.lrpc(out, x, eta = NULL, cv.args = cv.args)
+    if(lrpc.method == 'npar') lrpc <- npar.lrpc(out, x, eta = NULL, cv.args = cv.args)
     out$lrpc <- lrpc
-  }
+  } else out$lrpc <- NA
   
   return(out)
 
@@ -122,6 +126,7 @@ fnets <- function(x, center = TRUE, q = NULL, ic.op = 4, kern.const = 4,
 #' @return a list containing
 #' \itemize{
 #' \item{q}{ number of factors}
+#' \item{hl}{ if \code{q = NULL}, the output from \code{\link[fnets]{hl.factor.number}}}
 #' \item{spec}{ a list containing the estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
 #' \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
 #' \item{kern.const}{ input parameter}
@@ -139,7 +144,7 @@ dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.const = 4){
   # dynamic pca
 
   if(!is.null(q)){
-    q <- as.integer(q)
+    q <- as.integer(q); hl <- NA
     Gamma_x <- Gamma_xw <- array(0, dim = c(p, p, 2 * mm + 1))
     for(h in 0:(mm - 1)){
       Gamma_x[, , h + 1] <- xx[, 1:(n - h)] %*% t(xx[, 1:(n - h) + h])/n
@@ -155,11 +160,11 @@ dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.const = 4){
   }
   if(is.null(q)){
     q.max <- min(50, floor(sqrt(min(n - 1, p))))
-    qq <- hl.factor.number(xx, q.max, mm, w, center = FALSE)
-    q <- qq$q.hat[ic.op]
-    Gamma_x <- qq$Gamma_x
-    Sigma_x <- qq$Sigma_x
-    sv <- qq$sv
+    hl <- hl.factor.number(xx, q.max, mm, w, center = FALSE)
+    q <- hl$q.hat[ic.op]
+    Gamma_x <- hl$Gamma_x
+    Sigma_x <- hl$Sigma_x
+    sv <- hl$sv
   }
 
   Gamma_c <- Gamma_i <- Sigma_c <- Sigma_i <- Sigma_x * 0
@@ -179,7 +184,7 @@ dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.const = 4){
   spec <- list(Sigma_x = Sigma_x, Sigma_c = Sigma_c, Sigma_i = Sigma_i)
   acv <- list(Gamma_x = Gamma_x, Gamma_c = Re(Gamma_c), Gamma_i = Re(Gamma_i))
 
-  out <- list(q = q, spec = spec, acv = acv, kern.const = kern.const)
+  out <- list(q = q, hl = hl, spec = spec, acv = acv, kern.const = kern.const)
   return(out)
 
 }
@@ -194,7 +199,7 @@ dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.const = 4){
 #' @param q.max maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}
 #' @param mm integer representing the kernel bandwidth
 #' @param w vector of length \code{2 * mm + 1} containing symmetric weights; if \code{w = NULL}, default weights are generated using the Bartlett kernel and \code{mm}
-#' @param do.plot whether to produce a plot of six information criteria values
+#' @param do.plot whether to plot the values of six information criteria
 #' @param center whether to de-mean the input \code{x} row-wise
 #' @return a list containing
 #' \itemize{
@@ -206,7 +211,7 @@ dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.const = 4){
 #' @example R/examples/hlfactornumber.R
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 #' @export
-hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = TRUE, center = TRUE){
+hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = FALSE, center = TRUE){
   p <- dim(x)[1]; n <- dim(x)[2]
   q.max <- min(50, floor(sqrt(min(n - 1, p))))
   
@@ -316,7 +321,7 @@ hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = TRUE, cent
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 #' @export
-predict.fnets <- function(object, x, h = 1, common.method = c('restricted', 'unrestricted'), r = NULL, ...){
+predict.fnets <- function(object, x, h = 1, common.method = c('restricted', 'unrestricted'), r = NULL){
 
   cpre <- common.predict(object, x, h, common.method, r)
   ipre <- idio.predict(object, x, cpre, h)
@@ -328,84 +333,111 @@ predict.fnets <- function(object, x, h = 1, common.method = c('restricted', 'unr
 
 }
 
-#' @title Plotting the output from network estimation via fnets
+#' @title Plotting the networks estimated by fnets
 #' @method plot fnets
 #' @description Plotting method for S3 objects of class \code{fnets}. 
-#' Produces a plot visualising the Granger causal network which is determined by
-#' aggregating the estimated VAR transition matrices across the lags.
+#' Produces a plot visualising three networks underlying factor-adjusted VAR processes: 
+#' (i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices aggregated across the lags, 
+#' (ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
+#' (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
+#' @details See Barigozzi, Cho and Owens (2021) for further details.
 #' @param x \code{fnets} object
-#' @param display a string specifying which to be plotted as visualisation of the Granger network underpinning the idiosyncratic VAR process; possible values are:
+#' @param type a string specifying which of the above three networks (i)--(iii) to visualise; possible values are
 #' \itemize{
-#'    \item{"network"}{ an \code{igraph} object}
-#'    \item{"heatmap"}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
+#'    \item{"granger"}{ directed network representing Granger causal linkages}
+#'    \item{"pc"}{ undirected network representing contemporaneous linkages; available when \code{x$lrpc.method = "par"}}
+#'    \item{"lrpc"}{ undirected network summarising Granger causal and contemporaneous linkages; available when \code{x$lrpc.method = "par"} or \code{x$lrpc.method = "npar"}}
+#' }
+#' @param display a string specifying how to visualise the network; possible values are:
+#' \itemize{
+#'    \item{"network"}{ as an \code{igraph} object, see \code{\link[igraph]{plot.igraph}}}
+#'    \item{"heatmap"}{ as a heatmap, see \code{\link[fields]{imagePlot}}}
+#' }
 #' @param names a character vector containing the names of the vertices
 #' @param groups an integer vector denoting any group structure of the vertices
-#' @param threshold if \code{threshold > 0} hard thresholding is applied to the aggregated VAR transition matrix before plotting
-#' @param size a string specifying the type of degree to be used when \code{display = "network"}; possible values are \code{"all"}, \code{"out"}, \code{"in"} or \code{"total"}
+#' @param threshold if \code{threshold > 0}, hard thresholding is performed on the matrix giving rise to the network of interest
 #' @param ... additional arguments
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @example R/examples/plot.R
 #' @export
-plot.fnets <- function(x, display = "network", names = NULL, groups = NULL, threshold = 0, size = NULL, ...){
+plot.fnets <- function(x, type = c('granger', 'pc', 'lrpc'), display = c('network', 'heatmap'), 
+                       names = NA, groups = NA, threshold = 0, ...){
   
-  A <- abs(t(x$idio.var$beta)) 
-  A[A < threshold] <- 0
-  p <- dim(A)[1]
-  d <- dim(A)[2]/dim(A)[1]
+  type <- match.arg(type, c('granger', 'pc', 'lrpc'))
+  display <- match.arg(display, c('network', 'heatmap'))
+  
+  p <- dim(x$spec$Sigma_x)[1]
+  A <- matrix(0, nrow = p, ncol = p)
+  
+  if(type == 'granger'){
+    d <- dim(x$idio.var$beta)[1]/p
+    for(ll in 1:d) A <- A + abs(t(x$idio.var$beta))[, (ll - 1) * p + 1:p]
+    nm <- 'Granger causal'
+  }
+  
+  if(type == 'pc'){
+    if(x$lrpc.method != 'par'){
+      stop(paste0('Partial correlation matrix is undetected'))
+    } else{
+      A <- x$lrpc$pc
+      nm <- 'Partial correlation'
+    }
+  }
+  
+  if(type == 'lrpc'){
+    if(!(x$lrpc.method %in% c('par', 'npar'))){
+      stop(paste0('Long-run partial correlation matrix is undetected'))
+    } else{
+      A <- x$lrpc$lrpc
+      nm <- 'Long-run partial correlation'
+    }
+  }
+  nm <- paste(nm, display, sep = ' ')
+  
+  A[abs(A) < threshold] <- 0
 
-  if(!is.null(groups)){
-    perm <- c()
-    for(ii in unique(groups)){
-      permii <- which(groups == ii)
+  if(!is.na(groups[1])){
+    grps <- perm <- c()
+    K <- length(unique(groups))
+    for(ii in 1:K){
+      permii <- which(groups == unique(groups)[ii])
       perm <- c(perm, permii)
+      grps <- c(grps, rep(ii, length(permii)))
     }
   } else{
     perm <- 1:p
-    groups <- rep(1, p)
+    grps <- rep(1, p)
+    K <- 1
   }
-  grp.col <- rep(rainbow(max(groups), alpha = 0.2), table(groups))
+  grp.col <- rep(rainbow(K, alpha = 1), table(grps))
+  A <- A[perm, perm]
+  if(!is.na(names[1])) names <- names[perm]
 
-  # Granger causal network
-  granger.mat <- matrix(0, p, p)
-  for(ll in 1:d) granger.mat <- granger.mat + A[, (ll - 1) * p + 1:p]
-  granger.mat <- granger.mat[perm, perm]
-
-  if(display == "network"){
-    granger <- igraph::graph_from_adjacency_matrix(granger.mat, 
-                                                   mode = "directed", weighted = TRUE, diag = FALSE)
-    if(!is.null(size)) {
-      degree <- igraph::degree(granger, mode = size, normalized = FALSE)
-      degree <- degree/max(degree) * 15 
-    } else degree <- rep(15, p)
-    if(!is.null(names)) V(granger)$name <- names[perm]
-    l_granger <- igraph::layout_in_circle(granger)
-    plot.igraph(granger, main = "Granger network", vertex.label = V(granger)$name, layout = l_granger, vertex.label.font = 2,
-              vertex.label.color = "black", edge.color = "gray40", edge.arrow.size = 0.1, vertex.size = degree,
-              vertex.shape = "circle", vertex.color = grp.col, vertex.label.cex = 0.8)
+  if(display == 'network'){
+    v.col <- rep(rainbow(K, alpha = .2), table(grps))
+    if(type == 'granger') g <- igraph::graph_from_adjacency_matrix(A, mode = 'directed', weighted = TRUE, diag = FALSE, ...)
+    if(type %in% c('pc', 'lrpc')) g <- igraph::graph_from_adjacency_matrix(A, mode = 'undirected', weighted = TRUE, diag = FALSE, ...)
+    lg <- igraph::layout_in_circle(g)
+    igraph::plot.igraph(g, main = nm, layout = lg, vertex.label = names, vertex.label.font = 2,
+                        vertex.shape = 'circle', vertex.color = v.col, 
+                        vertex.label.color = grp.col, vertex.label.cex = 0.6, 
+                        edge.color = 'gray40', edge.arrow.size = 0.5)
+  } else if(display == "heatmap"){
+    if(type == 'granger'){
+      heat.cols <- RColorBrewer::brewer.pal(9, 'Reds')
+      breaks <- seq(0, max(1e-3, abs(A)), length.out = 10)
+    } 
+    if(type %in% c('pc', 'lrpc')){
+      heat.cols <- rev(RColorBrewer::brewer.pal(11, 'RdBu'))
+      breaks <- seq(-1.01, 1.01, length.out = 12)
+    }
+    fields::imagePlot(A, axes = FALSE, col = heat.cols,
+                      breaks = breaks, main = nm, ...)
+    if(!is.na(names[1]) || !is.na(groups[1])){
+      if(is.na(names[1])) names <- groups[perm]
+      for(ii in 1:p) mtext(text = names[ii], at = (ii - 1)/(p - 1), side = 1, las = 2, cex = .8, col = grp.col[ii])
+      for(ii in 1:p) mtext(text = names[ii], at = (ii - 1)/(p - 1), side = 2, las = 2, cex = .8, col = grp.col[ii])
+    }
   }
-  else if(display == "heatmap"){
-    mv <- max(abs(granger.mat)) * 1.01
-    mv <- max(mv, 1e-4)
-    fields::imagePlot(granger.mat, axes = FALSE,
-                      col = (RColorBrewer::brewer.pal(9, 'Reds') ),
-                      breaks = seq(0, mv, length.out = 10),
-                      main = "Granger network")
-    if(is.null(names)) names <- 1:p
-    for(ii in 1:p) mtext(text = names[perm[ii]], at = (ii - 1)/(p - 1), side = 1, las = 2, cex = .6, col = grp.col[ii])
-    for(ii in 1:p) mtext(text = names[perm[ii]], at = (ii - 1)/(p - 1), side = 2, las = 2, cex = .6, col = grp.col[ii])
-  }
-  else warning(paste("display must be either 'network' or 'heatmap'"))
   
 }
-
-
-
-##
-
-# #' @export
-#' @title Bartlett weights
-#' @description internal function
-#' @keywords internal
-Bartlett.weights <- function(x) 1 - abs(x)
-
-

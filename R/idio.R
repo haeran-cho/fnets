@@ -20,7 +20,7 @@
 #' }
 #' @param n.iter maximum number of descent steps; applicable when \code{method = "lasso"}
 #' @param tol numerical tolerance for increases in the loss function; applicable when \code{method = "lasso"}
-#' @param n.cores number of cores to use for parallel computing; applicable when \code{method = "ds"}
+#' @param n.cores number of cores to use for parallel communing, see \code{\link[parallel]{makePSOCKcluster}}; applicable when \code{method = "ds"}
 #' @return a list which contains the following fields:
 #' \itemize{
 #' \item{beta}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
@@ -82,7 +82,7 @@ var.lasso <- function(GG, gg, lambda, symmetric = 'min', n.iter = 100, tol = 0){
 
   obj.val <- rel.err <- c()
   while(ii < n.iter & diff < tol){
-    ii <- ii+1
+    ii <- ii + 1
     if(backtracking){
       L.bar <- L
       found <- FALSE
@@ -204,25 +204,26 @@ yw.cv <- function(xx, method = c('lasso', 'ds'),
 
 }
 
-#' @title Prediction for the idiosyncratic VAR process
-#' @description Predicts idiosyncratic components from a \code{fnets} object for new data
+#' @title Forecasting idiosyncratic VAR process
+#' @description Produces forecasts of the idiosyncratic VAR process 
+#' for a given forecasting horizon by estimating the best linear predictors
 #' @param object \code{fnets} object
-#' @param x input time series matrix, with each row representing a time series
-#' @param cpre estimated common component
+#' @param x input time series matrix, with each row representing a variable
+#' @param cpre output of \code{\link[fnets]{common.predict}}
 #' @param h forecast horizon
-#' @return A list containing
+#' @return a list containing
 #' \itemize{
-#' \item{\code{'is'}}{ in-sample estimation}
-#' \item{\code{'fc'}}{ forecast}
-#' \item{\code{'h'}}{ forecast horizon}
+#' \item{is}{ in-sample estimator of the idiosyncratic component}
+#' \item{fc}{ forecasts of the idiosyncratic component for a given forecasting horizon \code{h}}
+#' \item{h}{ forecast horizon}
 #' }
 #' @example R/examples/predict.R
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @export
 idio.predict <- function(object, x, cpre, h = 1){
 
-  xx <- x - object$mean.x
   p <- dim(x)[1]; n <- dim(x)[2]
+  xx <- x - object$mean.x
   beta <- object$idio.var$beta
   d <- dim(beta)[1]/p
   A <- t(beta)
@@ -232,12 +233,13 @@ idio.predict <- function(object, x, cpre, h = 1){
     fc <- matrix(0, nrow = p, ncol = h)
     for(ii in 1:h){
       for(ll in 1:d) fc[, ii] <- fc[, ii] + A[, p * (ll - 1) + 1:p] %*% is[, n + ii - ll]
-      is <- cbind(is, fc)
+      is <- cbind(is, fc[, ii])
     }
   } else fc <- NA
 
   out <- list(is = is[, 1:n], fc = fc, h = h)
   return(out)
+  
 }
 
 #' @keywords internal
@@ -260,7 +262,7 @@ make.gg <- function(acv, d){
 
 #' @keywords internal
 f.func <- function(GG, gg, A){
-  return(.5 * trace(2 * GG - t(A) %*% gg - t(gg) %*% A)) 
+  return(.5 * sum(diag(2 * GG[1:dim(gg)[2], 1:dim(gg)[2]] - t(A) %*% gg - t(gg) %*% A)))
 }
 
 #' @keywords internal

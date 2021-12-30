@@ -1,9 +1,9 @@
 #' @title Blockwise VAR estimation under GDFM
 #' @description internal function
-#' @references Forni, M., Hallin, M., Lippi, M., & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
-#' @references Barigozzi, M., Cho, H., & Owens, D. (2021) Factor-adjusted network analysis for high-dimensional time series.
+#' @references Forni, M., Hallin, M., Lippi, M. & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @keywords internal
-common.var.estimation <- function(xx, Gamma_c, q, var.order = NULL, max.var.order = NULL, trunc.lags, n.perm){
+common.irf.estimation <- function(xx, Gamma_c, q, var.order = NULL, max.var.order = NULL, trunc.lags, n.perm){
 
   n <- dim(xx)[2]; p <- dim(xx)[1]
   mm <- (dim(Gamma_c)[3] - 1)/2
@@ -73,8 +73,8 @@ common.var.estimation <- function(xx, Gamma_c, q, var.order = NULL, max.var.orde
 }
 
 #' @title Forecasting the factor-driven common component
-#' @description Produces forecasts for a given forecasting horizon 
-#' of the common component by estimating the best linear predictors
+#' @description Produces forecasts of the common component
+#' for a given forecasting horizon by estimating the best linear predictors
 #' @param object \code{fnets} object
 #' @param x input time series matrix, with each row representing a variable
 #' @param h forecasting horizon
@@ -83,10 +83,9 @@ common.var.estimation <- function(xx, Gamma_c, q, var.order = NULL, max.var.orde
 #'    \item{"restricted"}{ performs forecasting under a restrictive static factor model}
 #'    \item{"unrestricted"}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
 #' @param r number of static factors; if \code{common.method = "restricted"} and \code{r = NULL}, 
-#' it is estimated as the maximiser of the ratio of the successive eigenvalues of the estimate of the common component covariance matrix,
-#' see Ahn and Horenstein (2013)
-#' @param ... further arguments
-#' @return A list containing
+#' it is estimated as the maximiser of the ratio of the successive eigenvalues 
+#' of the estimate of the common component covariance matrix, see Ahn and Horenstein (2013)
+#' @return a list containing
 #' \itemize{
 #' \item{is}{ in-sample estimator of the common component}
 #' \item{fc}{ forecasts of the common component for a given forecasting horizon \code{h}}
@@ -94,7 +93,7 @@ common.var.estimation <- function(xx, Gamma_c, q, var.order = NULL, max.var.orde
 #' \item{h}{ forecast horizon}
 #' }
 #' @example R/examples/predict.R
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) fnets: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 #' @references Forni, M., Hallin, M., Lippi, M. & Reichlin, L. (2005). The generalized dynamic factor model: one-sided estimation and forecasting. Journal of the American Statistical Association, 100(471), 830--840.
 #' @references Forni, M., Hallin, M., Lippi, M. & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
@@ -109,15 +108,15 @@ common.predict <- function(object, x, h = 1, common.method = c('restricted', 'un
     pre <- list(is = 0 * x, fc = matrix(0, nrow = p, ncol = h))
   }
   if(object$q >= 1){
-    if(common.method == 'restricted') pre <- common.static.predict(xx = xx, Gamma_c = object$acv$Gamma_c, q = object$q, r = r, h = h)
-    if(common.method == 'unrestricted') pre <- common.var.predict(xx = xx, cve = object$common.var, h = h)
+    if(common.method == 'restricted') pre <- common.restricted.predict(xx = xx, Gamma_c = object$acv$Gamma_c, q = object$q, r = r, h = h)
+    if(common.method == 'unrestricted') pre <- common.unrestricted.predict(xx = xx, cve = object$common.irf, h = h)
   }
   return(pre)
 
 }
 
 #' @keywords internal
-common.static.predict <- function(xx, Gamma_c, q, r = NULL, max.r = NULL, h = 1){
+common.restricted.predict <- function(xx, Gamma_c, q, r = NULL, max.r = NULL, h = 1){
 
   p <- dim(xx)[1]; n <- dim(xx)[2]
   if(is.null(max.r)) max.r <- max(q, min(50, round(sqrt(min(n, p)))))
@@ -142,7 +141,7 @@ common.static.predict <- function(xx, Gamma_c, q, r = NULL, max.r = NULL, h = 1)
 }
 
 #' @keywords internal
-common.var.predict <- function(xx, cve, h = 1){
+common.unrestricted.predict <- function(xx, cve, h = 1){
   p <- dim(xx)[1]; n <- dim(xx)[2]
   trunc.lags <- dim(cve$irf.est)[3]
   if(h >= trunc.lags + 1){
@@ -165,20 +164,6 @@ common.var.predict <- function(xx, cve, h = 1){
 
   out <- list(is = is, fc = fc, h = h)
   return(out)
-
-}
-
-#' @keywords internal
-var.to.vma <- function(A, trunc.lags){
-
-  d <- dim(A)[1]; s <- dim(A)[2]
-  l <- s/d
-  B <- array(0, dim = c(d, d, trunc.lags + 1))
-  B[,, 1] <- diag(1, d)
-  for(ii in 1:trunc.lags){
-    for(jj in 1:min(ii, l)) B[,, ii + 1] <- B[,, ii + 1] + B[,, ii - jj + 1] %*% A[, (jj - 1) * d + 1:d]
-  }
-  B
 
 }
 

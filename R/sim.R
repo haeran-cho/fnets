@@ -22,8 +22,8 @@ sim.factor.M1 <- function(n, p, q = 2){
   alpha <- matrix(runif(p * q, -.8, .8), ncol = q)
   for(ii in 1:p){
     for(jj in 1:q){
-      coeffs <- alpha[ii, jj] * c(1, as.numeric(var.to.vma(as.matrix(a[ii, jj]), trunc.lags)))
-      for(tt in 1:n) chi[ii, tt] <- chi[ii, tt] + coeffs %*% uu[(tt + trunc.lags + 1):tt, jj]
+      coeffs <- alpha[ii, jj] * as.numeric(var.to.vma(as.matrix(a[ii, jj]), trunc.lags))
+      for(tt in 1:n) chi[ii, tt] <- chi[ii, tt] + coeffs %*% uu[(tt + trunc.lags):tt, jj]
     }
   }
   return(list(data = chi, q = q))
