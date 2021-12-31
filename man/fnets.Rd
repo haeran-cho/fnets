@@ -10,7 +10,8 @@ fnets(
   q = NULL,
   ic.op = 5,
   kern.const = 4,
-  common.args = list(var.order = 1, max.var.order = NULL, trunc.lags = 20, n.perm = 10),
+  common.args = list(var.order = NULL, max.var.order = NULL, trunc.lags = 20, n.perm =
+    10),
   idio.var.order = 1,
   idio.method = c("lasso", "ds"),
   lrpc.method = c("par", "npar", "none"),
