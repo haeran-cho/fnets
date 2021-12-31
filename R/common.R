@@ -162,7 +162,7 @@ common.unrestricted.predict <- function(xx, cve, h = 1){
 
   is <- xx * 0
   is[, 1:trunc.lags] <- NA
-  for(ll in 1:(trunc.lags + 1)) is[, (trunc.lags + 1):n] <- is[, (trunc.lags + 1):n] + as.matrix(irf[,, ll]) %*% u[, (trunc.lags + 1):n - ll + 1,drop=FALSE]
+  for(ll in 1:(trunc.lags + 1)) is[, (trunc.lags + 1):n] <- is[, (trunc.lags + 1):n] + as.matrix(irf[,, ll]) %*% u[, (trunc.lags + 1):n - ll + 1, drop=FALSE]
 
   if(h >= 1){
     fc <- matrix(0, nrow = p, ncol = h)
