@@ -21,12 +21,10 @@ hl.factor.number(x, q.max = NULL, mm, w = NULL, do.plot = FALSE, center = TRUE)
 }
 \value{
 a list containing
-\itemize{
 \item{q.hat}{ a vector containing minimisers of the six information criteria}
 \item{Gamma_x}{ an array containing the estimates of the autocovariance matrices of \code{x} at \code{2 * mm + 1} lags}
 \item{Sigma_x}{ an array containing the estimates of the spectral density matrices of \code{x} at \code{2 * mm + 1} Fourier frequencies}
 \item{sv}{ a list containing the singular value decomposition of \code{Sigma_x}}
-}
 }
 \description{
 Estimates the number of factors by minimising an information criterion over sub-samples of the data.

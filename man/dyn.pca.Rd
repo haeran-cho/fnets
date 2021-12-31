@@ -19,13 +19,11 @@ with \code{ic.op = 5} recommended as a default choice based on numerical experim
 }
 \value{
 a list containing
-\itemize{
 \item{q}{ number of factors}
-\item{hl}{ if \code{q = NULL}, the output from \code{\link[fnets]{hl.factor.number}}}
+\item{hl}{ if \code{q = NULL}, the output from \link[fnets]{hl.factor.number}}
 \item{spec}{ a list containing the estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
 \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
 \item{kern.const}{ input parameter}
-}
 }
 \description{
 Performs principal components analysis in frequency domain for identifying common and idiosyncratic components.

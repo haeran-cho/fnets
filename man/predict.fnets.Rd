@@ -22,8 +22,8 @@
 
 \item{common.method}{a string specifying the method for common component forecasting; possible values are:
 \itemize{
-   \item{"restricted"}{ performs forecasting under a restrictive static factor model}
-   \item{"unrestricted"}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
+   \item{\code{"restricted"}}{ performs forecasting under a restrictive static factor model}
+   \item{\code{"unrestricted"}}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
 }}
 
 \item{r}{number of static factors; if \code{common.method = "restricted"} and \code{r = NULL},
@@ -34,12 +34,10 @@ see Ahn and Horenstein (2013)}
 }
 \value{
 a list containing
-\itemize{
 \item{forecast}{ forecasts for the given forecasting horizon}
 \item{common.pred}{ a list containing forecasting results for the common component}
 \item{idio.pred}{ a list containing forecasting results for the idiosyncratic component}
 \item{mean.x}{ \code{mean.x} argument from \code{object}}
-}
 }
 \description{
 Produces forecasts of the data for a given forecasting horizon by
@@ -51,5 +49,5 @@ Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysi
 Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 }
 \seealso{
-\code{\link[fnets]{common.predict}}, \code{\link[fnets]{idio.predict}}
+\link[fnets]{fnets}, \link[fnets]{common.predict}, \link[fnets]{idio.predict}
 }

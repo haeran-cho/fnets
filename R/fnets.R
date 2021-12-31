@@ -2,13 +2,13 @@
 #' @description Operating under factor-adjusted vector autoregressive (VAR) model,
 #' the function estimates the spectral density and autocovariance matrices of the factor-driven common component and the idiosyncratic VAR process,
 #' the impulse response functions and common shocks for the common component,
-#' and VAR parameters, innovation covariance matrix, and long-run partial correlations for the idiosyncratic component.
+#' and VAR parameters, innovation covariance matrix and long-run partial correlations for the idiosyncratic component.
 #' @details See Barigozzi, Cho and Owens (2021) for further details.
 #'
 #' @param x input time series matrix, with each row representing a variable
 #' @param center whether to de-mean the input \code{x} row-wise
-#' @param q number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007), see \code{\link[fnets]{hl.factor.number}} for further details
-#' @param ic.op choice of the information criterion, see \code{\link[fnets]{hl.factor.number}} for further details
+#' @param q number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007), see \link[fnets]{hl.factor.number} for further details
+#' @param ic.op choice of the information criterion, see \link[fnets]{hl.factor.number} for further details
 #' @param kern.const constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA
 #' @param common.args a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
 #' \itemize{
@@ -20,8 +20,8 @@
 #' @param idio.var.order order of the idiosyncratic VAR process; if a vector of integers is supplied, the order is chosen via cross validation
 #' @param idio.method a string specifying the method to be adopted for idiosyncratic VAR process estimation; possible values are:
 #' \itemize{
-#'    \item{"lasso"}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
-#'    \item{"ds"}{ Dantzig Selector-type constrained \code{l1}-minimisation}
+#'    \item{\code{"lasso"}}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
+#'    \item{\code{"ds"}}{ Dantzig Selector-type constrained \code{l1}-minimisation}
 #' }
 #' @param lrpc.method a string specifying the type of estimator for long-run partial correlation matrix estimation; possible values are:
 #' \itemize{
@@ -44,13 +44,13 @@
 #' and common shocks (an array of dimension \code{(q, n)}) for the common component}
 #' \item{idio.var}{ a list containing the following fields:
 #' \itemize{
-#' \item{beta}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
-#' \item{Gamma}{ estimate of the innovation covariance matrix}
-#' \item{lambda}{ regularisation parameter}
-#' \item{var.order}{ VAR order}
+#' \item{\code{beta}}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
+#' \item{\code{Gamma}}{ estimate of the innovation covariance matrix}
+#' \item{\code{lambda}}{ regularisation parameter}
+#' \item{\code{var.order}}{ VAR order}
 #' }}
-#' \item{lrpc}{ see the output of \code{\link[fnets]{par.lrpc}} if \code{lrpc.method = 'par'}
-#' and that of \code{\link[fnets]{npar.lrpc}} if \code{lrpc.method = 'npar'}}
+#' \item{lrpc}{ see the output of \link[fnets]{par.lrpc} if \code{lrpc.method = 'par'}
+#' and that of \link[fnets]{npar.lrpc} if \code{lrpc.method = 'npar'}}
 #' \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
 #' \item{idio.method}{ input parameter}
 #' \item{lrpc.method}{ input parameter}
@@ -69,13 +69,10 @@
 #' out <- fnets(x, q = NULL, idio.var.order = 1, idio.method = "lasso",
 #' lrpc.method = "par", cv.args = list(n.folds = 1, path.length = 10, do.plot = TRUE))
 #' pre <- predict(out, x, h = 1, common.method = 'unrestricted')
-#' cpre <- common.predict(out, x, h = 1, common.method = 'restricted', r = NULL)
-#' ipre <- idio.predict(out, x, cpre, h = 1)
-#'
 #' plot(out, type = 'granger', display = 'network', threshold = .05)
 #' plot(out, type = 'lrpc', display = 'heatmap', threshold = .05)
 #' }
-#' @seealso \code{\link[fnets]{predict.fnets}}, \code{\link[fnets]{plot.fnets}}
+#' @seealso \link[fnets]{predict.fnets}, \link[fnets]{plot.fnets}
 #' @importFrom graphics par
 #' @export
 fnets <- function(x, center = TRUE, q = NULL, ic.op = 5, kern.const = 4,
@@ -140,13 +137,11 @@ fnets <- function(x, center = TRUE, q = NULL, ic.op = 5, kern.const = 4,
 #' with \code{ic.op = 5} recommended as a default choice based on numerical experiments
 #' @param kern.const constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA
 #' @return a list containing
-#' \itemize{
 #' \item{q}{ number of factors}
-#' \item{hl}{ if \code{q = NULL}, the output from \code{\link[fnets]{hl.factor.number}}}
+#' \item{hl}{ if \code{q = NULL}, the output from \link[fnets]{hl.factor.number}}
 #' \item{spec}{ a list containing the estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
 #' \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
 #' \item{kern.const}{ input parameter}
-#' }
 #' @importFrom stats fft
 #' @keywords internal
 dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.const = 4){
@@ -219,12 +214,10 @@ dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.const = 4){
 #' @param do.plot whether to plot the values of six information criteria
 #' @param center whether to de-mean the input \code{x} row-wise
 #' @return a list containing
-#' \itemize{
 #' \item{q.hat}{ a vector containing minimisers of the six information criteria}
 #' \item{Gamma_x}{ an array containing the estimates of the autocovariance matrices of \code{x} at \code{2 * mm + 1} lags}
 #' \item{Sigma_x}{ an array containing the estimates of the spectral density matrices of \code{x} at \code{2 * mm + 1} Fourier frequencies}
 #' \item{sv}{ a list containing the singular value decomposition of \code{Sigma_x}}
-#' }
 #' @example R/examples/hl_ex.R
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 #' @importFrom graphics par abline box axis legend
@@ -323,23 +316,21 @@ hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = FALSE, cen
 #' @param h forecasting horizon
 #' @param common.method a string specifying the method for common component forecasting; possible values are:
 #' \itemize{
-#'    \item{"restricted"}{ performs forecasting under a restrictive static factor model}
-#'    \item{"unrestricted"}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
+#'    \item{\code{"restricted"}}{ performs forecasting under a restrictive static factor model}
+#'    \item{\code{"unrestricted"}}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
 #' }
 #' @param r number of static factors; if \code{common.method = "restricted"} and \code{r = NULL},
 #' it is estimated as the maximiser of the ratio of the successive eigenvalues of the estimate of the common component covariance matrix,
 #' see Ahn and Horenstein (2013)
 #' @param ... not used
 #' @return a list containing
-#' \itemize{
 #' \item{forecast}{ forecasts for the given forecasting horizon}
 #' \item{common.pred}{ a list containing forecasting results for the common component}
 #' \item{idio.pred}{ a list containing forecasting results for the idiosyncratic component}
 #' \item{mean.x}{ \code{mean.x} argument from \code{object}}
-#' }
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
-#' @seealso \code{\link[fnets]{common.predict}}, \code{\link[fnets]{idio.predict}}
+#' @seealso \link[fnets]{fnets}, \link[fnets]{common.predict}, \link[fnets]{idio.predict}
 #' @export
 predict.fnets <- function(object, x, h = 1, common.method = c('restricted', 'unrestricted'), r = NULL, ...){
 
@@ -364,20 +355,21 @@ predict.fnets <- function(object, x, h = 1, common.method = c('restricted', 'unr
 #' @param x \code{fnets} object
 #' @param type a string specifying which of the above three networks (i)--(iii) to visualise; possible values are
 #' \itemize{
-#'    \item{"granger"}{ directed network representing Granger causal linkages}
-#'    \item{"pc"}{ undirected network representing contemporaneous linkages; available when \code{x$lrpc.method = "par"}}
-#'    \item{"lrpc"}{ undirected network summarising Granger causal and contemporaneous linkages; available when \code{x$lrpc.method = "par"} or \code{x$lrpc.method = "npar"}}
+#'    \item{\code{"granger"}}{ directed network representing Granger causal linkages}
+#'    \item{\code{"pc"}}{ undirected network representing contemporaneous linkages; available when \code{x$lrpc.method = "par"}}
+#'    \item{\code{"lrpc"}}{ undirected network summarising Granger causal and contemporaneous linkages; available when \code{x$lrpc.method = "par"} or \code{x$lrpc.method = "npar"}}
 #' }
 #' @param display a string specifying how to visualise the network; possible values are:
 #' \itemize{
-#'    \item{"network"}{ as an \code{igraph} object, see \code{\link[igraph]{plot.igraph}}}
-#'    \item{"heatmap"}{ as a heatmap, see \code{\link[fields]{imagePlot}}}
+#'    \item{\code{"network"}}{ as an \code{igraph} object, see \link[igraph]{plot.igraph}}
+#'    \item{\code{"heatmap"}}{ as a heatmap, see \link[fields]{imagePlot}}
 #' }
 #' @param names a character vector containing the names of the vertices
 #' @param groups an integer vector denoting any group structure of the vertices
 #' @param threshold if \code{threshold > 0}, hard thresholding is performed on the matrix giving rise to the network of interest
 #' @param ... additional arguments
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+#' @seealso \link[fnets]{fnets}
 #' @import igraph
 #' @importFrom fields imagePlot
 #' @importFrom grDevices rainbow

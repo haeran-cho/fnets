@@ -30,7 +30,7 @@ for selecting the tuning parameter involved in long-run partial correlation matr
 
 \item{correct.zero}{whether to correct for any zero-entries in the diagonals of the inverse of long-run covariance matrix}
 
-\item{n.cores}{number of cores to use for parallel computing, see \code{\link[parallel]{makePSOCKcluster}}}
+\item{n.cores}{number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}}
 }
 \value{
 a list containing

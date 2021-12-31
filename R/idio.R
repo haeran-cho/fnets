@@ -20,7 +20,7 @@
 #' }
 #' @param n.iter maximum number of descent steps; applicable when \code{method = "lasso"}
 #' @param tol numerical tolerance for increases in the loss function; applicable when \code{method = "lasso"}
-#' @param n.cores number of cores to use for parallel computing, see \code{\link[parallel]{makePSOCKcluster}}; applicable when \code{method = "ds"}
+#' @param n.cores number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{method = "ds"}
 #' @return a list which contains the following fields:
 #' \item{beta}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
 #' \item{Gamma}{ estimate of the innovation covariance matrix}
@@ -214,13 +214,23 @@ yw.cv <- function(xx, method = c('lasso', 'ds'),
 #' for a given forecasting horizon by estimating the best linear predictors
 #' @param object \code{fnets} object
 #' @param x input time series matrix, with each row representing a variable
-#' @param cpre output of \code{\link[fnets]{common.predict}}
+#' @param cpre output of \link[fnets]{common.predict}
 #' @param h forecast horizon
 #' @return a list containing
 #' \item{is}{ in-sample estimator of the idiosyncratic component}
 #' \item{fc}{ forecasts of the idiosyncratic component for a given forecasting horizon \code{h}}
 #' \item{h}{ forecast horizon}
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+#' @examples
+#' set.seed(123)
+#' n <- 500
+#' p <- 50
+#' common <- sim.common1(n, p)
+#' idio <- sim.var(n, p)
+#' x <- common$data + idio$data
+#' out <- fnets(x, q = NULL, idio.var.order = 1, idio.method = "lasso", lrpc.method = "none")
+#' cpre <- common.predict(out, x, h = 1, common.method = 'restricted', r = NULL)
+#' ipre <- idio.predict(out, x, cpre, h = 1)
 #' @export
 idio.predict <- function(object, x, cpre, h = 1){
 

@@ -4,9 +4,9 @@ Title: Factor-adjusted Network Estimation and Forecasting for High-dimensional T
 Version: 0.1.0
 Authors@R: c(
     person("Matteo", "Barigozzi", email = "matteo.barigozzi@unibo.it", role = "aut"),
-    person("Haeran", "Cho", email = "haeran.cho@gmail.com", role = c("cre", "aut")),
+    person("Haeran", "Cho", email = "haeran.cho@bristol.ac.uk", role = c("cre", "aut")),
     person("Dom", "Owens", email = "dom.owens@bristol.ac.uk", role = "aut"))
-Maintainer: Haeran Cho <haeran.cho@gmail.com>
+Maintainer: Haeran Cho <haeran.cho@bristol.ac.uk>
 Description: Implements methods for network estimation and forecasting of high-dimensional time series exhibiting strong serial and cross-sectional correlations under a factor-adjusted vector autoregressive model.
 Depends: R (>= 3.1.2)
 Imports: 

@@ -22,9 +22,9 @@ fnets(
 
 \item{center}{whether to de-mean the input \code{x} row-wise}
 
-\item{q}{number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007), see \code{\link[fnets]{hl.factor.number}} for further details}
+\item{q}{number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007), see \link[fnets]{hl.factor.number} for further details}
 
-\item{ic.op}{choice of the information criterion, see \code{\link[fnets]{hl.factor.number}} for further details}
+\item{ic.op}{choice of the information criterion, see \link[fnets]{hl.factor.number} for further details}
 
 \item{kern.const}{constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA}
 
@@ -40,8 +40,8 @@ fnets(
 
 \item{idio.method}{a string specifying the method to be adopted for idiosyncratic VAR process estimation; possible values are:
 \itemize{
-   \item{"lasso"}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
-   \item{"ds"}{ Dantzig Selector-type constrained \code{l1}-minimisation}
+   \item{\code{"lasso"}}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
+   \item{\code{"ds"}}{ Dantzig Selector-type constrained \code{l1}-minimisation}
 }}
 
 \item{lrpc.method}{a string specifying the type of estimator for long-run partial correlation matrix estimation; possible values are:
@@ -68,13 +68,13 @@ an S3 object of class \code{fnets}, which contains the following fields:
 and common shocks (an array of dimension \code{(q, n)}) for the common component}
 \item{idio.var}{ a list containing the following fields:
 \itemize{
-\item{beta}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
-\item{Gamma}{ estimate of the innovation covariance matrix}
-\item{lambda}{ regularisation parameter}
-\item{var.order}{ VAR order}
+\item{\code{beta}}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
+\item{\code{Gamma}}{ estimate of the innovation covariance matrix}
+\item{\code{lambda}}{ regularisation parameter}
+\item{\code{var.order}}{ VAR order}
 }}
-\item{lrpc}{ see the output of \code{\link[fnets]{par.lrpc}} if \code{lrpc.method = 'par'}
-and that of \code{\link[fnets]{npar.lrpc}} if \code{lrpc.method = 'npar'}}
+\item{lrpc}{ see the output of \link[fnets]{par.lrpc} if \code{lrpc.method = 'par'}
+and that of \link[fnets]{npar.lrpc} if \code{lrpc.method = 'npar'}}
 \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
 \item{idio.method}{ input parameter}
 \item{lrpc.method}{ input parameter}
@@ -84,7 +84,7 @@ and that of \code{\link[fnets]{npar.lrpc}} if \code{lrpc.method = 'npar'}}
 Operating under factor-adjusted vector autoregressive (VAR) model,
 the function estimates the spectral density and autocovariance matrices of the factor-driven common component and the idiosyncratic VAR process,
 the impulse response functions and common shocks for the common component,
-and VAR parameters, innovation covariance matrix, and long-run partial correlations for the idiosyncratic component.
+and VAR parameters, innovation covariance matrix and long-run partial correlations for the idiosyncratic component.
 }
 \details{
 See Barigozzi, Cho and Owens (2021) for further details.
@@ -100,9 +100,6 @@ x <- common$data + idio$data
 out <- fnets(x, q = NULL, idio.var.order = 1, idio.method = "lasso",
 lrpc.method = "par", cv.args = list(n.folds = 1, path.length = 10, do.plot = TRUE))
 pre <- predict(out, x, h = 1, common.method = 'unrestricted')
-cpre <- common.predict(out, x, h = 1, common.method = 'restricted', r = NULL)
-ipre <- idio.predict(out, x, cpre, h = 1)
-
 plot(out, type = 'granger', display = 'network', threshold = .05)
 plot(out, type = 'lrpc', display = 'heatmap', threshold = .05)
 }
@@ -113,5 +110,5 @@ Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysi
 Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 }
 \seealso{
-\code{\link[fnets]{predict.fnets}}, \code{\link[fnets]{plot.fnets}}
+\link[fnets]{predict.fnets}, \link[fnets]{plot.fnets}
 }

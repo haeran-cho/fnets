@@ -19,15 +19,15 @@
 
 \item{type}{a string specifying which of the above three networks (i)--(iii) to visualise; possible values are
 \itemize{
-   \item{"granger"}{ directed network representing Granger causal linkages}
-   \item{"pc"}{ undirected network representing contemporaneous linkages; available when \code{x$lrpc.method = "par"}}
-   \item{"lrpc"}{ undirected network summarising Granger causal and contemporaneous linkages; available when \code{x$lrpc.method = "par"} or \code{x$lrpc.method = "npar"}}
+   \item{\code{"granger"}}{ directed network representing Granger causal linkages}
+   \item{\code{"pc"}}{ undirected network representing contemporaneous linkages; available when \code{x$lrpc.method = "par"}}
+   \item{\code{"lrpc"}}{ undirected network summarising Granger causal and contemporaneous linkages; available when \code{x$lrpc.method = "par"} or \code{x$lrpc.method = "npar"}}
 }}
 
 \item{display}{a string specifying how to visualise the network; possible values are:
 \itemize{
-   \item{"network"}{ as an \code{igraph} object, see \code{\link[igraph]{plot.igraph}}}
-   \item{"heatmap"}{ as a heatmap, see \code{\link[fields]{imagePlot}}}
+   \item{\code{"network"}}{ as an \code{igraph} object, see \link[igraph]{plot.igraph}}
+   \item{\code{"heatmap"}}{ as a heatmap, see \link[fields]{imagePlot}}
 }}
 
 \item{names}{a character vector containing the names of the vertices}
@@ -50,4 +50,7 @@ See Barigozzi, Cho and Owens (2021) for further details.
 }
 \references{
 Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+}
+\seealso{
+\link[fnets]{fnets}
 }

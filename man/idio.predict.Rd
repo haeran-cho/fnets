@@ -11,7 +11,7 @@ idio.predict(object, x, cpre, h = 1)
 
 \item{x}{input time series matrix, with each row representing a variable}
 
-\item{cpre}{output of \code{\link[fnets]{common.predict}}}
+\item{cpre}{output of \link[fnets]{common.predict}}
 
 \item{h}{forecast horizon}
 }
@@ -24,6 +24,17 @@ a list containing
 \description{
 Produces forecasts of the idiosyncratic VAR process
 for a given forecasting horizon by estimating the best linear predictors
+}
+\examples{
+set.seed(123)
+n <- 500
+p <- 50
+common <- sim.common1(n, p)
+idio <- sim.var(n, p)
+x <- common$data + idio$data
+out <- fnets(x, q = NULL, idio.var.order = 1, idio.method = "lasso", lrpc.method = "none")
+cpre <- common.predict(out, x, h = 1, common.method = 'restricted', r = NULL)
+ipre <- idio.predict(out, x, cpre, h = 1)
 }
 \references{
 Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
