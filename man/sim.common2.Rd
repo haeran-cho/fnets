@@ -4,7 +4,7 @@
 \alias{sim.common2}
 \title{Simulate data from a static factor model}
 \usage{
-sim.common2(n, p, q = 2)
+sim.common2(n, p, q = 2, heavy = FALSE)
 }
 \arguments{
 \item{n}{sample size}
@@ -12,6 +12,8 @@ sim.common2(n, p, q = 2)
 \item{p}{dimension}
 
 \item{q}{number of dynamic factors; number of static factors is given by \code{2 * q}}
+
+\item{heavy}{if \code{heavy = FALSE}, common shocks are generated from \code{rnorm} whereas if \code{heavy = TRUE}, from \code{rt} with \code{df = 5} and then scaled by \code{sqrt(3 / 5)}}
 }
 \value{
 a list containing

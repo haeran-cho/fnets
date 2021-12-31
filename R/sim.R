@@ -4,19 +4,24 @@
 #' @param n sample size
 #' @param p dimension
 #' @param q number of dynamic factors
+#' @param heavy if \code{heavy = FALSE}, common shocks are generated from \code{rnorm} whereas if \code{heavy = TRUE}, from \code{rt} with \code{df = 5} and then scaled by \code{sqrt(3 / 5)}
 #' @return a list containing
 #' \item{data}{ generated series}
 #' \item{q}{ number of factors}
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @examples
 #' common <- sim.common1(500, 50)
-#' @importFrom stats rnorm runif
+#' @importFrom stats rnorm runif rt
 #' @export
-sim.common1 <- function(n, p, q = 2){
+sim.common1 <- function(n, p, q = 2, heavy = FALSE){
 
   trunc.lags <- min(20, round(n/log(n)))
   chi <- matrix(0, p, n)
-  uu <- matrix(rnorm((n + trunc.lags) * q), ncol = q)
+  if(!heavy){
+    uu <- matrix(rnorm((n + trunc.lags) * q), ncol = q)
+  } else{
+    uu <- matrix(rt((n + trunc.lags) * q, df = 5), ncol = q) * sqrt(3/5)
+  }
   a <- matrix(runif(p * q, -1, 1), ncol = q)
   alpha <- matrix(runif(p * q, -.8, .8), ncol = q)
   for(ii in 1:p){
@@ -35,6 +40,7 @@ sim.common1 <- function(n, p, q = 2){
 #' @param n sample size
 #' @param p dimension
 #' @param q number of dynamic factors; number of static factors is given by \code{2 * q}
+#' @param heavy if \code{heavy = FALSE}, common shocks are generated from \code{rnorm} whereas if \code{heavy = TRUE}, from \code{rt} with \code{df = 5} and then scaled by \code{sqrt(3 / 5)}
 #' @return a list containing
 #' \item{data}{ generated series}
 #' \item{q}{ number of factors}
@@ -42,20 +48,24 @@ sim.common1 <- function(n, p, q = 2){
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @examples
 #' common <- sim.common2(500, 50)
-#' @importFrom stats rnorm runif
+#' @importFrom stats rnorm runif rt
 #' @export
-sim.common2 <- function(n, p, q = 2){
+sim.common2 <- function(n, p, q = 2, heavy = FALSE){
   lags <- 1
   r <- q * (lags + 1)
   burnin <- 100
-  u2 <- matrix(rnorm(q * (n + burnin)), nrow = q)
+  if(!heavy){
+    uu <- matrix(rnorm((n + burnin) * q), nrow = q)
+  } else{
+    uu <- matrix(rt((n + burnin) * q, df = 5), nrow = q) * sqrt(3/5)
+  }
   D0 <- matrix(runif(q^2, 0, .3), nrow = q)
   diag(D0) <- runif(q, .5, .8)
   D <- 0.7 * D0/norm(D0, type = '2')
 
   f <- matrix(0, nrow = q, ncol = n + burnin)
-  f[, 1] <-  u2[, 1]
-  for(tt in 2:(n + burnin)) f[, tt] <- D %*% f[, tt - 1] +  u2[, tt]
+  f[, 1] <-  uu[, 1]
+  for(tt in 2:(n + burnin)) f[, tt] <- D %*% f[, tt - 1] +  uu[, tt]
   f <- f[, -(1:(burnin - lags))]
 
   loadings <- matrix(rnorm(p * r, 0, 1), nrow = p)
@@ -69,7 +79,8 @@ sim.common2 <- function(n, p, q = 2){
 #' @description Simulate a VAR(1) process; see the reference for the generation of the transition matrix.
 #' @param n sample size
 #' @param p dimension
-#' @param Gamma innovation covariance matrix
+#' @param Gamma innovation covariance matrix; ignored if \code{heavy = TRUE}
+#' @param heavy if \code{heavy = FALSE}, common shocks are generated from \code{rnorm} whereas if \code{heavy = TRUE}, from \code{rt} with \code{df = 5} and then scaled by \code{sqrt(3 / 5)}
 #' @return a list containing
 #' \item{data}{ generated series}
 #' \item{A}{ transition matrix}
@@ -78,11 +89,18 @@ sim.common2 <- function(n, p, q = 2){
 #' @examples
 #' idio <- sim.var(500, 50)
 #' @importFrom MASS mvrnorm
+#' @importFrom stats rnorm rt
 #' @export
-sim.var <- function(n, p, Gamma = diag(1, p)){
-  burnin <-100
+sim.var <- function(n, p, Gamma = diag(1, p), heavy = FALSE){
+  burnin <- 100
   prob <- 1/p
-  xi <- t(MASS::mvrnorm(n + burnin, mu = rep(0, p), Sigma = Gamma))
+
+  if(!heavy){
+    if(identical(Gamma, diag(1, p))){
+      xi <- matrix(rnorm((n + burnin) * p), nrow = p)
+    } else xi <- t(MASS::mvrnorm(n + burnin, mu = rep(0, p), Sigma = Gamma))
+  } else xi <- matrix(rt((n + burnin) * p, df = 5), nrow = p) * sqrt(3/5)
+
   A <- matrix(0, p, p)
   index <- sample(c(0, 1), p^2, TRUE, prob = c(1 - prob, prob))
   A[which(index == 1)] <- .275
