@@ -2,7 +2,7 @@
 #' @description Operating under factor-adjusted vector autoregressive (VAR) model,
 #' the function estimates the spectral density and autocovariance matrices of the factor-driven common component and the idiosyncratic VAR process,
 #' the impulse response functions and common shocks for the common component,
-#' and VAR parameters and innovation covariance matrix for the idiosyncratic component.
+#' and VAR parameters, innovation covariance matrix, and long-run partial correlations for the idiosyncratic component.
 #' @details See Barigozzi, Cho and Owens (2021) for further details.
 #'
 #' @param x input time series matrix, with each row representing a variable

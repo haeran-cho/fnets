@@ -43,7 +43,7 @@ for selecting the regularisation parameter (and VAR order). It contains:
 
 \item{tol}{numerical tolerance for increases in the loss function; applicable when \code{method = "lasso"}}
 
-\item{n.cores}{number of cores to use for parallel communing, see \code{\link[parallel]{makePSOCKcluster}}; applicable when \code{method = "ds"}}
+\item{n.cores}{number of cores to use for parallel computing, see \code{\link[parallel]{makePSOCKcluster}}; applicable when \code{method = "ds"}}
 }
 \value{
 a list which contains the following fields:

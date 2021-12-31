@@ -20,7 +20,7 @@
 #' }
 #' @param n.iter maximum number of descent steps; applicable when \code{method = "lasso"}
 #' @param tol numerical tolerance for increases in the loss function; applicable when \code{method = "lasso"}
-#' @param n.cores number of cores to use for parallel communing, see \code{\link[parallel]{makePSOCKcluster}}; applicable when \code{method = "ds"}
+#' @param n.cores number of cores to use for parallel computing, see \code{\link[parallel]{makePSOCKcluster}}; applicable when \code{method = "ds"}
 #' @return a list which contains the following fields:
 #' \item{beta}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
 #' \item{Gamma}{ estimate of the innovation covariance matrix}

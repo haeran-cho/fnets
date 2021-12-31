@@ -12,7 +12,7 @@
 #'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
 #' @param correct.zero whether to correct for any zero-entries in the diagonals of the inverse of long-run covariance matrix
-#' @param n.cores number of cores to use for parallel communing, see \code{\link[parallel]{makePSOCKcluster}}
+#' @param n.cores number of cores to use for parallel computing, see \code{\link[parallel]{makePSOCKcluster}}
 #' @return a list containing
 #' \item{Omega}{ estimated inverse of the long-run covariance matrix}
 #' \item{lrpc}{ estimated long-run partial correlation matrix}
@@ -72,7 +72,7 @@ npar.lrpc <- function(object, x, eta = NULL,
 #'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
 #' @param correct.zero whether to correct for any zero-entries in the diagonals of the inverse of long-run covariance matrix
-#' @param n.cores number of cores to use for parallel communing, see \code{\link[parallel]{makePSOCKcluster}}
+#' @param n.cores number of cores to use for parallel computing, see \code{\link[parallel]{makePSOCKcluster}}
 #' @return a list containing
 #' \item{Delta}{ estimated inverse of the innovation covariance matrix}
 #' \item{Omega}{ estimated inverse of the long-run covariance matrix}
