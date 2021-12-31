@@ -6,5 +6,6 @@ p <- 50
 idio <- sim.var(n, p)
 x <- idio$data
 
-fv <- fit.var(x, center = TRUE, method = 'lasso', var.order = 1)
+fv <- fnets.var(x, center = TRUE, method = 'lasso', var.order = 1,
+                cv.args = list(n.folds = 1, path.length = 10, do.plot = TRUE))
 norm(fv$beta - t(idio$A), 'F')/norm(t(idio$A), 'F')

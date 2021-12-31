@@ -31,7 +31,7 @@
 #' @importFrom parallel detectCores
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @export
-fit.var  <- function(x, center = TRUE, method = c('lasso', 'ds'),
+fnets.var  <- function(x, center = TRUE, method = c('lasso', 'ds'),
                      lambda = NULL, var.order = 1,
                      cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
                      n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3)){
@@ -69,10 +69,10 @@ var.lasso <- function(GG, gg, lambda, symmetric = 'min', n.iter = 100, tol = 0){
   d <- nrow(gg)/ncol(gg)
 
   ii <- 0
-  tnew <- t <- 1
-  beta1 <- gg * 0
-  beta.mid <- beta.up <- prox <- gg * 0
-  diff <- tol - 1
+  t.new <- t <- 1
+  x <- gg * 0
+  x.new <- y <- x
+  diff.val <- tol - 1
 
   if(backtracking){
     L <- norm(GG, "F") / 5
@@ -80,37 +80,37 @@ var.lasso <- function(GG, gg, lambda, symmetric = 'min', n.iter = 100, tol = 0){
   } else L <- norm(GG, "F")
 
   obj.val <- rel.err <- c()
-  while(ii < n.iter & diff < tol){
+  while(ii < n.iter & diff.val < tol){
     ii <- ii + 1
     if(backtracking){
       L.bar <- L
       found <- FALSE
       while(!found){
-        prox <- fnsl.update(beta.up, beta1, lambda, eta = 2 * L.bar, GG, gg)
-        if(f.func(GG, gg, prox) <= Q.func(prox, beta.up, L.bar, GG, gg)){
+        prox <- prox.func(y, lambda, L = 2 * L.bar, GG, gg)
+        if(f.func(GG, gg, prox) <= Q.func(prox, y, L.bar, GG, gg)){
           found <- TRUE
-        }else{
+        } else{
           L.bar <- L.bar * gamma
         }
       }
       L <- L.bar
-    } else prox <- fnsl.update(beta.up, beta1, lambda, eta = 2 * L, GG, gg)
+    } else prox <- prox.func(y, y, lambda, L = 2 * L, GG, gg)
 
-    beta1 <- beta.mid
-    beta.mid <- prox
-    t <- tnew
-    tnew <- (1 + sqrt(1 + 4*t^2))/2
-    beta.up <- beta.mid + (t - 1) / tnew * (beta.mid - beta1)
+    x <- x.new
+    x.new <- prox
+    t <- t.new
+    t.new <- (1 + sqrt(1 + 4*t^2))/2
+    y <- x.new + (t - 1) / t.new * (x.new - y)
 
-    obj.val <- c(obj.val, f.func(GG, gg, beta.mid) + lambda * sum(abs(beta.mid)))
-    if(ii > 1) diff <- obj.val[ii] - obj.val[ii-1]
+    obj.val <- c(obj.val, f.func(GG, gg, x.new) + lambda * sum(abs(x.new)))
+    if(ii > 1) diff.val <- obj.val[ii] - obj.val[ii - 1]
   }
 
-  A <- t(beta.mid)
+  A <- t(x.new)
   Gamma <- GG[1:p, 1:p]
   for(ll in 1:d) Gamma <- Gamma - A[, (ll - 1) * p + 1:p] %*% gg[(ll - 1) * p + 1:p, ]
   Gamma <- make.symmetric(Gamma, symmetric)
-  out <- list(beta = beta.mid, Gamma = Gamma, lambda = lambda)
+  out <- list(beta = x.new, Gamma = Gamma, lambda = lambda)
   return(out)
 
 }
@@ -289,11 +289,11 @@ Q.func <- function(A, A.up, L, GG, gg){
 }
 
 #' @keywords internal
-fnsl.update <- function(B, B_md, lambda, eta, GG, gg){
-  b <- B - (1/eta) * (GG %*% (B_md) - gg) ##
+prox.func <- function(B, lambda, L, GG, gg){
+  b <- B - (1/L) * gradf.func(GG, gg, B)
   sgn <- sign(b)
   ab <- abs(b)
-  sub <- ab - 2*lambda/eta
+  sub <- ab - 2*lambda/L
   sub[sub < 0] <- 0
   out <- sub * sgn
   return(as.matrix(out))
