@@ -225,7 +225,7 @@ dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.const = 4){
 #' @export
 hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = FALSE, center = TRUE){
   p <- dim(x)[1]; n <- dim(x)[2]
-  q.max <- min(50, floor(sqrt(min(n - 1, p))))
+  if(is.null(q.max)) q.max <- min(50, floor(sqrt(min(n - 1, p))))
 
   if(center) mean.x <- apply(x, 1, mean) else mean.x <- rep(0, p)
   xx <- x - mean.x
