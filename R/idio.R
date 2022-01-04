@@ -274,7 +274,7 @@ make.gg <- function(acv, d){
 
 #' @keywords internal
 f.func <- function(GG, gg, A){
-  return(.5 * sum(diag(2 * GG[1:dim(gg)[2], 1:dim(gg)[2]] - t(A) %*% gg - t(gg) %*% A)))
+  return(.5 * sum(diag(t(A) %*% GG %*% A - 2 * t(A) %*% gg)))
 }
 
 #' @keywords internal
