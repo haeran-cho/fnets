@@ -4,7 +4,7 @@ Contains methods for network estimation and forecasting for high-dimensional tim
 
 > _FNETS_: Factor-adjusted network estimation and forecasting for high-dimensional time series
 
-by Matteo Barigozzi, Haeran Cho and Dom Owens [arXiv:](insert arXiv link) for full details.
+by Matteo Barigozzi, Haeran Cho and Dom Owens [arXiv:](arXiv link to follow) for full details.
 
 
 ## Installation
