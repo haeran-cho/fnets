@@ -94,7 +94,7 @@ var.lasso <- function(GG, gg, lambda, symmetric = 'min', n.iter = 100, tol = 0){
         }
       }
       L <- L.bar
-    } else prox <- prox.func(y, y, lambda, L = 2 * L, GG, gg)
+    } else prox <- prox.func(y, lambda, L = 2 * L, GG, gg)
 
     x <- x.new
     x.new <- prox
