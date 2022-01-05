@@ -196,8 +196,8 @@ yw.cv <- function(xx, method = c('lasso', 'ds'),
     }
   }
   cv.err.mat[cv.err.mat < 0] <- Inf
-  lambda.min <- lambda.path[which.min(apply(cv.err.mat, 1, min))]
-  order.min <- var.order[which.min(apply(cv.err.mat, 2, min))]
+  lambda.min <- min(lambda.path[apply(cv.err.mat, 1, min) == min(apply(cv.err.mat, 1, min))])
+  order.min <- min(var.order[apply(cv.err.mat, 2, min) == min(apply(cv.err.mat, 2, min))])
 
   if(do.plot){
     matplot(lambda.path, cv.err.mat, type = 'b', col = 2:(max(var.order) + 1), pch = 2:(max(var.order) + 1),
