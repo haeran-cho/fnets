@@ -46,7 +46,7 @@ plot(out, type = "lrpc", display = "heatmap")
 
 Perform h-step ahead forecasting
 ```
-pr <- predict(out, x, h = 1, common.method = "static")
+pr <- predict(out, x, h = 1, common.method = "restricted")
 pr$forecast
 ```
 

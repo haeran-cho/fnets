@@ -11,7 +11,7 @@
 #'    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
-#' @param correct.zero whether to correct for any zero-entries in the diagonals of the inverse of long-run covariance matrix
+#' @param do.correct whether to correct for any negative entries in the diagonals of the inverse of long-run covariance matrix
 #' @param n.cores number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}
 #' @return a list containing
 #' \item{Omega}{ estimated inverse of the long-run covariance matrix}
@@ -35,7 +35,7 @@
 #' @export
 npar.lrpc <- function(object, x, eta = NULL,
                       cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
-                      correct.zero = TRUE, n.cores = min(parallel::detectCores() - 1, 3)){
+                      do.correct = TRUE, n.cores = min(parallel::detectCores() - 1, 3)){
 
   xx <- x - object$mean.x
   p <- dim(x)[1]
@@ -49,7 +49,7 @@ npar.lrpc <- function(object, x, eta = NULL,
     eta <- dcv$eta
   }
   DD <- direct.inv.est(GG, eta = eta, symmetric = 'min',
-                       correct.zero = correct.zero, n.cores = n.cores)$DD
+                       do.correct = do.correct, n.cores = n.cores)$DD
   lrpc <- - t(t(DD)/sqrt(diag(DD)))/sqrt(diag(DD))
   out <- list(Omega = DD, lrpc = lrpc, eta = eta)
 
@@ -71,7 +71,7 @@ npar.lrpc <- function(object, x, eta = NULL,
 #'    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
-#' @param correct.zero whether to correct for any zero-entries in the diagonals of the inverse of long-run covariance matrix
+#' @param do.correct whether to correct for any negative entries in the diagonals of the inverse of long-run covariance matrix
 #' @param n.cores number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}
 #' @return a list containing
 #' \item{Delta}{ estimated inverse of the innovation covariance matrix}
@@ -99,7 +99,7 @@ npar.lrpc <- function(object, x, eta = NULL,
 #' @export
 par.lrpc <- function(object, x, eta = NULL,
                      cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
-                     correct.zero = TRUE,
+                     do.correct = TRUE,
                      n.cores = min(parallel::detectCores() - 1, 3)){
 
   xx <- x - object$mean.x
@@ -120,8 +120,10 @@ par.lrpc <- function(object, x, eta = NULL,
     eta <- dcv$eta
   }
   Delta <- direct.inv.est(GG, eta = eta, symmetric = 'min',
-                          correct.zero = correct.zero, n.cores = n.cores)$DD
+                          do.correct = do.correct, n.cores = n.cores)$DD
   Omega <- 2 * pi * t(A1) %*% Delta %*% A1
+  if(do.correct & sum(diag(Omega) <= 0) > 0) Omega <- correct.diag(Re(object$spec$Sigma_i[,, 1]), Omega)
+
   pc <- - t(t(Delta)/sqrt(diag(Delta)))/sqrt(diag(Delta))
   lrpc <- - t(t(Omega)/sqrt(diag(Omega)))/sqrt(diag(Omega))
   out <- list(Delta = Delta, Omega = Omega, pc = pc, lrpc = lrpc, eta = eta)
@@ -202,7 +204,7 @@ direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min'
 #' @importFrom foreach foreach %dopar%
 #' @importFrom lpSolve lp
 direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', 'none'),
-                           correct.zero = FALSE,
+                           do.correct = FALSE,
                            n.cores = min(parallel::detectCores() - 1, 3)){
 
   p <- dim(GG)[1]
@@ -227,12 +229,7 @@ direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', '
   parallel::stopCluster(cl)
 
   DD <- make.symmetric(DD, symmetric)
-
-  if(correct.zero){
-    tmp <- gen.inverse(GG)
-    ind <- which(diag(DD) == 0)
-    diag(DD)[ind] <- tmp[ind]
-  }
+  if(do.correct & sum(diag(DD) <= 0) > 0) DD <- correct.diag(GG, DD)
 
   out <- list(DD = DD, eta = eta, symmetric = symmetric)
   return(out)
@@ -247,5 +244,15 @@ gen.inverse <- function(GG){
   L <- GG * 0
   diag(L)[sv$d > 0] <- sv$d[sv$d > 0]
   return(diag(sv$u %*% L %*% t(sv$u)))
+
+}
+
+#' @keywords internal
+correct.diag <- function(GG, DD){
+
+  tmp <- gen.inverse(GG)
+  ind <- which(diag(DD) <= 0)
+  diag(DD)[ind] <- tmp[ind]
+  return(DD)
 
 }

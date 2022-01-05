@@ -9,7 +9,7 @@ npar.lrpc(
   x,
   eta = NULL,
   cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
-  correct.zero = TRUE,
+  do.correct = TRUE,
   n.cores = min(parallel::detectCores() - 1, 3)
 )
 }
@@ -28,7 +28,7 @@ for selecting the tuning parameter involved in long-run partial correlation matr
    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 }}
 
-\item{correct.zero}{whether to correct for any zero-entries in the diagonals of the inverse of long-run covariance matrix}
+\item{do.correct}{whether to correct for any negative entries in the diagonals of the inverse of long-run covariance matrix}
 
 \item{n.cores}{number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}}
 }
