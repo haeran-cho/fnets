@@ -190,10 +190,12 @@ yw.cv <- function(xx, method = c('lasso', 'ds'),
         if(method == 'ds') train.beta <- var.dantzig(GG, gg, lambda = lambda.path[ii])$beta
         if(method == 'lasso') train.beta <- var.lasso(GG, gg, lambda = lambda.path[ii])$beta
         beta.gg <- t(train.beta) %*% test.gg
-        cv.err.mat[ii, jj] <- cv.err.mat[ii, jj] + sum(diag(test.acv[,, 1] - beta.gg - t(beta.gg) + t(train.beta) %*% test.GG %*% (train.beta) ))
+        cv.err.mat[ii, jj] <- cv.err.mat[ii, jj] +
+          sum(diag(test.acv[,, 1] - beta.gg - t(beta.gg) + t(train.beta) %*% test.GG %*% (train.beta) ))
       }
     }
   }
+  cv.err.mat[cv.err.mat < 0] <- Inf
   lambda.min <- lambda.path[which.min(apply(cv.err.mat, 1, min))]
   order.min <- var.order[which.min(apply(cv.err.mat, 2, min))]
 

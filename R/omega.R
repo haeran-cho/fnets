@@ -98,9 +98,9 @@ npar.lrpc <- function(object, x, eta = NULL,
 #' @importFrom parallel detectCores
 #' @export
 par.lrpc <- function(object, x, eta = NULL,
-                       cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
-                       correct.zero = TRUE,
-                       n.cores = min(parallel::detectCores() - 1, 3)){
+                     cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
+                     correct.zero = TRUE,
+                     n.cores = min(parallel::detectCores() - 1, 3)){
 
   xx <- x - object$mean.x
   p <- dim(x)[1]
