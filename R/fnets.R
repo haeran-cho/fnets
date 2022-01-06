@@ -187,7 +187,7 @@ dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.const = 4){
         Sigma_c[,, 2 * mm + 1 - (ii - 1) + 1] <- Conj(Sigma_c[,, ii])
       }
     }
-    Gamma_c <-  (aperm(apply(Sigma_c, c(1, 2), fft, inverse = TRUE), c(2, 3, 1)) ) * (2 * pi) / (2 * mm + 1)
+    Gamma_c <- aperm(apply(Sigma_c, c(1, 2), fft, inverse = TRUE), c(2, 3, 1)) * (2 * pi) / (2 * mm + 1)
     Gamma_c <- Re(Gamma_c)
   }
   Sigma_i <- Sigma_x - Sigma_c
