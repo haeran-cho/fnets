@@ -34,7 +34,7 @@
 fnets.var  <- function(x, center = TRUE, method = c('lasso', 'ds'),
                        lambda = NULL, var.order = 1,
                        cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
-                       n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3)){
+                       n.iter = 100, tol = 1e-5, n.cores = min(parallel::detectCores() - 1, 3)){
   p <- dim(x)[1]
   n <- dim(x)[2]
 
