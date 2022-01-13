@@ -105,6 +105,7 @@ var.lasso <- function(GG, gg, lambda, symmetric = 'min', n.iter = 100, tol = 1e-
     obj.val <- c(obj.val, f.func(GG, gg, x.new) + lambda * sum(abs(x.new)))
     if(ii > 1) diff.val <- obj.val[ii] - obj.val[ii - 1]
   }
+  if(ii == n.iter) warning("lasso estimation did not converge")
 
   A <- t(x.new)
   Gamma <- GG[1:p, 1:p]
