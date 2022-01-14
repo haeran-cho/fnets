@@ -35,7 +35,7 @@
 fnets.var  <- function(x, center = TRUE, method = c('lasso', 'ds'),
                        lambda = NULL, var.order = 1,
                        cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
-                       n.iter = 100, tol = 1e-5, n.cores = min(parallel::detectCores() - 1, 3)){
+                       n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3)){
   p <- dim(x)[1]
   n <- dim(x)[2]
 
@@ -63,7 +63,7 @@ fnets.var  <- function(x, center = TRUE, method = c('lasso', 'ds'),
 
 #' @title Lasso-type estimator of VAR processes via \code{l1}-regularised \code{M}-estimation
 #' @keywords internal
-var.lasso <- function(GG, gg, lambda, symmetric = 'min', n.iter = 100, tol = 1e-5){
+var.lasso <- function(GG, gg, lambda, symmetric = 'min', n.iter = 100, tol = 0){
 
   backtracking <- TRUE
   p <- ncol(gg)
@@ -106,13 +106,11 @@ var.lasso <- function(GG, gg, lambda, symmetric = 'min', n.iter = 100, tol = 1e-
     obj.val <- c(obj.val, f.func(GG, gg, x.new) + lambda * sum(abs(x.new)))
     if(ii > 1) diff.val <- obj.val[ii] - obj.val[ii - 1]
   }
-  if(ii == n.iter) warning("lasso estimation did not converge")
-
   A <- t(x.new)
   Gamma <- GG[1:p, 1:p]
   for(ll in 1:d) Gamma <- Gamma - A[, (ll - 1) * p + 1:p] %*% gg[(ll - 1) * p + 1:p, ]
   Gamma <- make.symmetric(Gamma, symmetric)
-  out <- list(beta = x.new, Gamma = Gamma, lambda = lambda, convergence = (abs(diff.val) <= abs(obj.val[1]) * tol))
+  out <- list(beta = x.new, Gamma = Gamma, lambda = lambda, convergence = (abs(diff.val) <= abs(obj.val[1]) * 1e-5))
 
   return(out)
 

@@ -25,12 +25,10 @@
 #' }
 #' @param idio.args a list specifying the tuning parameters required for estimating the idiosyncratic VAR process. It contains:
 #' \itemize{
-#'    \item{\code{n.iter}}{ maximum number of descent steps; applicable when \code{method = "lasso"}}
-#'    \item{\code{tol}}{ numerical tolerance for increases in the loss function; applicable when \code{method = "lasso"}}
-#'    \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{method = "ds"}}
+#'    \item{\code{n.iter}}{ maximum number of descent steps; applicable when \code{idio.method = "lasso"}}
+#'    \item{\code{tol}}{ numerical tolerance for increases in the loss function; applicable when \code{idio.method = "lasso"}}
+#'    \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{idio.method = "ds"}}
 #' }
-#' @param
-#' @param
 #' @param lrpc.method a string specifying the type of estimator for long-run partial correlation matrix estimation; possible values are:
 #' \itemize{
 #'    \item{\code{"par"}}{ parametric estimator based on the VAR model assumption}
@@ -44,6 +42,7 @@
 #'    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
+#'
 #' @return an S3 object of class \code{fnets}, which contains the following fields:
 #' \item{q}{ number of factors}
 #' \item{spec}{ a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
@@ -87,7 +86,7 @@
 fnets <- function(x, center = TRUE, q = NULL, ic.op = 5, kern.const = 4,
                   common.args = list(var.order = NULL, max.var.order = NULL, trunc.lags = 20, n.perm = 10),
                   idio.var.order = 1, idio.method = c('lasso', 'ds'),
-                  idio.args = list(n.iter = 100, tol = 1e-5, n.cores = min(parallel::detectCores() - 1, 3)),
+                  idio.args = list(n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3)),
                   lrpc.method = c('par', 'npar', 'none'),
                   cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE)){
   p <- dim(x)[1]

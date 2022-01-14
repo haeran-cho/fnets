@@ -12,7 +12,7 @@ fnets.var(
   var.order = 1,
   cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
   n.iter = 100,
-  tol = 1e-05,
+  tol = 0,
   n.cores = min(parallel::detectCores() - 1, 3)
 )
 }
