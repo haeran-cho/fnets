@@ -25,6 +25,7 @@
 #' \item{beta}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
 #' \item{Gamma}{ estimate of the innovation covariance matrix}
 #' \item{lambda}{ regularisation parameter}
+#' \item{convergence}{ returned when \code{method = "lasso"}; indicates whether a convergence criterion is met}
 #' \item{var.order}{ VAR order}
 #' \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
 #' @example R/examples/var_ex.R
@@ -179,8 +180,8 @@ yw.cv <- function(xx, method = c('lasso', 'ds'),
     train.ind <- 1:ceiling(length(ind.list[[fold]]) * .5)
     train.x <- xx[, ind.list[[fold]][train.ind]]
     test.x  <- xx[, ind.list[[fold]][- train.ind]]
-    train.acv <- dyn.pca(train.x, q = q, kern.const = kern.const)$acv$Gamma_i
-    test.acv <- dyn.pca(test.x, q = q, kern.const = kern.const)$acv$Gamma_i
+    train.acv <- dyn.pca(train.x, q = q, kern.const = kern.const, mm = max(var.order))$acv$Gamma_i
+    test.acv <- dyn.pca(test.x, q = q, kern.const = kern.const, mm = max(var.order))$acv$Gamma_i
 
     for(jj in 1:length(var.order)){
       mg <- make.gg(train.acv, var.order[jj])

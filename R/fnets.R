@@ -47,6 +47,7 @@
 #' \item{\code{beta}}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
 #' \item{\code{Gamma}}{ estimate of the innovation covariance matrix}
 #' \item{\code{lambda}}{ regularisation parameter}
+#' \item{\code{convergence}}{ returned when \code{idio.method = "lasso"}; indicates whether a convergence criterion is met}
 #' \item{\code{var.order}}{ VAR order}
 #' }}
 #' \item{lrpc}{ see the output of \link[fnets]{par.lrpc} if \code{lrpc.method = 'par'}
@@ -136,6 +137,7 @@ fnets <- function(x, center = TRUE, q = NULL, ic.op = 5, kern.const = 4,
 #' their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
 #' with \code{ic.op = 5} recommended as a default choice based on numerical experiments
 #' @param kern.const constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA
+#' @param mm bandwidth; if \code{mm = NULL}, it is chosen using \code{kern.const}
 #' @return a list containing
 #' \item{q}{ number of factors}
 #' \item{hl}{ if \code{q = NULL}, the output from \link[fnets]{hl.factor.number}}
@@ -144,12 +146,12 @@ fnets <- function(x, center = TRUE, q = NULL, ic.op = 5, kern.const = 4,
 #' \item{kern.const}{ input parameter}
 #' @importFrom stats fft
 #' @keywords internal
-dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.const = 4){
+dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.const = 4, mm = NULL){
 
   p <- dim(xx)[1]
   n <- dim(xx)[2]
 
-  mm <- min(max(1, kern.const * floor((n/log(n))^(1/3))), floor(n/4) - 1)
+  if(is.null(mm)) mm <- min(max(1, kern.const * floor((n/log(n))^(1/3))), floor(n/4) - 1) else mm <- min(max(mm, 1, kern.const * floor((n/log(n))^(1/3))), floor(n/4) - 1)
   len <- 2 * mm
   w <- Bartlett.weights(((-mm):mm)/mm)
 
@@ -348,7 +350,7 @@ predict.fnets <- function(object, x, h = 1, common.method = c('restricted', 'unr
 #' @method plot fnets
 #' @description Plotting method for S3 objects of class \code{fnets}.
 #' Produces a plot visualising three networks underlying factor-adjusted VAR processes:
-#' (i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices aggregated across the lags,
+#' (i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices summed across the lags,
 #' (ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
 #' (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
 #' @details See Barigozzi, Cho and Owens (2021) for further details.
@@ -387,7 +389,7 @@ plot.fnets <- function(x, type = c('granger', 'pc', 'lrpc'), display = c('networ
 
   if(type == 'granger'){
     d <- dim(x$idio.var$beta)[1]/p
-    for(ll in 1:d) A <- A + abs(t(x$idio.var$beta))[, (ll - 1) * p + 1:p]
+    for(ll in 1:d) A <- A + t(x$idio.var$beta)[, (ll - 1) * p + 1:p]
     nm <- 'Granger causal'
   }
 
@@ -439,14 +441,10 @@ plot.fnets <- function(x, type = c('granger', 'pc', 'lrpc'), display = c('networ
                         vertex.label.color = grp.col, vertex.label.cex = 0.6,
                         edge.color = 'gray40', edge.arrow.size = 0.5)
   } else if(display == "heatmap"){
-    if(type == 'granger'){
-      heat.cols <- RColorBrewer::brewer.pal(9, 'Reds')
-      breaks <- seq(0, max(1e-3, abs(A)), length.out = 10)
-    }
-    if(type %in% c('pc', 'lrpc')){
-      heat.cols <- rev(RColorBrewer::brewer.pal(11, 'RdBu'))
-      breaks <- seq(-1.01, 1.01, length.out = 12)
-    }
+    heat.cols <- rev(RColorBrewer::brewer.pal(11, 'RdBu'))
+    if(type == 'granger') mv <- max(1e-3, abs(A))
+    if(type %in% c('pc', 'lrpc')) mv <- 1.01
+    breaks <- seq(-mv, mv, length.out = 12)
     fields::imagePlot(A, axes = FALSE, col = heat.cols,
                       breaks = breaks, main = nm, ...)
     if(!is.na(names[1]) || !is.na(groups[1])){

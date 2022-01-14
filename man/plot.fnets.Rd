@@ -41,7 +41,7 @@
 \description{
 Plotting method for S3 objects of class \code{fnets}.
 Produces a plot visualising three networks underlying factor-adjusted VAR processes:
-(i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices aggregated across the lags,
+(i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices summed across the lags,
 (ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
 (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
 }

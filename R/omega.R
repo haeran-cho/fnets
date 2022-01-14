@@ -167,8 +167,8 @@ direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min'
       test.GG <- Re(dyn.pca(test.x, q = q, kern.const = kern.const)$spec$Sigma_i[,, 1])
     }
     if(target == 'acv'){
-      train.G0 <- dyn.pca(train.x, q = q, kern.const = kern.const)$acv$Gamma_i
-      test.G0 <- dyn.pca(test.x, q = q, kern.const = kern.const)$acv$Gamma_i
+      train.G0 <- dyn.pca(train.x, q = q, kern.const = kern.const, mm = d)$acv$Gamma_i
+      test.G0 <- dyn.pca(test.x, q = q, kern.const = kern.const, mm = d)$acv$Gamma_i
       train.GG <- train.G0[,, 1]
       test.GG <- test.G0[,, 1]
       for(ll in 1:d){

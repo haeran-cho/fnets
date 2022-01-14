@@ -72,6 +72,7 @@ and common shocks (an array of dimension \code{(q, n)}) for the common component
 \item{\code{beta}}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
 \item{\code{Gamma}}{ estimate of the innovation covariance matrix}
 \item{\code{lambda}}{ regularisation parameter}
+\item{\code{convergence}}{ returned when \code{idio.method = "lasso"}; indicates whether a convergence criterion is met}
 \item{\code{var.order}}{ VAR order}
 }}
 \item{lrpc}{ see the output of \link[fnets]{par.lrpc} if \code{lrpc.method = 'par'}
