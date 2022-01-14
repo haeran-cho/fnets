@@ -35,7 +35,7 @@
 fnets.var  <- function(x, center = TRUE, method = c('lasso', 'ds'),
                        lambda = NULL, var.order = 1,
                        cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
-                       n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3)){
+                       n.iter = 100, tol = 1e-5, n.cores = min(parallel::detectCores() - 1, 3)){
   p <- dim(x)[1]
   n <- dim(x)[2]
 
@@ -106,6 +106,7 @@ var.lasso <- function(GG, gg, lambda, symmetric = 'min', n.iter = 100, tol = 1e-
     obj.val <- c(obj.val, f.func(GG, gg, x.new) + lambda * sum(abs(x.new)))
     if(ii > 1) diff.val <- obj.val[ii] - obj.val[ii - 1]
   }
+  if(ii == n.iter) warning("lasso estimation did not converge")
 
   A <- t(x.new)
   Gamma <- GG[1:p, 1:p]

@@ -20,9 +20,17 @@
 #' @param idio.var.order order of the idiosyncratic VAR process; if a vector of integers is supplied, the order is chosen via cross validation
 #' @param idio.method a string specifying the method to be adopted for idiosyncratic VAR process estimation; possible values are:
 #' \itemize{
-#'    \item{\code{"lasso"}}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
-#'    \item{\code{"ds"}}{ Dantzig Selector-type constrained \code{l1}-minimisation}
+#'        \item{\code{"lasso"}}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
+#'        \item{\code{"ds"}}{ Dantzig Selector-type constrained \code{l1}-minimisation}
 #' }
+#' @param idio.args a list specifying the tuning parameters required for estimating the idiosyncratic VAR process. It contains:
+#' \itemize{
+#'    \item{\code{n.iter}}{ maximum number of descent steps; applicable when \code{method = "lasso"}}
+#'    \item{\code{tol}}{ numerical tolerance for increases in the loss function; applicable when \code{method = "lasso"}}
+#'    \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{method = "ds"}}
+#' }
+#' @param
+#' @param
 #' @param lrpc.method a string specifying the type of estimator for long-run partial correlation matrix estimation; possible values are:
 #' \itemize{
 #'    \item{\code{"par"}}{ parametric estimator based on the VAR model assumption}
@@ -79,6 +87,7 @@
 fnets <- function(x, center = TRUE, q = NULL, ic.op = 5, kern.const = 4,
                   common.args = list(var.order = NULL, max.var.order = NULL, trunc.lags = 20, n.perm = 10),
                   idio.var.order = 1, idio.method = c('lasso', 'ds'),
+                  idio.args = list(n.iter = 100, tol = 1e-5, n.cores = min(parallel::detectCores() - 1, 3)),
                   lrpc.method = c('par', 'npar', 'none'),
                   cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE)){
   p <- dim(x)[1]
@@ -109,8 +118,8 @@ fnets <- function(x, center = TRUE, q = NULL, ic.op = 5, kern.const = 4,
                q = q, kern.const = kern.const, do.plot = cv.args$do.plot)
   mg <- make.gg(acv$Gamma_i, icv$var.order)
   gg <- mg$gg; GG <- mg$GG
-  if(idio.method == 'lasso') ive <- var.lasso(GG, gg, lambda = icv$lambda, symmetric = 'min')
-  if(idio.method == 'ds') ive <- var.dantzig(GG, gg, lambda = icv$lambda, symmetric = 'min')
+  if(idio.method == 'lasso') ive <- var.lasso(GG, gg, lambda = icv$lambda, symmetric = 'min', n.iter = idio.args$n.iter, tol = idio.args$tol)
+  if(idio.method == 'ds') ive <- var.dantzig(GG, gg, lambda = icv$lambda, symmetric = 'min', n.cores = idio.args$n.cores)
   ive$var.order <- icv$var.order
 
   out <- list(q = q, spec = spec, acv = acv,
