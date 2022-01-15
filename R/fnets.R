@@ -451,8 +451,13 @@ plot.fnets <- function(x, type = c('granger', 'pc', 'lrpc'), display = c('networ
   } else if(display == "heatmap"){
     heat.cols <- rev(RColorBrewer::brewer.pal(11, 'RdBu'))
     if(type == 'granger') mv <- max(1e-3, abs(A))
-    if(type %in% c('pc', 'lrpc')) mv <- 1.01
+    if(type %in% c('pc', 'lrpc')){
+      A[abs(A) > 1] <- sign(A[abs(A) > 1])
+      diag(A) <- 0
+      mv <- 1.01
+    }
     breaks <- seq(-mv, mv, length.out = 12)
+
     fields::imagePlot(A, axes = FALSE, col = heat.cols,
                       breaks = breaks, main = nm, ...)
     if(!is.na(names[1]) || !is.na(groups[1])){
