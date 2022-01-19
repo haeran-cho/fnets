@@ -8,7 +8,7 @@
 #' @return a list containing
 #' \item{data}{ generated series}
 #' \item{q}{ number of factors}
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110
 #' @examples
 #' common <- sim.common1(500, 50)
 #' @importFrom stats rnorm runif rt

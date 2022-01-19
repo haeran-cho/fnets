@@ -79,7 +79,7 @@ npar.lrpc <- function(object, x, eta = NULL,
 #' \item{pc}{ estimated innovation partial correlation matrix}
 #' \item{lrpc}{ estimated long-run partial correlation matrix}
 #' \item{eta}{ regularisation parameter}
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @examples
 #' \dontrun{
 #' set.seed(123)

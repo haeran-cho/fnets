@@ -64,7 +64,7 @@
 #' \item{lrpc.method}{ input parameter}
 #' \item{kern.const}{ input parameter}
 #'
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 #' @examples
 #' \dontrun{
@@ -338,7 +338,7 @@ hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = FALSE, cen
 #' \item{common.pred}{ a list containing forecasting results for the common component}
 #' \item{idio.pred}{ a list containing forecasting results for the idiosyncratic component}
 #' \item{mean.x}{ \code{mean.x} argument from \code{object}}
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 #' @seealso \link[fnets]{fnets}, \link[fnets]{common.predict}, \link[fnets]{idio.predict}
 #' @export
@@ -378,7 +378,7 @@ predict.fnets <- function(object, x, h = 1, common.method = c('restricted', 'unr
 #' @param groups an integer vector denoting any group structure of the vertices
 #' @param threshold if \code{threshold > 0}, hard thresholding is performed on the matrix giving rise to the network of interest
 #' @param ... additional arguments
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @seealso \link[fnets]{fnets}
 #' @import igraph
 #' @importFrom fields imagePlot

@@ -49,7 +49,7 @@ Produces a plot visualising three networks underlying factor-adjusted VAR proces
 See Barigozzi, Cho and Owens (2021) for further details.
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 }
 \seealso{
 \link[fnets]{fnets}

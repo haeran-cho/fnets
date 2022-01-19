@@ -75,5 +75,5 @@ fv <- fnets.var(x, center = TRUE, method = 'lasso', var.order = 1,
 norm(fv$beta - t(idio$A), 'F')/norm(t(idio$A), 'F')
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 }

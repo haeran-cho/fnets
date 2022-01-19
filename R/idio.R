@@ -30,7 +30,7 @@
 #' \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
 #' @example R/examples/var_ex.R
 #' @importFrom parallel detectCores
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @export
 fnets.var  <- function(x, center = TRUE, method = c('lasso', 'ds'),
                        lambda = NULL, var.order = 1,
@@ -223,7 +223,7 @@ yw.cv <- function(xx, method = c('lasso', 'ds'),
 #' \item{is}{ in-sample estimator of the idiosyncratic component}
 #' \item{fc}{ forecasts of the idiosyncratic component for a given forecasting horizon \code{h}}
 #' \item{h}{ forecast horizon}
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @examples
 #' set.seed(123)
 #' n <- 500
