@@ -44,6 +44,11 @@ out$lrpc.method <- 'par'
 plot(out, type = "lrpc", display = "heatmap")
 ```
 
+Of course, we can estimate the (long-run) partial correlation-based networks directly using `fnets`:
+```
+out <- fnets(x, q = 2, idio.var.order = 1, idio.method = "lasso", lrpc.method = "par")
+```
+
 Perform h-step ahead forecasting
 ```
 pr <- predict(out, x, h = 1, common.method = "restricted")
