@@ -29,8 +29,6 @@
 #'    \item{\code{tol}}{ numerical tolerance for increases in the loss function; applicable when \code{method = "lasso"}}
 #'    \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{method = "ds"}}
 #' }
-#' @param
-#' @param
 #' @param lrpc.method a string specifying the type of estimator for long-run partial correlation matrix estimation; possible values are:
 #' \itemize{
 #'    \item{\code{"par"}}{ parametric estimator based on the VAR model assumption}
