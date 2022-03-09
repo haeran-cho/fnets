@@ -15,7 +15,7 @@
 #'    \item{\code{var.order}}{ order of the blockwise VAR representation of the common component. If \code{var.order = NULL}, it is selected blockwise by Schwarz criterion}
 #'    \item{\code{max.var.order}}{ maximum blockwise VAR order for the Schwarz criterion}
 #'    \item{\code{trunc.lags}}{ truncation lag for impulse response function estimation}
-#'    \item{\code{n.perm}}{ number of cross-sectional permutations involved in impluse response function estimation}
+#'    \item{\code{n.perm}}{ number of cross-sectional permutations involved in impulse response function estimation}
 #' }
 #' @param idio.var.order order of the idiosyncratic VAR process; if a vector of integers is supplied, the order is chosen via cross validation
 #' @param idio.method a string specifying the method to be adopted for idiosyncratic VAR process estimation; possible values are:
@@ -25,9 +25,9 @@
 #' }
 #' @param idio.args a list specifying the tuning parameters required for estimating the idiosyncratic VAR process. It contains:
 #' \itemize{
-#'    \item{\code{n.iter}}{ maximum number of descent steps; applicable when \code{method = "lasso"}}
-#'    \item{\code{tol}}{ numerical tolerance for increases in the loss function; applicable when \code{method = "lasso"}}
-#'    \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{method = "ds"}}
+#'    \item{\code{n.iter}}{ maximum number of descent steps; applicable when \code{idio.method = "lasso"}}
+#'    \item{\code{tol}}{ numerical tolerance for increases in the loss function; applicable when \code{idio.method = "lasso"}}
+#'    \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{idio.method = "ds"}}
 #' }
 #' @param lrpc.method a string specifying the type of estimator for long-run partial correlation matrix estimation; possible values are:
 #' \itemize{
@@ -42,6 +42,7 @@
 #'    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
+#'
 #' @return an S3 object of class \code{fnets}, which contains the following fields:
 #' \item{q}{ number of factors}
 #' \item{spec}{ a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
@@ -53,6 +54,7 @@
 #' \item{\code{beta}}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
 #' \item{\code{Gamma}}{ estimate of the innovation covariance matrix}
 #' \item{\code{lambda}}{ regularisation parameter}
+#' \item{\code{convergence}}{ returned when \code{idio.method = "lasso"}; indicates whether a convergence criterion is met}
 #' \item{\code{var.order}}{ VAR order}
 #' }}
 #' \item{lrpc}{ see the output of \link[fnets]{par.lrpc} if \code{lrpc.method = 'par'}
@@ -62,7 +64,7 @@
 #' \item{lrpc.method}{ input parameter}
 #' \item{kern.const}{ input parameter}
 #'
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 #' @examples
 #' \dontrun{
@@ -84,7 +86,7 @@
 fnets <- function(x, center = TRUE, q = NULL, ic.op = 5, kern.const = 4,
                   common.args = list(var.order = NULL, max.var.order = NULL, trunc.lags = 20, n.perm = 10),
                   idio.var.order = 1, idio.method = c('lasso', 'ds'),
-                  idio.args = list(n.iter = 100, tol = 1e-5, n.cores = min(parallel::detectCores() - 1, 3)),
+                  idio.args = list(n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3)),
                   lrpc.method = c('par', 'npar', 'none'),
                   cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE)){
   p <- dim(x)[1]
@@ -143,6 +145,7 @@ fnets <- function(x, center = TRUE, q = NULL, ic.op = 5, kern.const = 4,
 #' their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
 #' with \code{ic.op = 5} recommended as a default choice based on numerical experiments
 #' @param kern.const constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA
+#' @param mm bandwidth; if \code{mm = NULL}, it is chosen using \code{kern.const}
 #' @return a list containing
 #' \item{q}{ number of factors}
 #' \item{hl}{ if \code{q = NULL}, the output from \link[fnets]{hl.factor.number}}
@@ -151,12 +154,12 @@ fnets <- function(x, center = TRUE, q = NULL, ic.op = 5, kern.const = 4,
 #' \item{kern.const}{ input parameter}
 #' @importFrom stats fft
 #' @keywords internal
-dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.const = 4){
+dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.const = 4, mm = NULL){
 
   p <- dim(xx)[1]
   n <- dim(xx)[2]
 
-  mm <- min(max(1, kern.const * floor((n/log(n))^(1/3))), floor(n/4) - 1)
+  if(is.null(mm)) mm <- min(max(1, kern.const * floor((n/log(n))^(1/3))), floor(n/4) - 1) else mm <- min(max(mm, 1, kern.const * floor((n/log(n))^(1/3))), floor(n/4) - 1)
   len <- 2 * mm
   w <- Bartlett.weights(((-mm):mm)/mm)
 
@@ -335,7 +338,7 @@ hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = FALSE, cen
 #' \item{common.pred}{ a list containing forecasting results for the common component}
 #' \item{idio.pred}{ a list containing forecasting results for the idiosyncratic component}
 #' \item{mean.x}{ \code{mean.x} argument from \code{object}}
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 #' @seealso \link[fnets]{fnets}, \link[fnets]{common.predict}, \link[fnets]{idio.predict}
 #' @export
@@ -355,7 +358,7 @@ predict.fnets <- function(object, x, h = 1, common.method = c('restricted', 'unr
 #' @method plot fnets
 #' @description Plotting method for S3 objects of class \code{fnets}.
 #' Produces a plot visualising three networks underlying factor-adjusted VAR processes:
-#' (i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices aggregated across the lags,
+#' (i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices summed across the lags,
 #' (ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
 #' (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
 #' @details See Barigozzi, Cho and Owens (2021) for further details.
@@ -375,7 +378,7 @@ predict.fnets <- function(object, x, h = 1, common.method = c('restricted', 'unr
 #' @param groups an integer vector denoting any group structure of the vertices
 #' @param threshold if \code{threshold > 0}, hard thresholding is performed on the matrix giving rise to the network of interest
 #' @param ... additional arguments
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @seealso \link[fnets]{fnets}
 #' @import igraph
 #' @importFrom fields imagePlot
@@ -394,7 +397,7 @@ plot.fnets <- function(x, type = c('granger', 'pc', 'lrpc'), display = c('networ
 
   if(type == 'granger'){
     d <- dim(x$idio.var$beta)[1]/p
-    for(ll in 1:d) A <- A + abs(t(x$idio.var$beta))[, (ll - 1) * p + 1:p]
+    for(ll in 1:d) A <- A + t(x$idio.var$beta)[, (ll - 1) * p + 1:p]
     nm <- 'Granger causal'
   }
 
@@ -446,14 +449,15 @@ plot.fnets <- function(x, type = c('granger', 'pc', 'lrpc'), display = c('networ
                         vertex.label.color = grp.col, vertex.label.cex = 0.6,
                         edge.color = 'gray40', edge.arrow.size = 0.5)
   } else if(display == "heatmap"){
-    if(type == 'granger'){
-      heat.cols <- RColorBrewer::brewer.pal(9, 'Reds')
-      breaks <- seq(0, max(1e-3, abs(A)), length.out = 10)
-    }
+    heat.cols <- rev(RColorBrewer::brewer.pal(11, 'RdBu'))
+    if(type == 'granger') mv <- max(1e-3, abs(A))
     if(type %in% c('pc', 'lrpc')){
-      heat.cols <- rev(RColorBrewer::brewer.pal(11, 'RdBu'))
-      breaks <- seq(-1.01, 1.01, length.out = 12)
+      A[abs(A) > 1] <- sign(A[abs(A) > 1])
+      diag(A) <- 0
+      mv <- 1.01
     }
+    breaks <- seq(-mv, mv, length.out = 12)
+
     fields::imagePlot(A, axes = FALSE, col = heat.cols,
                       breaks = breaks, main = nm, ...)
     if(!is.na(names[1]) || !is.na(groups[1])){

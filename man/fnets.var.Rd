@@ -12,7 +12,7 @@ fnets.var(
   var.order = 1,
   cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
   n.iter = 100,
-  tol = 1e-05,
+  tol = 0,
   n.cores = min(parallel::detectCores() - 1, 3)
 )
 }
@@ -50,6 +50,7 @@ a list which contains the following fields:
 \item{beta}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
 \item{Gamma}{ estimate of the innovation covariance matrix}
 \item{lambda}{ regularisation parameter}
+\item{convergence}{ returned when \code{method = "lasso"}; indicates whether a convergence criterion is met}
 \item{var.order}{ VAR order}
 \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
 }
@@ -74,5 +75,5 @@ fv <- fnets.var(x, center = TRUE, method = 'lasso', var.order = 1,
 norm(fv$beta - t(idio$A), 'F')/norm(t(idio$A), 'F')
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 }

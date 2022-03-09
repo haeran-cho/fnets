@@ -134,7 +134,7 @@ par.lrpc <- function(object, x, eta = NULL,
   } else Delta <- direct.inv.est(GG, eta = eta, symmetric = 'min',
                           do.correct = do.correct, n.cores = n.cores)$DD
   Omega <- 2 * pi * t(A1) %*% Delta %*% A1
-  if(do.correct & sum(diag(Omega) <= 0) > 0) Omega <- correct.diag(Re(object$spec$Sigma_i[,, 1]), Omega)
+  if(do.correct) Omega <- correct.diag(Re(object$spec$Sigma_i[,, 1]), Omega)
 
   pc <- - t(t(Delta)/sqrt(diag(Delta)))/sqrt(diag(Delta))
   lrpc <- - t(t(Omega)/sqrt(diag(Omega)))/sqrt(diag(Omega))
@@ -181,8 +181,8 @@ direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min'
       test.GG <- Re(dyn.pca(test.x, q = q, kern.const = kern.const)$spec$Sigma_i[,, 1])
     }
     if(target == 'acv'){
-      train.G0 <- dyn.pca(train.x, q = q, kern.const = kern.const)$acv$Gamma_i
-      test.G0 <- dyn.pca(test.x, q = q, kern.const = kern.const)$acv$Gamma_i
+      train.G0 <- dyn.pca(train.x, q = q, kern.const = kern.const, mm = d)$acv$Gamma_i
+      test.G0 <- dyn.pca(test.x, q = q, kern.const = kern.const, mm = d)$acv$Gamma_i
       train.GG <- train.G0[,, 1]
       test.GG <- test.G0[,, 1]
       for(ll in 1:d){
@@ -244,7 +244,7 @@ direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', '
   parallel::stopCluster(cl)
 
   DD <- make.symmetric(DD, symmetric)
-  if(do.correct & sum(diag(DD) <= 0) > 0) DD <- correct.diag(GG, DD)
+  if(do.correct) DD <- correct.diag(GG, DD)
 
   out <- list(DD = DD, eta = eta, symmetric = symmetric)
   return(out)
@@ -332,9 +332,27 @@ gen.inverse <- function(GG){
 #' @keywords internal
 correct.diag <- function(GG, DD){
 
+  p <- dim(GG)[1]
   tmp <- gen.inverse(GG)
   ind <- which(diag(DD) <= 0)
   diag(DD)[ind] <- tmp[ind]
+
+  # ind0 <- setdiff(1:p, ind)
+  # mat <- t(t(DD[ind0, ind0])/sqrt(diag(DD)[ind0]))/sqrt(diag(DD)[ind0])
+  # ind <- c(ind, ind0[apply(abs(mat), 1, max) > 1])
+  # ind0 <- setdiff(1:p, ind)
+  # if(length(ind) > 0){
+  #   for(ii in ind) DD[ii, ii] <- max(tmp[ii], (DD[ii, ind0]/sqrt(diag(DD)[ind0]))^2)
+  #   mat <- t(t(DD[ind, ind])/sqrt(diag(DD)[ind]))/sqrt(diag(DD)[ind])
+  #   while(max(abs(mat)) - 1 > 1e-10){
+  #     for(ii in ind[which(apply(abs(mat), 1, max) > 1)]){
+  #       ind1 <- setdiff(ind, ii)
+  #       DD[ii, ii] <- max(tmp[ii], (DD[ii, ind1]/sqrt(diag(DD)[ind1]))^2)
+  #     }
+  #     mat <- t(t(DD[ind, ind])/sqrt(diag(DD)[ind]))/sqrt(diag(DD)[ind])
+  #   }
+  # }
+
   return(DD)
 
 }

@@ -25,16 +25,17 @@
 #' \item{beta}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
 #' \item{Gamma}{ estimate of the innovation covariance matrix}
 #' \item{lambda}{ regularisation parameter}
+#' \item{convergence}{ returned when \code{method = "lasso"}; indicates whether a convergence criterion is met}
 #' \item{var.order}{ VAR order}
 #' \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
 #' @example R/examples/var_ex.R
 #' @importFrom parallel detectCores
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @export
 fnets.var  <- function(x, center = TRUE, method = c('lasso', 'ds'),
                        lambda = NULL, var.order = 1,
                        cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
-                       n.iter = 100, tol = 1e-5, n.cores = min(parallel::detectCores() - 1, 3)){
+                       n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3)){
   p <- dim(x)[1]
   n <- dim(x)[2]
 
@@ -62,7 +63,7 @@ fnets.var  <- function(x, center = TRUE, method = c('lasso', 'ds'),
 
 #' @title Lasso-type estimator of VAR processes via \code{l1}-regularised \code{M}-estimation
 #' @keywords internal
-var.lasso <- function(GG, gg, lambda, symmetric = 'min', n.iter = 100, tol = 1e-5){
+var.lasso <- function(GG, gg, lambda, symmetric = 'min', n.iter = 100, tol = 0){
 
   backtracking <- TRUE
   p <- ncol(gg)
@@ -105,13 +106,11 @@ var.lasso <- function(GG, gg, lambda, symmetric = 'min', n.iter = 100, tol = 1e-
     obj.val <- c(obj.val, f.func(GG, gg, x.new) + lambda * sum(abs(x.new)))
     if(ii > 1) diff.val <- obj.val[ii] - obj.val[ii - 1]
   }
-  if(ii == n.iter) warning("lasso estimation did not converge")
-
   A <- t(x.new)
   Gamma <- GG[1:p, 1:p]
   for(ll in 1:d) Gamma <- Gamma - A[, (ll - 1) * p + 1:p] %*% gg[(ll - 1) * p + 1:p, ]
   Gamma <- make.symmetric(Gamma, symmetric)
-  out <- list(beta = x.new, Gamma = Gamma, lambda = lambda, convergence = (abs(diff.val) <= abs(obj.val[1]) * tol))
+  out <- list(beta = x.new, Gamma = Gamma, lambda = lambda, convergence = (abs(diff.val) <= abs(obj.val[1]) * 1e-5))
 
   return(out)
 
@@ -180,8 +179,8 @@ yw.cv <- function(xx, method = c('lasso', 'ds'),
     train.ind <- 1:ceiling(length(ind.list[[fold]]) * .5)
     train.x <- xx[, ind.list[[fold]][train.ind]]
     test.x  <- xx[, ind.list[[fold]][- train.ind]]
-    train.acv <- dyn.pca(train.x, q = q, kern.const = kern.const)$acv$Gamma_i
-    test.acv <- dyn.pca(test.x, q = q, kern.const = kern.const)$acv$Gamma_i
+    train.acv <- dyn.pca(train.x, q = q, kern.const = kern.const, mm = max(var.order))$acv$Gamma_i
+    test.acv <- dyn.pca(test.x, q = q, kern.const = kern.const, mm = max(var.order))$acv$Gamma_i
 
     for(jj in 1:length(var.order)){
       mg <- make.gg(train.acv, var.order[jj])
@@ -224,7 +223,7 @@ yw.cv <- function(xx, method = c('lasso', 'ds'),
 #' \item{is}{ in-sample estimator of the idiosyncratic component}
 #' \item{fc}{ forecasts of the idiosyncratic component for a given forecasting horizon \code{h}}
 #' \item{h}{ forecast horizon}
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @examples
 #' set.seed(123)
 #' n <- 500

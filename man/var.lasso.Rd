@@ -4,7 +4,7 @@
 \alias{var.lasso}
 \title{Lasso-type estimator of VAR processes via \code{l1}-regularised \code{M}-estimation}
 \usage{
-var.lasso(GG, gg, lambda, symmetric = "min", n.iter = 100, tol = 1e-05)
+var.lasso(GG, gg, lambda, symmetric = "min", n.iter = 100, tol = 0)
 }
 \description{
 Lasso-type estimator of VAR processes via \code{l1}-regularised \code{M}-estimation

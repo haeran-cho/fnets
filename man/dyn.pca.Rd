@@ -4,7 +4,7 @@
 \alias{dyn.pca}
 \title{Dynamic PCA}
 \usage{
-dyn.pca(xx, q = NULL, ic.op = 4, kern.const = 4)
+dyn.pca(xx, q = NULL, ic.op = 4, kern.const = 4, mm = NULL)
 }
 \arguments{
 \item{xx}{centred input time series matrix, with each row representing a variable}
@@ -16,6 +16,8 @@ their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{
 with \code{ic.op = 5} recommended as a default choice based on numerical experiments}
 
 \item{kern.const}{constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA}
+
+\item{mm}{bandwidth; if \code{mm = NULL}, it is chosen using \code{kern.const}}
 }
 \value{
 a list containing

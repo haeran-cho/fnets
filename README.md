@@ -4,7 +4,7 @@ Contains methods for network estimation and forecasting for high-dimensional tim
 
 > _FNETS_: Factor-adjusted network estimation and forecasting for high-dimensional time series
 
-by Matteo Barigozzi, Haeran Cho and Dom Owens [arXiv:](arXiv link to follow) for full details.
+by Matteo Barigozzi, Haeran Cho and Dom Owens [arXiv:2201.06110](https://arxiv.org/abs/2201.06110) for full details.
 
 
 ## Installation
@@ -42,6 +42,11 @@ plrpc <- par.lrpc(out, x)
 out$lrpc <- plrpc
 out$lrpc.method <- 'par'
 plot(out, type = "lrpc", display = "heatmap")
+```
+
+Of course, we can estimate the (long-run) partial correlation-based networks directly using `fnets`:
+```
+out <- fnets(x, q = 2, idio.var.order = 1, idio.method = "lasso", lrpc.method = "par")
 ```
 
 Perform h-step ahead forecasting

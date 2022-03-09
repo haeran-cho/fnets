@@ -14,8 +14,8 @@ fnets(
     10),
   idio.var.order = 1,
   idio.method = c("lasso", "ds"),
-  idio.args = list(n.iter = 100, tol = 1e-05, n.cores = min(parallel::detectCores() -
-    1, 3)),
+  idio.args = list(n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1,
+    3)),
   lrpc.method = c("par", "npar", "none"),
   cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE)
 )
@@ -49,9 +49,9 @@ fnets(
 
 \item{idio.args}{a list specifying the tuning parameters required for estimating the idiosyncratic VAR process. It contains:
 \itemize{
-   \item{\code{n.iter}}{ maximum number of descent steps; applicable when \code{method = "lasso"}}
-   \item{\code{tol}}{ numerical tolerance for increases in the loss function; applicable when \code{method = "lasso"}}
-   \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{method = "ds"}}
+   \item{\code{n.iter}}{ maximum number of descent steps; applicable when \code{idio.method = "lasso"}}
+   \item{\code{tol}}{ numerical tolerance for increases in the loss function; applicable when \code{idio.method = "lasso"}}
+   \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{idio.method = "ds"}}
 }}
 
 \item{lrpc.method}{a string specifying the type of estimator for long-run partial correlation matrix estimation; possible values are:
@@ -81,6 +81,7 @@ and common shocks (an array of dimension \code{(q, n)}) for the common component
 \item{\code{beta}}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
 \item{\code{Gamma}}{ estimate of the innovation covariance matrix}
 \item{\code{lambda}}{ regularisation parameter}
+\item{\code{convergence}}{ returned when \code{idio.method = "lasso"}; indicates whether a convergence criterion is met}
 \item{\code{var.order}}{ VAR order}
 }}
 \item{lrpc}{ see the output of \link[fnets]{par.lrpc} if \code{lrpc.method = 'par'}
@@ -115,7 +116,7 @@ plot(out, type = 'lrpc', display = 'heatmap', threshold = .05)
 }
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 
 Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 }
