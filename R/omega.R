@@ -71,6 +71,8 @@ npar.lrpc <- function(object, x, eta = NULL,
 #'    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
+#' @param adaptive whether to use the adaptive estimation procedure
+#' @param eta.1 regularisation parameter for Step 1 of the adaptive estimation procedure; if \code{eta.1 = NULL}, defaults to \code{2 * sqrt(log(dim(x)[1])/dim(x)[2])}
 #' @param do.correct whether to correct for any negative entries in the diagonals of the inverse of long-run covariance matrix
 #' @param n.cores number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}
 #' @return a list containing
@@ -79,7 +81,8 @@ npar.lrpc <- function(object, x, eta = NULL,
 #' \item{pc}{ estimated innovation partial correlation matrix}
 #' \item{lrpc}{ estimated long-run partial correlation matrix}
 #' \item{eta}{ regularisation parameter}
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+#' \item{adaptive}{ was the adaptive procedure used}
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @examples
 #' \dontrun{
 #' set.seed(123)
@@ -99,11 +102,13 @@ npar.lrpc <- function(object, x, eta = NULL,
 #' @export
 par.lrpc <- function(object, x, eta = NULL,
                      cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
+                     adaptive = FALSE, eta.1 = NULL,
                      do.correct = TRUE,
                      n.cores = min(parallel::detectCores() - 1, 3)){
 
   xx <- x - object$mean.x
   p <- dim(x)[1]
+  n <- dim(x)[2]
 
   GG <- object$idio.var$Gamma
   A <- t(object$idio.var$beta)
@@ -116,17 +121,24 @@ par.lrpc <- function(object, x, eta = NULL,
     dcv <- direct.cv(object, xx, target = 'acv', symmetric = 'min',
                      n.folds = cv.args$n.folds, path.length = cv.args$path.length,
                      q = object$q, kern.const = object$kern.const, n.cores = n.cores,
+                     adaptive = adaptive, eta.1 = eta.1,
                      do.plot = cv.args$do.plot)
     eta <- dcv$eta
   }
-  Delta <- direct.inv.est(GG, eta = eta, symmetric = 'min',
+  if(adaptive){
+    if(is.null(eta.1)){
+      eta.1 <- 2 * sqrt(log(p)/n)
+    }
+    Delta <- adaptive.direct.inv.est(GG, n, eta = eta, eta.1 = eta.1, symmetric = 'min',
+                                     do.correct = do.correct, n.cores = n.cores)$DD
+  } else Delta <- direct.inv.est(GG, eta = eta, symmetric = 'min',
                           do.correct = do.correct, n.cores = n.cores)$DD
   Omega <- 2 * pi * t(A1) %*% Delta %*% A1
   if(do.correct) Omega <- correct.diag(Re(object$spec$Sigma_i[,, 1]), Omega)
 
   pc <- - t(t(Delta)/sqrt(diag(Delta)))/sqrt(diag(Delta))
   lrpc <- - t(t(Omega)/sqrt(diag(Omega)))/sqrt(diag(Omega))
-  out <- list(Delta = Delta, Omega = Omega, pc = pc, lrpc = lrpc, eta = eta)
+  out <- list(Delta = Delta, Omega = Omega, pc = pc, lrpc = lrpc, eta = eta, adaptive = adaptive)
 
   return(out)
 
@@ -137,6 +149,7 @@ par.lrpc <- function(object, x, eta = NULL,
 #' @importFrom graphics abline
 direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min', 'max', 'avg', 'none'),
                       n.folds = 1, path.length = 10, q = 0, kern.const = 4, n.cores = min(parallel::detectCores() - 1, 3),
+                      adaptive = FALSE, eta.1 = NULL,
                       do.plot = FALSE){
 
   n <- ncol(xx)
@@ -153,7 +166,8 @@ direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min'
     d <- dim(A)[2]/p
     GG <- object$idio.var$Gamma
     eta.max <- max(abs(GG))
-    eta.path <- round(exp(seq(log(eta.max), log(eta.max * .01), length.out = path.length)), digits = 10)
+    if(adaptive) eta.max.2 <- 2*sqrt(log(p)/n) else eta.max.2 <- eta.max
+    eta.path <- round(exp(seq(log(eta.max.2), log(eta.max * .01), length.out = path.length)), digits = 10)
   }
 
   cv.err <- rep(0, length = path.length)
@@ -178,7 +192,8 @@ direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min'
     }
 
     for(ii in 1:path.length){
-      DD <- direct.inv.est(train.GG, eta = eta.path[ii], symmetric = symmetric, n.cores = n.cores)$DD
+      if(adaptive) DD <- adaptive.direct.inv.est(train.GG, n=n, eta = eta.path[ii], eta.1 = eta.1, symmetric = symmetric, n.cores = n.cores)$DD
+        else DD <- direct.inv.est(train.GG, eta = eta.path[ii], symmetric = symmetric, n.cores = n.cores)$DD
       DG <- DD %*% test.GG
       sv <- svd(DG, nu = 0, nv = 0)
       cv.err[ii] <- cv.err[ii] + sum(sv$d) - sum(log(sv$d)) - p
@@ -235,6 +250,73 @@ direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', '
   return(out)
 
 }
+
+#' @keywords internal
+#' @importFrom parallel makePSOCKcluster stopCluster detectCores
+#' @importFrom doParallel registerDoParallel
+#' @importFrom foreach foreach %dopar%
+#' @importFrom lpSolve lp
+adaptive.direct.inv.est <- function(GG, n, eta = NULL, eta.1 = NULL, symmetric = c('min', 'max',  'avg', 'none'),
+                                    do.correct = FALSE,
+                                    n.cores = min(parallel::detectCores() - 1, 3)){
+  p <- dim(GG)[1]
+  f.obj <- rep(1, 2 * p)
+  GG.n <- GG + diag(1/n,p) #add ridge
+  dGG <- pmax(diag(GG),0)
+  f.dir <- rep('<=', 2 * p)
+
+  f.con.0 <- rbind(-GG.n, GG.n) #initialise
+  f.con.0 <- cbind(f.con.0,-f.con.0)
+  ## Step 1 //
+  cl <- parallel::makePSOCKcluster(n.cores)
+  doParallel::registerDoParallel(cl)
+  if(is.null(eta.1))  eta.1 <- 2 * sqrt(log(p)/n)
+  ii <- 1
+  step1.index <- which(dGG <= sqrt(n/log(p)))
+  f.con.1 <- rbind(f.con.0, 0)
+  f.dir.1 <- c(f.dir, "==") #diagonals are positive
+  DD.1 <- foreach::foreach(ii = step1.index, .combine = 'cbind', .multicombine = TRUE, .export = c('lp')) %dopar% {
+    f.con.ii <- f.con.1
+    ii.replace <- eta.1 * pmax(dGG, dGG[ii])
+    f.con.ii[1:(2*p),ii] <- f.con.ii[1:(2*p),ii] - ii.replace  #mutate cols
+    f.con.ii[1:(2*p),ii+p] <- f.con.ii[1:(2*p),ii+p] - ii.replace  #mutate cols
+    f.con.ii[2*p+1,ii+p] <- 1 #diagonals are positive
+    ee <- rep(0,p)
+    ee[ii] <- 1
+    b1 <- -ee
+    b2 <- ee
+    f.rhs <-  c(b1, b2,0)
+    lpout <- lpSolve::lp('min', f.obj, f.con.ii, f.dir.1, f.rhs)
+    lpout$solution[1:p] - lpout$solution[p+(1:p)]
+  }
+  dDD.1 <- diag(DD.1)
+  dDD.1[!step1.index] <- sqrt(log(p)/n)
+  ## Step 2 //
+  if(is.null(eta)){
+    eta <- 2 * sqrt(log(p)/n)
+  }
+  ii <- 1
+  DD.2 <- foreach::foreach(ii = 1:p, .combine = 'cbind', .multicombine = TRUE, .export = c('lp')) %dopar% {
+    ee <- rep(0, p)
+    ee[ii] <- 1
+    bb <- eta*sqrt(dGG)*sqrt(dDD.1[ii])
+    b1 <- bb - ee
+    b2 <- bb + ee
+    f.rhs <- c(b1, b2)
+    lpout <- lpSolve::lp('min', f.obj, f.con.0, f.dir, f.rhs)
+    lpout$solution[1:p] - lpout$solution[-(1:p)]
+  }
+  parallel::stopCluster(cl)
+  DD.2 <- make.symmetric(DD.2, symmetric)
+  if(do.correct){
+    tmp <- gen.inverse(GG)
+    ind <- which(diag(DD.2) == 0)
+    diag(DD.2)[ind] <- tmp[ind]
+  }
+  out <- list(DD = DD.2, eta = eta, symmetric = symmetric)
+  return(out)
+}
+
 
 #' @keywords internal
 gen.inverse <- function(GG){
