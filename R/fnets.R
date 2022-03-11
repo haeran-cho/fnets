@@ -154,7 +154,7 @@ fnets <- function(x, center = TRUE, q = NULL, ic.op = 5, kern.const = 4,
 #' \item{kern.const}{ input parameter}
 #' @importFrom stats fft
 #' @keywords internal
-dyn.pca <- function(xx, q = NULL, ic.op = 4, kern.const = 4, mm = NULL){
+dyn.pca <- function(xx, q = NULL, ic.op = 5, kern.const = 4, mm = NULL){
 
   p <- dim(xx)[1]
   n <- dim(xx)[2]
