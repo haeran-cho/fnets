@@ -36,7 +36,7 @@ fnets(
    \item{\code{var.order}}{ order of the blockwise VAR representation of the common component. If \code{var.order = NULL}, it is selected blockwise by Schwarz criterion}
    \item{\code{max.var.order}}{ maximum blockwise VAR order for the Schwarz criterion}
    \item{\code{trunc.lags}}{ truncation lag for impulse response function estimation}
-   \item{\code{n.perm}}{ number of cross-sectional permutations involved in impluse response function estimation}
+   \item{\code{n.perm}}{ number of cross-sectional permutations involved in impulse response function estimation}
 }}
 
 \item{idio.var.order}{order of the idiosyncratic VAR process; if a vector of integers is supplied, the order is chosen via cross validation}

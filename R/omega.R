@@ -60,7 +60,7 @@ npar.lrpc <- function(object, x, eta = NULL,
 #' @title Parametric estimation of long-run partial correlations of factor-adjusted VAR processes
 #' @description Returns a parametric estimate of long-run partial correlations of the VAR process
 #' from the VAR parameter estimates and the inverse of innovation covariance matrix obtained via constrained \code{l1}-minimisation.
-#' @details See Barigozzi, Cho and Owens (2021) for further details.
+#' @details See Barigozzi, Cho and Owens (2021) for further details, and Cai, Liu and Zhou (2016) for further details on the adaptive estimation procedure.
 #' @param object \code{fnets} object
 #' @param x input time series matrix; with each row representing a variable
 #' @param eta regularisation parameter; if \code{eta = NULL}, it is selected by cross validation
@@ -83,6 +83,8 @@ npar.lrpc <- function(object, x, eta = NULL,
 #' \item{eta}{ regularisation parameter}
 #' \item{adaptive}{ was the adaptive procedure used}
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+#'
+#' Cai, T. T., Liu, W., & Zhou, H. H. (2016). Estimating sparse precision matrix: Optimal rates of convergence and adaptive estimation. The Annals of Statistics, 44(2), 455-488.
 #' @examples
 #' \dontrun{
 #' set.seed(123)
@@ -342,7 +344,6 @@ correct.diag <- function(GG, DD){
   # ind <- c(ind, ind0[apply(abs(mat), 1, max) > 1])
   # ind0 <- setdiff(1:p, ind)
   # if(length(ind) > 0){
-  #   for(ii in ind) DD[ii, ii] <- max(tmp[ii], (DD[ii, ind0]/sqrt(diag(DD)[ind0]))^2)
   #   mat <- t(t(DD[ind, ind])/sqrt(diag(DD)[ind]))/sqrt(diag(DD)[ind])
   #   while(max(abs(mat)) - 1 > 1e-10){
   #     for(ii in ind[which(apply(abs(mat), 1, max) > 1)]){
