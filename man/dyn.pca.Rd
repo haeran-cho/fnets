@@ -4,7 +4,7 @@
 \alias{dyn.pca}
 \title{Dynamic PCA}
 \usage{
-dyn.pca(xx, q = NULL, ic.op = 4, kern.const = 4, mm = NULL)
+dyn.pca(xx, q = NULL, ic.op = 5, kern.const = 4, mm = NULL)
 }
 \arguments{
 \item{xx}{centred input time series matrix, with each row representing a variable}
