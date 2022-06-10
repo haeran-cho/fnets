@@ -302,8 +302,6 @@ prox.func <- function(B, lambda, L, GG, gg){
   return(as.matrix(out))
 }
 
-
-
 #' @title Edge selection for VAR parameter, inverse innovation covariance, and long-run partial correlation matrices
 #' @description Thresholds the entries of the input matrix at a data-driven level to perform edge selection
 #' @details See Liu, Zhang and Liu (2021) for more information on the threshold selection process
@@ -321,7 +319,7 @@ prox.func <- function(B, lambda, L, GG, gg){
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #'
 #' Liu, B., Zhang, X. & Liu, Y. (2021) Simultaneous Change Point Inference and Structure Recovery for High Dimensional Gaussian Graphical Models. Journal of Machine Learning Research, 22(274), 1--62.
-#' @export
+#' @internal
 threshold <- function(mat, path.length = 500, do.plot = FALSE){
 
   p <- dim(mat)[1]

@@ -292,9 +292,13 @@ hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = FALSE, cen
   for(ii in 1:6){
     ss <- Sc[, ii]
     if(min(ss) > 0){
-      q.hat[ii] <- q.mat[which.min(ss), ii] - 1
+      q.hat[ii] <- min(q.mat[max(which(ss == min(ss))),, ii]) - 1
     } else{
-      q.hat[ii] <- q.mat[which(ss[-length(const.seq)] != 0 & ss[-1] == 0)[1] + 1, 10, ii] - 1
+      if(sum(ss[-length(const.seq)] != 0 & ss[-1] == 0)){
+        q.hat[ii] <- q.mat[which(ss[-length(const.seq)] != 0 & ss[-1] == 0)[1] + 1, 10, ii] - 1
+      } else{
+        q.hat[ii] <- min(q.mat[max(which(ss == 0)),, ii]) - 1
+      }
     }
   }
 
