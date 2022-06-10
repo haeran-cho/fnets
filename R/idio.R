@@ -306,13 +306,13 @@ prox.func <- function(B, lambda, L, GG, gg){
 
 #' @title Edge selection for VAR parameter, inverse innovation covariance, and long-run partial correlation matrices
 #' @description Thresholds the entries of the input matrix at a data-driven level to perform edge selection
-#' @details See Barigozzi, Cho and Owens (2021) and Liu, Zhang, and Liu (2021) for more information on the threshold selection process
+#' @details See Liu, Zhang and Liu (2021) for more information on the threshold selection process
 #' @param mat input parameter matrix
 #' @param path.length number of candidate thresholds
 #' @param do.plot whether to plot thresholding output
 #' @return a list which contains the following fields:
 #' \item{threshold}{ data-driven threshold}
-#' \item{network}{ thresholded input}
+#' \item{thr.mat}{ thresholded input matrix}
 #' @examples
 #' set.seed(123)
 #' A <- diag(.7, 50) + rnorm(50^2, 0, .1)
@@ -320,37 +320,39 @@ prox.func <- function(B, lambda, L, GG, gg){
 #' @importFrom graphics par
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #'
-#' Liu, B., Zhang, X., & Liu, Y. (2021). Simultaneous Change Point Inference and Structure Recovery for High Dimensional Gaussian Graphical Models. Journal of Machine Learning Research, 22(274), 1-62.
+#' Liu, B., Zhang, X. & Liu, Y. (2021) Simultaneous Change Point Inference and Structure Recovery for High Dimensional Gaussian Graphical Models. Journal of Machine Learning Research, 22(274), 1--62.
 #' @export
 threshold <- function(mat, path.length = 500, do.plot = FALSE){
-  p <- nrow(mat)
-  maxmat <- max(abs(mat), 1e-3)
-  minmat <- max( min(abs(mat)), maxmat* .01, 1e-4)
-  rseq <- round(exp(seq(log(maxmat), log(minmat) , length.out = path.length)), digits = 10)
-  cusum <-  ratio <- rseq * 0
-  for (ii in 1:path.length){
+
+  p <- dim(mat)[1]
+  M <- max(abs(mat), 1e-3)
+  m <- max(min(abs(mat)), M * .01, 1e-4)
+  rseq <- round(exp(seq(log(M), log(m), length.out = path.length)), digits = 10)
+  cusum <- ratio <- rseq * 0
+  for(ii in 1:path.length){
     A <- mat
-    A[abs(A) < rseq[ii] ] <- 0
+    A[abs(A) < rseq[ii]] <- 0
     edges <- sum(A != 0)
-    ratio[ii] <- edges/( (p/2)*(p-1) - edges )
+    ratio[ii] <- edges/((p/2)*(p-1) - edges)
   }
   dif <- diff(ratio) / diff(rseq)
-  for (ii in 2:(path.length-1) ) {
-    cusum[ii] <- (mean(dif[2:ii -1]) - mean(dif[ii:(path.length-1)])) * (ii/sqrt(path.length))*(1 - ii/path.length)
-  }
+  for(ii in 2:(path.length - 1)) cusum[ii] <- (mean(dif[2:ii - 1]) - mean(dif[ii:(path.length - 1)])) * (ii/sqrt(path.length))*(1 - ii/path.length)
+
   thr <- rseq[which.max(abs(cusum))]
-  if(do.plot) {
-    par(mfrow=c(1,3))
+
+  if(do.plot){
+    par(mfrow = c(1, 3))
     plot(rseq, ratio, type = "l", xlab = "threshold")
     abline(v = thr)
     plot(rseq[-1], dif, type = "l", xlab = "threshold")
     abline(v = thr)
     plot(rseq, abs(cusum), type = "l", xlab = "threshold")
     abline(v = thr)
-    par(mfrow=c(1,1))
   }
+
   A <- mat
   A[abs(A) < thr] <- 0
-  out <- list(threshold = thr, network = A)
+  out <- list(threshold = thr, thr.mat = A)
   return(out)
+
 }
