@@ -16,13 +16,13 @@ threshold(mat, path.length = 500, do.plot = FALSE)
 \value{
 a list which contains the following fields:
 \item{threshold}{ data-driven threshold}
-\item{network}{ thresholded input}
+\item{thr.mat}{ thresholded input matrix}
 }
 \description{
 Thresholds the entries of the input matrix at a data-driven level to perform edge selection
 }
 \details{
-See Barigozzi, Cho and Owens (2021) and Liu, Zhang, and Liu (2021) for more information on the threshold selection process
+See Liu, Zhang and Liu (2021) for more information on the threshold selection process
 }
 \examples{
 set.seed(123)
@@ -32,5 +32,5 @@ threshold.A <- threshold(A)
 \references{
 Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 
-Liu, B., Zhang, X., & Liu, Y. (2021). Simultaneous Change Point Inference and Structure Recovery for High Dimensional Gaussian Graphical Models. Journal of Machine Learning Research, 22(274), 1-62.
+Liu, B., Zhang, X. & Liu, Y. (2021) Simultaneous Change Point Inference and Structure Recovery for High Dimensional Gaussian Graphical Models. Journal of Machine Learning Research, 22(274), 1--62.
 }
