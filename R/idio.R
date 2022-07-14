@@ -420,8 +420,6 @@ prox.func <- function(B, lambda, L, GG, gg){
   return(as.matrix(out))
 }
 
-
-
 #' @title Edge selection for VAR parameter, inverse innovation covariance, and long-run partial correlation matrices
 #' @description Threshold the entries of the input matrix at a data-driven level to perform edge selection
 #' @details See Liu, Zhang, and Liu (2021) for more information on the threshold selection process
