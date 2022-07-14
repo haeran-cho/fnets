@@ -7,8 +7,13 @@
 #'
 #' @param x input time series matrix, with each row representing a variable
 #' @param center whether to de-mean the input \code{x} row-wise
-#' @param q number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007), see \link[fnets]{hl.factor.number} for further details
-#' @param ic.op choice of the information criterion, see \link[fnets]{hl.factor.number} for further details
+#' @param factor.model a string specifying the method to be adopted for factor model estimation; possible values are:
+#' \itemize{
+#'    \item{\code{"dynamic"}}{ dynamic factor model}
+#'    \item{\code{"static"}}{ static factor model}
+#' }
+#' @param q number of dynamic factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007) or Bai and Ng (2002), see \link[fnets]{hl.factor.number} and \link[fnets]{bn.factor.number} for further details
+#' @param ic.op choice of the information criterion, see \link[fnets]{hl.factor.number} and \link[fnets]{bn.factor.number} for further details
 #' @param kern.const constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA
 #' @param common.args a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
 #' \itemize{
@@ -17,7 +22,7 @@
 #'    \item{\code{trunc.lags}}{ truncation lag for impulse response function estimation}
 #'    \item{\code{n.perm}}{ number of cross-sectional permutations involved in impulse response function estimation}
 #' }
-#' @param idio.var.order order of the idiosyncratic VAR process; if a vector of integers is supplied, the order is chosen via cross validation
+#' @param idio.var.order order of the idiosyncratic VAR process; if a vector of integers is supplied, the order is chosen via \code{tuning}
 #' @param idio.method a string specifying the method to be adopted for idiosyncratic VAR process estimation; possible values are:
 #' \itemize{
 #'        \item{\code{"lasso"}}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
@@ -25,30 +30,39 @@
 #' }
 #' @param idio.args a list specifying the tuning parameters required for estimating the idiosyncratic VAR process. It contains:
 #' \itemize{
+#'    \item{\code{tuning}} a string specifying the selection procedure for \code{idio.var.order} and \code{lambda}; possible values are:
+#'    \itemize{
+#'       \item{\code{"cv"}}{ cross validation}
+#'       \item{\code{"ic"}}{ information criterion}
+#'    }
 #'    \item{\code{n.iter}}{ maximum number of descent steps; applicable when \code{idio.method = "lasso"}}
 #'    \item{\code{tol}}{ numerical tolerance for increases in the loss function; applicable when \code{idio.method = "lasso"}}
 #'    \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{idio.method = "ds"}}
 #' }
+#' @param idio.threshold whether to perform adaptive thresholding of \code{beta} with \link[fnets]{threshold}
 #' @param lrpc.method a string specifying the type of estimator for long-run partial correlation matrix estimation; possible values are:
 #' \itemize{
 #'    \item{\code{"par"}}{ parametric estimator based on the VAR model assumption}
 #'    \item{\code{"npar"}}{ nonparametric estimator from inverting the long-run covariance matrix of the idiosyncratic component via constrained \code{l1}-minimisation}
 #'    \item{\code{"none"}}{ do not estimate the long-run partial correlation matrix}
 #' }
-#' @param cv.args a list specifying arguments for the cross validation procedures
+#' @param lrpc.adaptive whether to use the adaptive estimation procedure
+#' @param cv.args a list specifying arguments for \code{tuning}
 #' for selecting the tuning parameters involved in VAR parameter and (long-run) partial correlation matrix estimation. It contains:
 #' \itemize{
-#'    \item{\code{n.folds}}{ number of folds}
+#'    \item{\code{n.folds}}{ if \code{tuning = "cv"}, number of folds}
+#'    \item{\code{penalty}}{ if \code{tuning = "ic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, defaults to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}}
 #'    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
-#'
 #' @return an S3 object of class \code{fnets}, which contains the following fields:
 #' \item{q}{ number of factors}
-#' \item{spec}{ a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
+#' \item{spec}{ if \code{factor.model = "dynamic"} a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
 #' \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
-#' \item{common.irf}{ if \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})
+#' \item{common.irf}{  if \code{factor.model = "dynamic"} and \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})
 #' and common shocks (an array of dimension \code{(q, n)}) for the common component}
+#' \item{lam}{ if \code{factor.model = "static"}, factor loadings}
+#' \item{f}{ if \code{factor.model = "static"}, factor series}
 #' \item{idio.var}{ a list containing the following fields:
 #' \itemize{
 #' \item{\code{beta}}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
@@ -63,9 +77,9 @@
 #' \item{idio.method}{ input parameter}
 #' \item{lrpc.method}{ input parameter}
 #' \item{kern.const}{ input parameter}
-#'
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
+#' @references Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221. \cr
 #' @examples
 #' \dontrun{
 #' set.seed(123)
@@ -83,56 +97,85 @@
 #' @seealso \link[fnets]{predict.fnets}, \link[fnets]{plot.fnets}
 #' @importFrom graphics par
 #' @export
-fnets <- function(x, center = TRUE, q = NULL, ic.op = 5, kern.const = 4,
+fnets <- function(x, center = TRUE, factor.model = c('dynamic','static'), q = NULL, ic.op = NULL, kern.const = 4,
                   common.args = list(var.order = NULL, max.var.order = NULL, trunc.lags = 20, n.perm = 10),
                   idio.var.order = 1, idio.method = c('lasso', 'ds'),
-                  idio.args = list(n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3)),
-                  lrpc.method = c('par', 'npar', 'none'),
-                  cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE)){
+                  idio.args = list(tuning = c('cv','ic'), n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3)),
+                  idio.threshold = FALSE,
+                  lrpc.method = c('par', 'npar', 'none'), lrpc.adaptive = FALSE,
+                  cv.args = list(n.folds = 1, penalty = NULL, path.length = 10, do.plot = FALSE)){
   p <- dim(x)[1]
   n <- dim(x)[2]
 
   idio.method <- match.arg(idio.method, c('lasso', 'ds'))
+  tuning <- match.arg(idio.args$tuning, c('cv','ic'))
+  factor.model <- match.arg(factor.model, c('dynamic','static'))
   lrpc.method <- match.arg(lrpc.method, c('par', 'npar', 'none'))
   if(center) mean.x <- apply(x, 1, mean) else mean.x <- rep(0, p)
   xx <- x - mean.x
 
-  # dynamic pca
-  dpca <- dyn.pca(xx, q, ic.op, kern.const)
-  q <- dpca$q
-  spec <- dpca$spec
-  acv <- dpca$acv
-
-  ## common VAR estimation
-  cve <- common.irf.estimation(xx, Gamma_c = acv$Gamma_c, q = q,
-                               var.order = common.args$var.order, max.var.order = common.args$max.var.order,
-                               trunc.lags = common.args$trunc.lags, n.perm = common.args$n.perm)
+  if(factor.model == "static"){
+    spca <- static.pca(xx, q.max = NULL, q = q, ic.op = ic.op)
+    q <- spca$q
+    lam <- spca$lam
+    f <- spca$f
+    spec <- NULL
+    acv <- spca$acv
+    cve <- NULL
+  }
+  if(factor.model == "dynamic"){
+    # dynamic pca
+    dpca <- dyn.pca(xx, q, ic.op, kern.const)
+    q <- dpca$q
+    spec <- dpca$spec
+    acv <- dpca$acv
+    lam <- NULL
+    f <- NULL
+    ## common VAR estimation
+    cve <- common.irf.estimation(xx, Gamma_c = acv$Gamma_c, q = q,
+                                 var.order = common.args$var.order, max.var.order = common.args$max.var.order,
+                                 trunc.lags = common.args$trunc.lags, n.perm = common.args$n.perm)
+  }
 
   ## idio estimation
   if(cv.args$do.plot) par(mfrow = c(1, 1 + lrpc.method %in% c('par', 'npar')))
+  if(tuning == "cv"){
+    icv <- yw.cv(xx, method = idio.method,
+                 lambda.max = NULL, var.order = idio.var.order,
+                 n.folds = cv.args$n.folds, path.length = cv.args$path.length,
+                 q = q, kern.const = kern.const, do.plot = cv.args$do.plot)
+  }
 
-  icv <- yw.cv(xx, method = idio.method,
-               lambda.max = NULL, var.order = idio.var.order,
-               n.folds = cv.args$n.folds, path.length = cv.args$path.length,
-               q = q, kern.const = kern.const, do.plot = cv.args$do.plot)
+  if(tuning == "ic"){
+    icv <- yw.ic(xx, method = idio.method,
+                 lambda.max = NULL, var.order = idio.var.order,
+                 penalty = cv.args$penalty, path.length = cv.args$path.length,
+                 q = q, kern.const = kern.const, do.plot = cv.args$do.plot)
+  }
+
+
   mg <- make.gg(acv$Gamma_i, icv$var.order)
   gg <- mg$gg; GG <- mg$GG
   if(idio.method == 'lasso') ive <- var.lasso(GG, gg, lambda = icv$lambda, symmetric = 'min', n.iter = idio.args$n.iter, tol = idio.args$tol)
   if(idio.method == 'ds') ive <- var.dantzig(GG, gg, lambda = icv$lambda, symmetric = 'min', n.cores = idio.args$n.cores)
   ive$var.order <- icv$var.order
+  if(idio.threshold) ive$beta <- threshold(ive$beta, do.plot = cv.args$do.plot)$thr.mat
 
-  out <- list(q = q, spec = spec, acv = acv,
+  out <- list(q = q, spec = spec, lam=lam, f=f, acv = acv,
               common.irf = cve, idio.var = ive, mean.x = mean.x,
               idio.method = idio.method, lrpc.method = lrpc.method, kern.const = kern.const)
-  attr(out, 'class') <- 'fnets'
+
+  if(factor.model == "static") attr(out, 'factor') <- 'static'
+  if(factor.model == "dynamic") attr(out, 'factor') <- 'dynamic'
 
   ## lrpc estimation
   if(lrpc.method %in% c('par', 'npar')){
-    if(lrpc.method == 'par') lrpc <- par.lrpc(out, x, eta = NULL, cv.args = cv.args)
+    if(lrpc.method == 'par') lrpc <- par.lrpc(out, x, eta = NULL, cv.args = cv.args, lrpc.adaptive = lrpc.adaptive)
     if(lrpc.method == 'npar') lrpc <- npar.lrpc(out, x, eta = NULL, cv.args = cv.args)
     out$lrpc <- lrpc
   } else out$lrpc <- NA
 
+  attr(out, 'class') <- 'fnets'
   return(out)
 
 }
@@ -159,6 +202,7 @@ dyn.pca <- function(xx, q = NULL, ic.op = 5, kern.const = 4, mm = NULL){
   p <- dim(xx)[1]
   n <- dim(xx)[2]
 
+  if(is.null(ic.op)) ic.op <- 5
   if(is.null(mm)) mm <- min(max(1, kern.const * floor((n/log(n))^(1/3))), floor(n/4) - 1) else mm <- min(max(mm, 1, kern.const * floor((n/log(n))^(1/3))), floor(n/4) - 1)
   len <- 2 * mm
   w <- Bartlett.weights(((-mm):mm)/mm)
@@ -292,9 +336,13 @@ hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = FALSE, cen
   for(ii in 1:6){
     ss <- Sc[, ii]
     if(min(ss) > 0){
-      q.hat[ii] <- q.mat[which.min(ss), ii] - 1
+      q.hat[ii] <- min(q.mat[max(which(ss == min(ss))),, ii]) - 1
     } else{
-      q.hat[ii] <- q.mat[which(ss[-length(const.seq)] != 0 & ss[-1] == 0)[1] + 1, 10, ii] - 1
+      if(sum(ss[-length(const.seq)] != 0 & ss[-1] == 0)){
+        q.hat[ii] <- q.mat[which(ss[-length(const.seq)] != 0 & ss[-1] == 0)[1] + 1, 10, ii] - 1
+      } else{
+        q.hat[ii] <- min(q.mat[max(which(ss == 0)),, ii]) - 1
+      }
     }
   }
 
@@ -392,7 +440,7 @@ plot.fnets <- function(x, type = c('granger', 'pc', 'lrpc'), display = c('networ
   type <- match.arg(type, c('granger', 'pc', 'lrpc'))
   display <- match.arg(display, c('network', 'heatmap'))
 
-  p <- dim(x$spec$Sigma_x)[1]
+  p <- dim(x$acv$Gamma_x)[1]
   A <- matrix(0, nrow = p, ncol = p)
 
   if(type == 'granger'){

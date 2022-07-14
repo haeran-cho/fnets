@@ -46,7 +46,7 @@ idio <- sim.var(n, p)
 x <- common$data * apply(idio$data, 1, sd)/apply(common$data, 1, sd) + idio$data
 
 hl <- hl.factor.number(x, q.max = NULL, mm = floor(4 * (n/log(n))^(1/3)), do.plot = TRUE)
-hl$q
+hl$q.hat
 }
 \references{
 Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.

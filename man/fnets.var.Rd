@@ -10,7 +10,9 @@ fnets.var(
   method = c("lasso", "ds"),
   lambda = NULL,
   var.order = 1,
-  cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
+  cv.args = list(tuning = c("cv", "ic"), n.folds = 1, path.length = 10, do.plot =
+    FALSE),
+  idio.threshold = FALSE,
   n.iter = 100,
   tol = 0,
   n.cores = min(parallel::detectCores() - 1, 3)
@@ -27,17 +29,25 @@ fnets.var(
    \item{\code{"ds"}}{ Dantzig Selector-type constrained \code{l1}-minimisation}
 }}
 
-\item{lambda}{regularisation parameter; if \code{lambda = NULL}, cross validation is employed to select the parameter}
+\item{lambda}{regularisation parameter; if \code{lambda = NULL}, \code{tuning} is employed to select the parameter}
 
-\item{var.order}{order of the VAR process; if a vector of integers is supplied, the order is chosen via cross validation}
+\item{var.order}{order of the VAR process; if a vector of integers is supplied, the order is chosen via \code{tuning}}
 
-\item{cv.args}{a list specifying arguments for the cross validation procedure
+\item{cv.args}{a list specifying arguments for \code{tuning}
 for selecting the regularisation parameter (and VAR order). It contains:
 \itemize{
-   \item{\code{n.folds}}{ number of folds}
+   \item{\code{tuning}} a string specifying the selection procedure for \code{idio.var.order} and \code{lambda}; possible values are:
+   \itemize{
+      \item{\code{"cv"}}{ cross validation}
+      \item{\code{"ic"}}{ information criterion}
+   }
+   \item{\code{n.folds}}{ if \code{tuning = "cv"}, number of folds}
+   \item{\code{penalty}}{ if \code{tuning = "ic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, defaults to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}}
    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 }}
+
+\item{idio.threshold}{whether to perform adaptive thresholding of \code{beta} with \link[fnets]{threshold}}
 
 \item{n.iter}{maximum number of descent steps; applicable when \code{method = "lasso"}}
 
@@ -71,7 +81,7 @@ idio <- sim.var(n, p)
 x <- idio$data
 
 fv <- fnets.var(x, center = TRUE, method = 'lasso', var.order = 1,
-                cv.args = list(n.folds = 1, path.length = 10, do.plot = TRUE))
+                cv.args = list(tuning = "cv", n.folds = 1, path.length = 10, do.plot = TRUE))
 norm(fv$beta - t(idio$A), 'F')/norm(t(idio$A), 'F')
 }
 \references{

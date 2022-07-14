@@ -9,15 +9,22 @@
 #'    \item{\code{"lasso"}}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
 #'    \item{\code{"ds"}}{ Dantzig Selector-type constrained \code{l1}-minimisation}
 #' }
-#' @param var.order order of the VAR process; if a vector of integers is supplied, the order is chosen via cross validation
-#' @param lambda regularisation parameter; if \code{lambda = NULL}, cross validation is employed to select the parameter
-#' @param cv.args a list specifying arguments for the cross validation procedure
+#' @param var.order order of the VAR process; if a vector of integers is supplied, the order is chosen via \code{tuning}
+#' @param lambda regularisation parameter; if \code{lambda = NULL}, \code{tuning} is employed to select the parameter
+#' @param cv.args a list specifying arguments for \code{tuning}
 #' for selecting the regularisation parameter (and VAR order). It contains:
 #' \itemize{
-#'    \item{\code{n.folds}}{ number of folds}
+#'    \item{\code{tuning}} a string specifying the selection procedure for \code{idio.var.order} and \code{lambda}; possible values are:
+#'    \itemize{
+#'       \item{\code{"cv"}}{ cross validation}
+#'       \item{\code{"ic"}}{ information criterion}
+#'    }
+#'    \item{\code{n.folds}}{ if \code{tuning = "cv"}, number of folds}
+#'    \item{\code{penalty}}{ if \code{tuning = "ic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, defaults to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}}
 #'    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
+#' @param idio.threshold whether to perform adaptive thresholding of \code{beta} with \link[fnets]{threshold}
 #' @param n.iter maximum number of descent steps; applicable when \code{method = "lasso"}
 #' @param tol numerical tolerance for increases in the loss function; applicable when \code{method = "lasso"}
 #' @param n.cores number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{method = "ds"}
@@ -34,21 +41,33 @@
 #' @export
 fnets.var  <- function(x, center = TRUE, method = c('lasso', 'ds'),
                        lambda = NULL, var.order = 1,
-                       cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
+                       cv.args = list(tuning = c('cv','ic'), n.folds = 1, path.length = 10, do.plot = FALSE),
+                       idio.threshold = FALSE,
                        n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3)){
   p <- dim(x)[1]
   n <- dim(x)[2]
 
   method <- match.arg(method, c('lasso', 'ds'))
+  tuning <- match.arg(cv.args$tuning, c('cv','ic'))
   if(center) mean.x <- apply(x, 1, mean) else mean.x <- rep(0, p)
   xx <- x - mean.x
   dpca <- dyn.pca(xx, q = 0)
   acv <- dpca$acv
 
-  icv <- yw.cv(xx, method = method,
-               lambda.max = NULL, var.order = var.order,
-               n.folds = cv.args$n.folds, path.length = cv.args$path.length,
-               q = 0, kern.const = 4, do.plot = cv.args$do.plot)
+
+  if(tuning == "cv"){
+    icv <- yw.cv(xx, method = method,
+                 lambda.max = NULL, var.order = var.order,
+                 n.folds = cv.args$n.folds, path.length = cv.args$path.length,
+                 q = 0, kern.const = 4, do.plot = cv.args$do.plot)
+  }
+  if(tuning == "ic"){
+    icv <- yw.ic(xx, method = method,
+                 lambda.max = NULL, var.order = var.order,
+                 penalty = cv.args$penalty, path.length = cv.args$path.length,
+                 q = 0, kern.const = 4, do.plot = cv.args$do.plot)
+  }
+
   mg <- make.gg(acv$Gamma_i, icv$var.order)
   gg <- mg$gg; GG <- mg$GG
 
@@ -56,6 +75,7 @@ fnets.var  <- function(x, center = TRUE, method = c('lasso', 'ds'),
   if(method == 'ds') ive <- var.dantzig(GG, gg, lambda = icv$lambda, symmetric = 'min', n.cores = n.cores)
   ive$var.order <- icv$var.order
   ive$mean.x <- mean.x
+  if(idio.threshold) ive$beta <- threshold(ive$beta, do.plot = cv.args$do.plot)
 
   return(ive)
 
@@ -212,6 +232,97 @@ yw.cv <- function(xx, method = c('lasso', 'ds'),
 
 }
 
+
+# ebic
+
+#' @title logarithmic factorial of `n`
+#' @keywords internal
+log.factorial <- function(n)  sum(log(1:max(n,1) ))
+
+#' @title full likelihood
+#' @keywords internal
+f.func.full <- function (GG, gg, A) {
+  return(0.5* sum(diag(GG[1:ncol(A),1:ncol(A)] +  t(A) %*% GG %*% A -  t(A) %*% gg - t(gg) %*% A )))
+}
+
+f.func.mat <- function (GG, gg, A) {
+  return(0.5* (diag(GG[1:ncol(A),1:ncol(A)] +  t(A) %*% GG %*% A -  t(A) %*% gg - t(gg) %*% A )))
+}
+
+#' @title extended Bayesian Information Criterion
+#' @keywords internal
+ebic <- function(object, n, penalty = 1){
+  beta <- object$idio.var$beta
+  p <- ncol(beta)
+  d <- nrow(beta)/ncol(beta)
+  #s_cols <- colSums(beta != 0)
+  sparsity <- sum(beta != 0) #sum(s_cols)
+  mg <- make.gg(object$acv$Gamma_i, d)
+  gg <- mg$gg; GG <- mg$GG
+  n/2 * log(2*f.func.full(GG,gg,beta)) + sparsity * log(n) +
+    2*penalty *(log.factorial(p^2*d) - log.factorial(sparsity) - log.factorial(p^2*d-sparsity) )
+}
+
+
+#' @title Information criterion for factor-adjusted VAR estimation
+#' @importFrom graphics abline legend matplot
+#' @keywords internal
+yw.ic <- function(xx, method = c('lasso', 'ds'),
+                  lambda.max = NULL, var.order = 1,
+                  penalty = NULL, path.length = 10,
+                  q = 0, kern.const = 4, do.plot = FALSE){
+  n <- ncol(xx)
+  p <- nrow(xx)
+  if(is.null(penalty)) penalty <- 1/(1+exp(5-p/n))
+  if(is.null(lambda.max)) lambda.max <- max(abs(xx %*% t(xx)/n)) * 1
+  lambda.path <- round(exp(seq(log(lambda.max), log(lambda.max * .0001), length.out = path.length)), digits = 10)
+
+  ic.err.mat <- matrix(0, nrow = path.length, ncol = length(var.order))
+  dimnames(ic.err.mat)[[1]] <- lambda.path
+  dimnames(ic.err.mat)[[2]] <- var.order
+
+
+  acv <- dyn.pca(xx, q = q, kern.const = kern.const, mm = max(var.order))$acv$Gamma_i
+
+  for(jj in 1:length(var.order)){
+    mg <- make.gg(acv, var.order[jj])
+    gg <- mg$gg; GG <- mg$GG
+    test.gg <- mg$gg; test.GG <- mg$GG
+    for(ii in 1:path.length){
+      if(method == 'ds') beta <- var.dantzig(GG, gg, lambda = lambda.path[ii])$beta
+      if(method == 'lasso') beta <- var.lasso(GG, gg, lambda = lambda.path[ii])$beta
+      beta <- threshold(beta, do.plot = do.plot)$thr.mat
+      sparsity <- sum(beta[,1] != 0)
+      if(sparsity == 0) pen <- 0 else
+        pen <- 2 * penalty * (log.factorial(var.order[jj] * p) - log(sparsity) - log(var.order[jj] * p - sparsity))
+      ic.err.mat[ii, jj] <- ic.err.mat[ii, jj] + n/2 * log(2*f.func.mat(GG,gg,beta)[1])  + sparsity * log(n) + pen
+      # sparsity <- sum(beta != 0)
+      # if(sparsity == 0) pen <- 0 else
+      #   pen <- 2 * penalty * (log.factorial(var.order[jj] * p^2) - log(sparsity) - log(var.order[jj] * p^2 - sparsity))
+      # ic.err.mat[ii, jj] <- ic.err.mat[ii, jj] + n/2 * log(2*f.func.full(GG,gg,beta))  + sparsity * log(n) + pen
+    }
+  }
+
+  ic.err.mat[ic.err.mat < 0] <- Inf
+  ic.err.mat[is.nan(ic.err.mat)] <- Inf
+  lambda.min <- min(lambda.path[apply(ic.err.mat, 1, min) == min(apply(ic.err.mat, 1, min))])
+  order.min <- min(var.order[apply(ic.err.mat, 2, min) == min(apply(ic.err.mat, 2, min))])
+
+  if(do.plot){
+    matplot(lambda.path, ic.err.mat, type = 'b', col = 2:(max(var.order) + 1), pch = 2:(max(var.order) + 1),
+            log = 'x', xlab = 'lambda (log scale)', ylab = 'IC', main = 'IC for VAR parameter estimation')
+    abline(v = lambda.min)
+    legend('topleft', legend = var.order, col = 2:(max(var.order) + 1), pch = 2:(max(var.order) + 1), lty = 1)
+  }
+
+  out <- list(lambda = lambda.min, var.order = order.min, ic.error = ic.err.mat, lambda.path = lambda.path)
+  return(out)
+}
+
+
+
+
+
 #' @title Forecasting idiosyncratic VAR process
 #' @description Produces forecasts of the idiosyncratic VAR process
 #' for a given forecasting horizon by estimating the best linear predictors
@@ -236,21 +347,28 @@ yw.cv <- function(xx, method = c('lasso', 'ds'),
 #' ipre <- idio.predict(out, x, cpre, h = 1)
 #' @export
 idio.predict <- function(object, x, cpre, h = 1){
-
   p <- dim(x)[1]; n <- dim(x)[2]
-  xx <- x - object$mean.x
-  beta <- object$idio.var$beta
-  d <- dim(beta)[1]/p
-  A <- t(beta)
+  # if(attr(object, 'factor') == 'dynamic'){
 
-  is <- xx - cpre$is
-  if(h >= 1){
-    fc <- matrix(0, nrow = p, ncol = h)
-    for(ii in 1:h){
-      for(ll in 1:d) fc[, ii] <- fc[, ii] + A[, p * (ll - 1) + 1:p] %*% is[, n + ii - ll]
-      is <- cbind(is, fc[, ii])
-    }
-  } else fc <- NA
+    xx <- x - object$mean.x
+    beta <- object$idio.var$beta
+    d <- dim(beta)[1]/p
+    A <- t(beta)
+
+    is <- xx - cpre$is
+    if(h >= 1){
+      fc <- matrix(0, nrow = p, ncol = h)
+      for(ii in 1:h){
+        for(ll in 1:d) fc[, ii] <- fc[, ii] + A[, p * (ll - 1) + 1:p] %*% is[, n + ii - ll]
+        is <- cbind(is, fc[, ii])
+      }
+    } else fc <- NA
+  # }
+  # if(attr(object, 'factor') == 'static'){
+  #   is <- matrix(0, p, n)
+  #   fc <- 0
+  # }
+
 
   out <- list(is = is[, 1:n], fc = fc, h = h)
   return(out)
@@ -305,52 +423,54 @@ prox.func <- function(B, lambda, L, GG, gg){
 
 
 #' @title Edge selection for VAR parameter, inverse innovation covariance, and long-run partial correlation matrices
-#' @description Thresholds the entries of the input matrix at a data-driven level to perform edge selection
-#' @details See Barigozzi, Cho and Owens (2021) and Liu, Zhang, and Liu (2021) for more information on the threshold selection process
+#' @description Threshold the entries of the input matrix at a data-driven level to perform edge selection
+#' @details See Liu, Zhang, and Liu (2021) for more information on the threshold selection process
 #' @param mat input parameter matrix
 #' @param path.length number of candidate thresholds
 #' @param do.plot whether to plot thresholding output
 #' @return a list which contains the following fields:
 #' \item{threshold}{ data-driven threshold}
-#' \item{network}{ thresholded input}
+#' \item{thr.mat}{ thresholded input matrix}
 #' @examples
+#' \dontrun{
 #' set.seed(123)
 #' A <- diag(.7, 50) + rnorm(50^2, 0, .1)
 #' threshold.A <- threshold(A)
+#' }
 #' @importFrom graphics par
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-#'
-#' Liu, B., Zhang, X., & Liu, Y. (2021). Simultaneous Change Point Inference and Structure Recovery for High Dimensional Gaussian Graphical Models. Journal of Machine Learning Research, 22(274), 1-62.
-#' @export
+#' Liu, B., Zhang, X. & Liu, Y. (2021) Simultaneous Change Point Inference and Structure Recovery for High Dimensional Gaussian Graphical Models. Journal of Machine Learning Research, 22(274), 1--62.
+#' @keywords internal
 threshold <- function(mat, path.length = 500, do.plot = FALSE){
-  p <- nrow(mat)
-  maxmat <- max(abs(mat), 1e-3)
-  minmat <- max( min(abs(mat)), maxmat* .01, 1e-4)
-  rseq <- round(exp(seq(log(maxmat), log(minmat) , length.out = path.length)), digits = 10)
-  cusum <-  ratio <- rseq * 0
-  for (ii in 1:path.length){
+  p <- dim(mat)[1]
+  M <- max(abs(mat), 1e-3)
+  m <- max(min(abs(mat)), M * .01, 1e-4)
+  rseq <- round(exp(seq(log(M), log(m), length.out = path.length)), digits = 10)
+  cusum <- ratio <- rseq * 0
+  for(ii in 1:path.length){
     A <- mat
-    A[abs(A) < rseq[ii] ] <- 0
+    A[abs(A) < rseq[ii]] <- 0
     edges <- sum(A != 0)
-    ratio[ii] <- edges/( (p/2)*(p-1) - edges )
+    ratio[ii] <- edges/(prod(dim(mat)) - edges)
   }
   dif <- diff(ratio) / diff(rseq)
-  for (ii in 2:(path.length-1) ) {
-    cusum[ii] <- (mean(dif[2:ii -1]) - mean(dif[ii:(path.length-1)])) * (ii/sqrt(path.length))*(1 - ii/path.length)
-  }
+  for(ii in 2:(path.length - 1)) cusum[ii] <- (mean(dif[2:ii - 1]) - mean(dif[ii:(path.length - 1)])) * (ii/sqrt(path.length))*(1 - ii/path.length)
+
   thr <- rseq[which.max(abs(cusum))]
-  if(do.plot) {
-    par(mfrow=c(1,3))
+
+  if(do.plot){
+    par(mfrow = c(1, 3))
     plot(rseq, ratio, type = "l", xlab = "threshold")
     abline(v = thr)
     plot(rseq[-1], dif, type = "l", xlab = "threshold")
     abline(v = thr)
     plot(rseq, abs(cusum), type = "l", xlab = "threshold")
     abline(v = thr)
-    par(mfrow=c(1,1))
   }
+
   A <- mat
   A[abs(A) < thr] <- 0
-  out <- list(threshold = thr, network = A)
+  out <- list(threshold = thr, thr.mat = A)
   return(out)
+
 }

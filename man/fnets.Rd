@@ -7,17 +7,20 @@
 fnets(
   x,
   center = TRUE,
+  factor.model = c("dynamic", "static"),
   q = NULL,
-  ic.op = 5,
+  ic.op = NULL,
   kern.const = 4,
   common.args = list(var.order = NULL, max.var.order = NULL, trunc.lags = 20, n.perm =
     10),
   idio.var.order = 1,
   idio.method = c("lasso", "ds"),
-  idio.args = list(n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1,
-    3)),
+  idio.args = list(tuning = c("cv", "ic"), n.iter = 100, tol = 0, n.cores =
+    min(parallel::detectCores() - 1, 3)),
+  idio.threshold = FALSE,
   lrpc.method = c("par", "npar", "none"),
-  cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE)
+  lrpc.adaptive = FALSE,
+  cv.args = list(n.folds = 1, penalty = NULL, path.length = 10, do.plot = FALSE)
 )
 }
 \arguments{
@@ -25,9 +28,15 @@ fnets(
 
 \item{center}{whether to de-mean the input \code{x} row-wise}
 
-\item{q}{number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007), see \link[fnets]{hl.factor.number} for further details}
+\item{factor.model}{a string specifying the method to be adopted for factor model estimation; possible values are:
+\itemize{
+   \item{\code{"dynamic"}}{ dynamic factor model}
+   \item{\code{"static"}}{ static factor model}
+}}
 
-\item{ic.op}{choice of the information criterion, see \link[fnets]{hl.factor.number} for further details}
+\item{q}{number of dynamic factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007) or Bai and Ng (2002), see \link[fnets]{hl.factor.number} and \link[fnets]{bn.factor.number} for further details}
+
+\item{ic.op}{choice of the information criterion, see \link[fnets]{hl.factor.number} and \link[fnets]{bn.factor.number} for further details}
 
 \item{kern.const}{constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA}
 
@@ -39,7 +48,7 @@ fnets(
    \item{\code{n.perm}}{ number of cross-sectional permutations involved in impulse response function estimation}
 }}
 
-\item{idio.var.order}{order of the idiosyncratic VAR process; if a vector of integers is supplied, the order is chosen via cross validation}
+\item{idio.var.order}{order of the idiosyncratic VAR process; if a vector of integers is supplied, the order is chosen via \code{tuning}}
 
 \item{idio.method}{a string specifying the method to be adopted for idiosyncratic VAR process estimation; possible values are:
 \itemize{
@@ -49,10 +58,17 @@ fnets(
 
 \item{idio.args}{a list specifying the tuning parameters required for estimating the idiosyncratic VAR process. It contains:
 \itemize{
+   \item{\code{tuning}} a string specifying the selection procedure for \code{idio.var.order} and \code{lambda}; possible values are:
+   \itemize{
+      \item{\code{"cv"}}{ cross validation}
+      \item{\code{"ic"}}{ information criterion}
+   }
    \item{\code{n.iter}}{ maximum number of descent steps; applicable when \code{idio.method = "lasso"}}
    \item{\code{tol}}{ numerical tolerance for increases in the loss function; applicable when \code{idio.method = "lasso"}}
    \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{idio.method = "ds"}}
 }}
+
+\item{idio.threshold}{whether to perform adaptive thresholding of \code{beta} with \link[fnets]{threshold}}
 
 \item{lrpc.method}{a string specifying the type of estimator for long-run partial correlation matrix estimation; possible values are:
 \itemize{
@@ -61,10 +77,13 @@ fnets(
    \item{\code{"none"}}{ do not estimate the long-run partial correlation matrix}
 }}
 
-\item{cv.args}{a list specifying arguments for the cross validation procedures
+\item{lrpc.adaptive}{whether to use the adaptive estimation procedure}
+
+\item{cv.args}{a list specifying arguments for \code{tuning}
 for selecting the tuning parameters involved in VAR parameter and (long-run) partial correlation matrix estimation. It contains:
 \itemize{
-   \item{\code{n.folds}}{ number of folds}
+   \item{\code{n.folds}}{ if \code{tuning = "cv"}, number of folds}
+   \item{\code{penalty}}{ if \code{tuning = "ic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, defaults to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}}
    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 }}
@@ -72,10 +91,12 @@ for selecting the tuning parameters involved in VAR parameter and (long-run) par
 \value{
 an S3 object of class \code{fnets}, which contains the following fields:
 \item{q}{ number of factors}
-\item{spec}{ a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
+\item{spec}{ if \code{factor.model = "dynamic"} a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
 \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
-\item{common.irf}{ if \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})
+\item{common.irf}{  if \code{factor.model = "dynamic"} and \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})
 and common shocks (an array of dimension \code{(q, n)}) for the common component}
+\item{lam}{ if \code{factor.model = "static"}, factor loadings}
+\item{f}{ if \code{factor.model = "static"}, factor series}
 \item{idio.var}{ a list containing the following fields:
 \itemize{
 \item{\code{beta}}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
@@ -119,6 +140,8 @@ plot(out, type = 'lrpc', display = 'heatmap', threshold = .05)
 Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 
 Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
+
+Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221. \cr
 }
 \seealso{
 \link[fnets]{predict.fnets}, \link[fnets]{plot.fnets}

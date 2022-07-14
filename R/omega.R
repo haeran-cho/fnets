@@ -71,8 +71,8 @@ npar.lrpc <- function(object, x, eta = NULL,
 #'    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
-#' @param adaptive whether to use the adaptive estimation procedure
-#' @param eta.1 regularisation parameter for Step 1 of the adaptive estimation procedure; if \code{eta.1 = NULL}, defaults to \code{2 * sqrt(log(dim(x)[1])/dim(x)[2])}
+#' @param lrpc.adaptive whether to use the adaptive estimation procedure
+#' @param eta.adaptive regularisation parameter for Step 1 of the adaptive estimation procedure; if \code{eta.adaptive = NULL}, defaults to \code{2 * sqrt(log(dim(x)[1])/dim(x)[2])}
 #' @param do.correct whether to correct for any negative entries in the diagonals of the inverse of long-run covariance matrix
 #' @param n.cores number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}
 #' @return a list containing
@@ -81,9 +81,8 @@ npar.lrpc <- function(object, x, eta = NULL,
 #' \item{pc}{ estimated innovation partial correlation matrix}
 #' \item{lrpc}{ estimated long-run partial correlation matrix}
 #' \item{eta}{ regularisation parameter}
-#' \item{adaptive}{ was the adaptive procedure used}
+#' \item{lrpc.adaptive}{ was the adaptive procedure used}
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
-#'
 #' Cai, T. T., Liu, W., & Zhou, H. H. (2016). Estimating sparse precision matrix: Optimal rates of convergence and adaptive estimation. The Annals of Statistics, 44(2), 455-488.
 #' @examples
 #' \dontrun{
@@ -104,7 +103,7 @@ npar.lrpc <- function(object, x, eta = NULL,
 #' @export
 par.lrpc <- function(object, x, eta = NULL,
                      cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
-                     adaptive = FALSE, eta.1 = NULL,
+                     lrpc.adaptive = FALSE, eta.adaptive = NULL,
                      do.correct = TRUE,
                      n.cores = min(parallel::detectCores() - 1, 3)){
 
@@ -123,15 +122,15 @@ par.lrpc <- function(object, x, eta = NULL,
     dcv <- direct.cv(object, xx, target = 'acv', symmetric = 'min',
                      n.folds = cv.args$n.folds, path.length = cv.args$path.length,
                      q = object$q, kern.const = object$kern.const, n.cores = n.cores,
-                     adaptive = adaptive, eta.1 = eta.1,
+                     lrpc.adaptive = lrpc.adaptive, eta.adaptive = eta.adaptive,
                      do.plot = cv.args$do.plot)
     eta <- dcv$eta
   }
-  if(adaptive){
-    if(is.null(eta.1)){
-      eta.1 <- 2 * sqrt(log(p)/n)
+  if(lrpc.adaptive){
+    if(is.null(eta.adaptive)){
+      eta.adaptive <- 2 * sqrt(log(p)/n)
     }
-    Delta <- adaptive.direct.inv.est(GG, n, eta = eta, eta.1 = eta.1, symmetric = 'min',
+    Delta <- adaptive.direct.inv.est(GG, n, eta = eta, eta.adaptive = eta.adaptive, symmetric = 'min',
                                      do.correct = do.correct, n.cores = n.cores)$DD
   } else Delta <- direct.inv.est(GG, eta = eta, symmetric = 'min',
                           do.correct = do.correct, n.cores = n.cores)$DD
@@ -140,7 +139,7 @@ par.lrpc <- function(object, x, eta = NULL,
 
   pc <- - t(t(Delta)/sqrt(diag(Delta)))/sqrt(diag(Delta))
   lrpc <- - t(t(Omega)/sqrt(diag(Omega)))/sqrt(diag(Omega))
-  out <- list(Delta = Delta, Omega = Omega, pc = pc, lrpc = lrpc, eta = eta, adaptive = adaptive)
+  out <- list(Delta = Delta, Omega = Omega, pc = pc, lrpc = lrpc, eta = eta, lrpc.adaptive = lrpc.adaptive)
 
   return(out)
 
@@ -151,7 +150,7 @@ par.lrpc <- function(object, x, eta = NULL,
 #' @importFrom graphics abline
 direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min', 'max', 'avg', 'none'),
                       n.folds = 1, path.length = 10, q = 0, kern.const = 4, n.cores = min(parallel::detectCores() - 1, 3),
-                      adaptive = FALSE, eta.1 = NULL,
+                      lrpc.adaptive = FALSE, eta.adaptive = NULL,
                       do.plot = FALSE){
 
   n <- ncol(xx)
@@ -168,7 +167,7 @@ direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min'
     d <- dim(A)[2]/p
     GG <- object$idio.var$Gamma
     eta.max <- max(abs(GG))
-    if(adaptive) eta.max.2 <- 2*sqrt(log(p)/n) else eta.max.2 <- eta.max
+    if(lrpc.adaptive) eta.max.2 <- 2*sqrt(log(p)/n) else eta.max.2 <- eta.max
     eta.path <- round(exp(seq(log(eta.max.2), log(eta.max * .01), length.out = path.length)), digits = 10)
   }
 
@@ -194,7 +193,7 @@ direct.cv <- function(object, xx, target = c('spec', 'acv'), symmetric = c('min'
     }
 
     for(ii in 1:path.length){
-      if(adaptive) DD <- adaptive.direct.inv.est(train.GG, n=n, eta = eta.path[ii], eta.1 = eta.1, symmetric = symmetric, n.cores = n.cores)$DD
+      if(lrpc.adaptive) DD <- adaptive.direct.inv.est(train.GG, n=n, eta = eta.path[ii], eta.adaptive = eta.adaptive, symmetric = symmetric, n.cores = n.cores)$DD
         else DD <- direct.inv.est(train.GG, eta = eta.path[ii], symmetric = symmetric, n.cores = n.cores)$DD
       DG <- DD %*% test.GG
       sv <- svd(DG, nu = 0, nv = 0)
@@ -258,7 +257,7 @@ direct.inv.est <- function(GG, eta = NULL, symmetric = c('min', 'max',  'avg', '
 #' @importFrom doParallel registerDoParallel
 #' @importFrom foreach foreach %dopar%
 #' @importFrom lpSolve lp
-adaptive.direct.inv.est <- function(GG, n, eta = NULL, eta.1 = NULL, symmetric = c('min', 'max',  'avg', 'none'),
+adaptive.direct.inv.est <- function(GG, n, eta = NULL, eta.adaptive = NULL, symmetric = c('min', 'max',  'avg', 'none'),
                                     do.correct = FALSE,
                                     n.cores = min(parallel::detectCores() - 1, 3)){
   p <- dim(GG)[1]
@@ -272,14 +271,14 @@ adaptive.direct.inv.est <- function(GG, n, eta = NULL, eta.1 = NULL, symmetric =
   ## Step 1 //
   cl <- parallel::makePSOCKcluster(n.cores)
   doParallel::registerDoParallel(cl)
-  if(is.null(eta.1))  eta.1 <- 2 * sqrt(log(p)/n)
+  if(is.null(eta.adaptive))  eta.adaptive <- 2 * sqrt(log(p)/n)
   ii <- 1
   step1.index <- which(dGG <= sqrt(n/log(p)))
   f.con.1 <- rbind(f.con.0, 0)
   f.dir.1 <- c(f.dir, "==") #diagonals are positive
   DD.1 <- foreach::foreach(ii = step1.index, .combine = 'cbind', .multicombine = TRUE, .export = c('lp')) %dopar% {
     f.con.ii <- f.con.1
-    ii.replace <- eta.1 * pmax(dGG, dGG[ii])
+    ii.replace <- eta.adaptive * pmax(dGG, dGG[ii])
     f.con.ii[1:(2*p),ii] <- f.con.ii[1:(2*p),ii] - ii.replace  #mutate cols
     f.con.ii[1:(2*p),ii+p] <- f.con.ii[1:(2*p),ii+p] - ii.replace  #mutate cols
     f.con.ii[2*p+1,ii+p] <- 1 #diagonals are positive

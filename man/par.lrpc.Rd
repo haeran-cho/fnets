@@ -9,8 +9,8 @@ par.lrpc(
   x,
   eta = NULL,
   cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
-  adaptive = FALSE,
-  eta.1 = NULL,
+  lrpc.adaptive = FALSE,
+  eta.adaptive = NULL,
   do.correct = TRUE,
   n.cores = min(parallel::detectCores() - 1, 3)
 )
@@ -30,9 +30,9 @@ for selecting the tuning parameter involved in long-run partial correlation matr
    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 }}
 
-\item{adaptive}{whether to use the adaptive estimation procedure}
+\item{lrpc.adaptive}{whether to use the adaptive estimation procedure}
 
-\item{eta.1}{regularisation parameter for Step 1 of the adaptive estimation procedure; if \code{eta.1 = NULL}, defaults to \code{2 * sqrt(log(dim(x)[1])/dim(x)[2])}}
+\item{eta.adaptive}{regularisation parameter for Step 1 of the adaptive estimation procedure; if \code{eta.adaptive = NULL}, defaults to \code{2 * sqrt(log(dim(x)[1])/dim(x)[2])}}
 
 \item{do.correct}{whether to correct for any negative entries in the diagonals of the inverse of long-run covariance matrix}
 
@@ -45,7 +45,7 @@ a list containing
 \item{pc}{ estimated innovation partial correlation matrix}
 \item{lrpc}{ estimated long-run partial correlation matrix}
 \item{eta}{ regularisation parameter}
-\item{adaptive}{ was the adaptive procedure used}
+\item{lrpc.adaptive}{ was the adaptive procedure used}
 }
 \description{
 Returns a parametric estimate of long-run partial correlations of the VAR process
@@ -72,6 +72,5 @@ plot(out, type = 'lrpc', display = 'heatmap', threshold = .05)
 }
 \references{
 Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
-
 Cai, T. T., Liu, W., & Zhou, H. H. (2016). Estimating sparse precision matrix: Optimal rates of convergence and adaptive estimation. The Annals of Statistics, 44(2), 455-488.
 }
