@@ -50,10 +50,10 @@ p <- 50
 common <- sim.common1(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
-out <- fnets(x, q = NULL, idio.method = 'lasso', lrpc.method = 'none')
+out <- fnets(x, q = NULL, idio.method = "lasso", lrpc.method = "none")
 nlrpc <- npar.lrpc(out, x, cv.args = list(n.folds = 1, path.length = 10, do.plot = TRUE))
 out$lrpc <- nlrpc
-out$lrpc.method <- 'npar'
-plot(out, type = 'lrpc', display = 'heatmap', threshold = .05)
+out$lrpc.method <- "npar"
+plot(out, type = "lrpc", display = "heatmap", threshold = .05)
 }
 }

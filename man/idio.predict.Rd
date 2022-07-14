@@ -33,7 +33,7 @@ common <- sim.common1(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
 out <- fnets(x, q = NULL, idio.var.order = 1, idio.method = "lasso", lrpc.method = "none")
-cpre <- common.predict(out, x, h = 1, common.method = 'restricted', r = NULL)
+cpre <- common.predict(out, x, h = 1, common.method = "restricted", r = NULL)
 ipre <- idio.predict(out, x, cpre, h = 1)
 }
 \references{

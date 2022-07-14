@@ -3,37 +3,34 @@
 Bartlett.weights <- function(x) 1 - abs(x)
 
 #' @keywords internal
-make.symmetric <- function(DD, symmetric){
-  
-  symmetric <- match.arg(symmetric, c('min', 'max', 'avg', 'none'))
-  if(symmetric != 'none'){
-    if(symmetric == 'min'){
+make.symmetric <- function(DD, symmetric) {
+  symmetric <- match.arg(symmetric, c("min", "max", "avg", "none"))
+  if (symmetric != "none") {
+    if (symmetric == "min") {
       DD[abs(DD) > t(abs(DD))] <- 0
       DD <- DD + t(DD)
-      diag(DD) <- diag(DD)/2
+      diag(DD) <- diag(DD) / 2
     }
-    if(symmetric == 'max'){
+    if (symmetric == "max") {
       DD[abs(DD) < t(abs(DD))] <- 0
       DD <- DD + t(DD)
-      diag(DD) <- diag(DD)/2
+      diag(DD) <- diag(DD) / 2
     }
-    if(symmetric == 'avg') DD <- (DD + t(DD))/2
+    if (symmetric == "avg") DD <- (DD + t(DD)) / 2
   }
   DD
-  
 }
 
 
 #' @keywords internal
-var.to.vma <- function(A, trunc.lags){
-  
-  d <- dim(A)[1]; s <- dim(A)[2]
-  l <- s/d
+var.to.vma <- function(A, trunc.lags) {
+  d <- dim(A)[1]
+  s <- dim(A)[2]
+  l <- s / d
   B <- array(0, dim = c(d, d, trunc.lags + 1))
-  B[,, 1] <- diag(1, d)
-  for(ii in 1:trunc.lags){
-    for(jj in 1:min(ii, l)) B[,, ii + 1] <- B[,, ii + 1] + B[,, ii - jj + 1] %*% A[, (jj - 1) * d + 1:d]
+  B[, , 1] <- diag(1, d)
+  for (ii in 1:trunc.lags) {
+    for (jj in 1:min(ii, l)) B[, , ii + 1] <- B[, , ii + 1] + B[, , ii - jj + 1] %*% A[, (jj - 1) * d + 1:d]
   }
   B
-  
 }

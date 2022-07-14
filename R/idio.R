@@ -39,55 +39,58 @@
 #' @importFrom parallel detectCores
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @export
-fnets.var  <- function(x, center = TRUE, method = c('lasso', 'ds'),
-                       lambda = NULL, var.order = 1,
-                       cv.args = list(tuning = c('cv','ic'), n.folds = 1, path.length = 10, do.plot = FALSE),
-                       idio.threshold = FALSE,
-                       n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3)){
+fnets.var <- function(x, center = TRUE, method = c("lasso", "ds"),
+                      lambda = NULL, var.order = 1,
+                      cv.args = list(tuning = c("cv", "ic"), n.folds = 1, path.length = 10, do.plot = FALSE),
+                      idio.threshold = FALSE,
+                      n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3)) {
   p <- dim(x)[1]
   n <- dim(x)[2]
 
-  method <- match.arg(method, c('lasso', 'ds'))
-  tuning <- match.arg(cv.args$tuning, c('cv','ic'))
-  if(center) mean.x <- apply(x, 1, mean) else mean.x <- rep(0, p)
+  method <- match.arg(method, c("lasso", "ds"))
+  tuning <- match.arg(cv.args$tuning, c("cv", "ic"))
+  if (center) mean.x <- apply(x, 1, mean) else mean.x <- rep(0, p)
   xx <- x - mean.x
   dpca <- dyn.pca(xx, q = 0)
   acv <- dpca$acv
 
 
-  if(tuning == "cv"){
-    icv <- yw.cv(xx, method = method,
-                 lambda.max = NULL, var.order = var.order,
-                 n.folds = cv.args$n.folds, path.length = cv.args$path.length,
-                 q = 0, kern.const = 4, do.plot = cv.args$do.plot)
+  if (tuning == "cv") {
+    icv <- yw.cv(xx,
+      method = method,
+      lambda.max = NULL, var.order = var.order,
+      n.folds = cv.args$n.folds, path.length = cv.args$path.length,
+      q = 0, kern.const = 4, do.plot = cv.args$do.plot
+    )
   }
-  if(tuning == "ic"){
-    icv <- yw.ic(xx, method = method,
-                 lambda.max = NULL, var.order = var.order,
-                 penalty = cv.args$penalty, path.length = cv.args$path.length,
-                 q = 0, kern.const = 4, do.plot = cv.args$do.plot)
+  if (tuning == "ic") {
+    icv <- yw.ic(xx,
+      method = method,
+      lambda.max = NULL, var.order = var.order,
+      penalty = cv.args$penalty, path.length = cv.args$path.length,
+      q = 0, kern.const = 4, do.plot = cv.args$do.plot
+    )
   }
 
   mg <- make.gg(acv$Gamma_i, icv$var.order)
-  gg <- mg$gg; GG <- mg$GG
+  gg <- mg$gg
+  GG <- mg$GG
 
-  if(method == 'lasso') ive <- var.lasso(GG, gg, lambda = icv$lambda, symmetric = 'min', n.iter = n.iter, tol = tol)
-  if(method == 'ds') ive <- var.dantzig(GG, gg, lambda = icv$lambda, symmetric = 'min', n.cores = n.cores)
+  if (method == "lasso") ive <- var.lasso(GG, gg, lambda = icv$lambda, symmetric = "min", n.iter = n.iter, tol = tol)
+  if (method == "ds") ive <- var.dantzig(GG, gg, lambda = icv$lambda, symmetric = "min", n.cores = n.cores)
   ive$var.order <- icv$var.order
   ive$mean.x <- mean.x
-  if(idio.threshold) ive$beta <- threshold(ive$beta, do.plot = cv.args$do.plot)
+  if (idio.threshold) ive$beta <- threshold(ive$beta, do.plot = cv.args$do.plot)
 
   return(ive)
-
 }
 
 #' @title Lasso-type estimator of VAR processes via \code{l1}-regularised \code{M}-estimation
 #' @keywords internal
-var.lasso <- function(GG, gg, lambda, symmetric = 'min', n.iter = 100, tol = 0){
-
+var.lasso <- function(GG, gg, lambda, symmetric = "min", n.iter = 100, tol = 0) {
   backtracking <- TRUE
   p <- ncol(gg)
-  d <- nrow(gg)/ncol(gg)
+  d <- nrow(gg) / ncol(gg)
 
   ii <- 0
   t.new <- t <- 1
@@ -95,45 +98,48 @@ var.lasso <- function(GG, gg, lambda, symmetric = 'min', n.iter = 100, tol = 0){
   x.new <- y <- x
   diff.val <- tol - 1
 
-  if(backtracking){
+  if (backtracking) {
     L <- norm(GG, "F") / 5
     gamma <- 2
-  } else L <- norm(GG, "F")
+  } else {
+    L <- norm(GG, "F")
+  }
 
   obj.val <- rel.err <- c()
-  while(ii < n.iter & diff.val < tol){
+  while (ii < n.iter & diff.val < tol) {
     ii <- ii + 1
-    if(backtracking){
+    if (backtracking) {
       L.bar <- L
       found <- FALSE
-      while(!found){
+      while (!found) {
         prox <- prox.func(y, lambda, L = 2 * L.bar, GG, gg)
-        if(f.func(GG, gg, prox) <= Q.func(prox, y, L.bar, GG, gg)){
+        if (f.func(GG, gg, prox) <= Q.func(prox, y, L.bar, GG, gg)) {
           found <- TRUE
-        } else{
+        } else {
           L.bar <- L.bar * gamma
         }
       }
       L <- L.bar
-    } else prox <- prox.func(y, lambda, L = 2 * L, GG, gg)
+    } else {
+      prox <- prox.func(y, lambda, L = 2 * L, GG, gg)
+    }
 
     x <- x.new
     x.new <- prox
     t <- t.new
-    t.new <- (1 + sqrt(1 + 4*t^2))/2
+    t.new <- (1 + sqrt(1 + 4 * t^2)) / 2
     y <- x.new + (t - 1) / t.new * (x.new - y)
 
     obj.val <- c(obj.val, f.func(GG, gg, x.new) + lambda * sum(abs(x.new)))
-    if(ii > 1) diff.val <- obj.val[ii] - obj.val[ii - 1]
+    if (ii > 1) diff.val <- obj.val[ii] - obj.val[ii - 1]
   }
   A <- t(x.new)
   Gamma <- GG[1:p, 1:p]
-  for(ll in 1:d) Gamma <- Gamma - A[, (ll - 1) * p + 1:p] %*% gg[(ll - 1) * p + 1:p, ]
+  for (ll in 1:d) Gamma <- Gamma - A[, (ll - 1) * p + 1:p] %*% gg[(ll - 1) * p + 1:p, ]
   Gamma <- make.symmetric(Gamma, symmetric)
   out <- list(beta = x.new, Gamma = Gamma, lambda = lambda, convergence = (abs(diff.val) <= abs(obj.val[1]) * 1e-5))
 
   return(out)
-
 }
 
 #' @title Dantzig selector-type estimator of VAR processes via constrained \code{l1}-minimisation
@@ -142,77 +148,76 @@ var.lasso <- function(GG, gg, lambda, symmetric = 'min', n.iter = 100, tol = 0){
 #' @importFrom foreach foreach %dopar%
 #' @importFrom lpSolve lp
 #' @keywords internal
-var.dantzig <- function(GG, gg, lambda, symmetric = 'min', n.cores = min(parallel::detectCores() - 1, 3)){
-
+var.dantzig <- function(GG, gg, lambda, symmetric = "min", n.cores = min(parallel::detectCores() - 1, 3)) {
   p <- dim(gg)[2]
-  d <- dim(gg)[1]/dim(gg)[2]
+  d <- dim(gg)[1] / dim(gg)[2]
   beta <- gg * 0
 
   f.obj <- rep(1, 2 * p * d)
   f.con <- rbind(-GG, GG)
-  f.con <- cbind(f.con,-f.con)
-  f.dir <- rep('<=', 2 * p * d)
+  f.con <- cbind(f.con, -f.con)
+  f.dir <- rep("<=", 2 * p * d)
 
   cl <- parallel::makePSOCKcluster(n.cores)
   doParallel::registerDoParallel(cl)
 
   ii <- 1
-  beta <- foreach::foreach(ii = 1:p, .combine = 'cbind', .multicombine = TRUE, .export = c('lp')) %dopar% {
+  beta <- foreach::foreach(ii = 1:p, .combine = "cbind", .multicombine = TRUE, .export = c("lp")) %dopar% {
     b1 <- rep(lambda, p * d) - gg[, ii]
     b2 <- rep(lambda, p * d) + gg[, ii]
     f.rhs <- c(b1, b2)
-    lpout <- lpSolve::lp('min', f.obj, f.con, f.dir, f.rhs)
+    lpout <- lpSolve::lp("min", f.obj, f.con, f.dir, f.rhs)
     lpout$solution[1:(p * d)] - lpout$solution[-(1:(p * d))]
   }
   parallel::stopCluster(cl)
 
   A <- t(beta)
   Gamma <- GG[1:p, 1:p]
-  for(ll in 1:d) Gamma <- Gamma - A[, (ll - 1) * p + 1:p] %*% gg[(ll - 1) * p + 1:p, ]
+  for (ll in 1:d) Gamma <- Gamma - A[, (ll - 1) * p + 1:p] %*% gg[(ll - 1) * p + 1:p, ]
   Gamma <- make.symmetric(Gamma, symmetric)
 
   out <- list(beta = beta, Gamma = Gamma, lambda = lambda)
   return(out)
-
 }
 
 #' @title Cross validation for factor-adjusted VAR estimation
 #' @importFrom graphics abline legend matplot
 #' @keywords internal
-yw.cv <- function(xx, method = c('lasso', 'ds'),
+yw.cv <- function(xx, method = c("lasso", "ds"),
                   lambda.max = NULL, var.order = 1,
                   n.folds = 1, path.length = 10,
-                  q = 0, kern.const = 4, do.plot = FALSE){
-
+                  q = 0, kern.const = 4, do.plot = FALSE) {
   n <- ncol(xx)
   p <- nrow(xx)
 
-  if(is.null(lambda.max)) lambda.max <- max(abs(xx %*% t(xx)/n)) * 1
+  if (is.null(lambda.max)) lambda.max <- max(abs(xx %*% t(xx) / n)) * 1
   lambda.path <- round(exp(seq(log(lambda.max), log(lambda.max * .0001), length.out = path.length)), digits = 10)
 
   cv.err.mat <- matrix(0, nrow = path.length, ncol = length(var.order))
   dimnames(cv.err.mat)[[1]] <- lambda.path
   dimnames(cv.err.mat)[[2]] <- var.order
-  ind.list <- split(1:n, ceiling(n.folds*(1:n)/n))
+  ind.list <- split(1:n, ceiling(n.folds * (1:n) / n))
 
-  for(fold in 1:n.folds){
+  for (fold in 1:n.folds) {
     train.ind <- 1:ceiling(length(ind.list[[fold]]) * .5)
     train.x <- xx[, ind.list[[fold]][train.ind]]
-    test.x  <- xx[, ind.list[[fold]][- train.ind]]
+    test.x <- xx[, ind.list[[fold]][-train.ind]]
     train.acv <- dyn.pca(train.x, q = q, kern.const = kern.const, mm = max(var.order))$acv$Gamma_i
     test.acv <- dyn.pca(test.x, q = q, kern.const = kern.const, mm = max(var.order))$acv$Gamma_i
 
-    for(jj in 1:length(var.order)){
+    for (jj in 1:length(var.order)) {
       mg <- make.gg(train.acv, var.order[jj])
-      gg <- mg$gg; GG <- mg$GG
+      gg <- mg$gg
+      GG <- mg$GG
       mg <- make.gg(test.acv, var.order[jj])
-      test.gg <- mg$gg; test.GG <- mg$GG
-      for(ii in 1:path.length){
-        if(method == 'ds') train.beta <- var.dantzig(GG, gg, lambda = lambda.path[ii])$beta
-        if(method == 'lasso') train.beta <- var.lasso(GG, gg, lambda = lambda.path[ii])$beta
+      test.gg <- mg$gg
+      test.GG <- mg$GG
+      for (ii in 1:path.length) {
+        if (method == "ds") train.beta <- var.dantzig(GG, gg, lambda = lambda.path[ii])$beta
+        if (method == "lasso") train.beta <- var.lasso(GG, gg, lambda = lambda.path[ii])$beta
         beta.gg <- t(train.beta) %*% test.gg
         cv.err.mat[ii, jj] <- cv.err.mat[ii, jj] +
-          sum(diag(test.acv[,, 1] - beta.gg - t(beta.gg) + t(train.beta) %*% test.GG %*% (train.beta) ))
+          sum(diag(test.acv[, , 1] - beta.gg - t(beta.gg) + t(train.beta) %*% test.GG %*% (train.beta)))
       }
     }
   }
@@ -220,16 +225,17 @@ yw.cv <- function(xx, method = c('lasso', 'ds'),
   lambda.min <- min(lambda.path[apply(cv.err.mat, 1, min) == min(apply(cv.err.mat, 1, min))])
   order.min <- min(var.order[apply(cv.err.mat, 2, min) == min(apply(cv.err.mat, 2, min))])
 
-  if(do.plot){
-    matplot(lambda.path, cv.err.mat, type = 'b', col = 2:(max(var.order) + 1), pch = 2:(max(var.order) + 1),
-            log = 'x', xlab = 'lambda (log scale)', ylab = 'CV error', main = 'CV for VAR parameter estimation')
+  if (do.plot) {
+    matplot(lambda.path, cv.err.mat,
+      type = "b", col = 2:(max(var.order) + 1), pch = 2:(max(var.order) + 1),
+      log = "x", xlab = "lambda (log scale)", ylab = "CV error", main = "CV for VAR parameter estimation"
+    )
     abline(v = lambda.min)
-    legend('topleft', legend = var.order, col = 2:(max(var.order) + 1), pch = 2:(max(var.order) + 1), lty = 1)
+    legend("topleft", legend = var.order, col = 2:(max(var.order) + 1), pch = 2:(max(var.order) + 1), lty = 1)
   }
 
   out <- list(lambda = lambda.min, var.order = order.min, cv.error = cv.err.mat, lambda.path = lambda.path)
   return(out)
-
 }
 
 
@@ -237,44 +243,45 @@ yw.cv <- function(xx, method = c('lasso', 'ds'),
 
 #' @title logarithmic factorial of `n`
 #' @keywords internal
-log.factorial <- function(n)  sum(log(1:max(n,1) ))
+log.factorial <- function(n) sum(log(1:max(n, 1)))
 
 #' @title full likelihood
 #' @keywords internal
-f.func.full <- function (GG, gg, A) {
-  return(0.5* sum(diag(GG[1:ncol(A),1:ncol(A)] +  t(A) %*% GG %*% A -  t(A) %*% gg - t(gg) %*% A )))
+f.func.full <- function(GG, gg, A) {
+  return(0.5 * sum(diag(GG[1:ncol(A), 1:ncol(A)] + t(A) %*% GG %*% A - t(A) %*% gg - t(gg) %*% A)))
 }
 
-f.func.mat <- function (GG, gg, A) {
-  return(0.5* (diag(GG[1:ncol(A),1:ncol(A)] +  t(A) %*% GG %*% A -  t(A) %*% gg - t(gg) %*% A )))
+f.func.mat <- function(GG, gg, A) {
+  return(0.5 * (diag(GG[1:ncol(A), 1:ncol(A)] + t(A) %*% GG %*% A - t(A) %*% gg - t(gg) %*% A)))
 }
 
 #' @title extended Bayesian Information Criterion
 #' @keywords internal
-ebic <- function(object, n, penalty = 1){
+ebic <- function(object, n, penalty = 1) {
   beta <- object$idio.var$beta
   p <- ncol(beta)
-  d <- nrow(beta)/ncol(beta)
-  #s_cols <- colSums(beta != 0)
-  sparsity <- sum(beta != 0) #sum(s_cols)
+  d <- nrow(beta) / ncol(beta)
+  # s_cols <- colSums(beta != 0)
+  sparsity <- sum(beta != 0) # sum(s_cols)
   mg <- make.gg(object$acv$Gamma_i, d)
-  gg <- mg$gg; GG <- mg$GG
-  n/2 * log(2*f.func.full(GG,gg,beta)) + sparsity * log(n) +
-    2*penalty *(log.factorial(p^2*d) - log.factorial(sparsity) - log.factorial(p^2*d-sparsity) )
+  gg <- mg$gg
+  GG <- mg$GG
+  n / 2 * log(2 * f.func.full(GG, gg, beta)) + sparsity * log(n) +
+    2 * penalty * (log.factorial(p^2 * d) - log.factorial(sparsity) - log.factorial(p^2 * d - sparsity))
 }
 
 
 #' @title Information criterion for factor-adjusted VAR estimation
 #' @importFrom graphics abline legend matplot
 #' @keywords internal
-yw.ic <- function(xx, method = c('lasso', 'ds'),
+yw.ic <- function(xx, method = c("lasso", "ds"),
                   lambda.max = NULL, var.order = 1,
                   penalty = NULL, path.length = 10,
-                  q = 0, kern.const = 4, do.plot = FALSE){
+                  q = 0, kern.const = 4, do.plot = FALSE) {
   n <- ncol(xx)
   p <- nrow(xx)
-  if(is.null(penalty)) penalty <- 1/(1+exp(5-p/n))
-  if(is.null(lambda.max)) lambda.max <- max(abs(xx %*% t(xx)/n)) * 1
+  if (is.null(penalty)) penalty <- 1 / (1 + exp(5 - p / n))
+  if (is.null(lambda.max)) lambda.max <- max(abs(xx %*% t(xx) / n)) * 1
   lambda.path <- round(exp(seq(log(lambda.max), log(lambda.max * .0001), length.out = path.length)), digits = 10)
 
   ic.err.mat <- matrix(0, nrow = path.length, ncol = length(var.order))
@@ -284,18 +291,23 @@ yw.ic <- function(xx, method = c('lasso', 'ds'),
 
   acv <- dyn.pca(xx, q = q, kern.const = kern.const, mm = max(var.order))$acv$Gamma_i
 
-  for(jj in 1:length(var.order)){
+  for (jj in 1:length(var.order)) {
     mg <- make.gg(acv, var.order[jj])
-    gg <- mg$gg; GG <- mg$GG
-    test.gg <- mg$gg; test.GG <- mg$GG
-    for(ii in 1:path.length){
-      if(method == 'ds') beta <- var.dantzig(GG, gg, lambda = lambda.path[ii])$beta
-      if(method == 'lasso') beta <- var.lasso(GG, gg, lambda = lambda.path[ii])$beta
+    gg <- mg$gg
+    GG <- mg$GG
+    test.gg <- mg$gg
+    test.GG <- mg$GG
+    for (ii in 1:path.length) {
+      if (method == "ds") beta <- var.dantzig(GG, gg, lambda = lambda.path[ii])$beta
+      if (method == "lasso") beta <- var.lasso(GG, gg, lambda = lambda.path[ii])$beta
       beta <- threshold(beta, do.plot = do.plot)$thr.mat
-      sparsity <- sum(beta[,1] != 0)
-      if(sparsity == 0) pen <- 0 else
+      sparsity <- sum(beta[, 1] != 0)
+      if (sparsity == 0) {
+        pen <- 0
+      } else {
         pen <- 2 * penalty * (log.factorial(var.order[jj] * p) - log(sparsity) - log(var.order[jj] * p - sparsity))
-      ic.err.mat[ii, jj] <- ic.err.mat[ii, jj] + n/2 * log(2*f.func.mat(GG,gg,beta)[1])  + sparsity * log(n) + pen
+      }
+      ic.err.mat[ii, jj] <- ic.err.mat[ii, jj] + n / 2 * log(2 * f.func.mat(GG, gg, beta)[1]) + sparsity * log(n) + pen
       # sparsity <- sum(beta != 0)
       # if(sparsity == 0) pen <- 0 else
       #   pen <- 2 * penalty * (log.factorial(var.order[jj] * p^2) - log(sparsity) - log(var.order[jj] * p^2 - sparsity))
@@ -308,11 +320,13 @@ yw.ic <- function(xx, method = c('lasso', 'ds'),
   lambda.min <- min(lambda.path[apply(ic.err.mat, 1, min) == min(apply(ic.err.mat, 1, min))])
   order.min <- min(var.order[apply(ic.err.mat, 2, min) == min(apply(ic.err.mat, 2, min))])
 
-  if(do.plot){
-    matplot(lambda.path, ic.err.mat, type = 'b', col = 2:(max(var.order) + 1), pch = 2:(max(var.order) + 1),
-            log = 'x', xlab = 'lambda (log scale)', ylab = 'IC', main = 'IC for VAR parameter estimation')
+  if (do.plot) {
+    matplot(lambda.path, ic.err.mat,
+      type = "b", col = 2:(max(var.order) + 1), pch = 2:(max(var.order) + 1),
+      log = "x", xlab = "lambda (log scale)", ylab = "IC", main = "IC for VAR parameter estimation"
+    )
     abline(v = lambda.min)
-    legend('topleft', legend = var.order, col = 2:(max(var.order) + 1), pch = 2:(max(var.order) + 1), lty = 1)
+    legend("topleft", legend = var.order, col = 2:(max(var.order) + 1), pch = 2:(max(var.order) + 1), lty = 1)
   }
 
   out <- list(lambda = lambda.min, var.order = order.min, ic.error = ic.err.mat, lambda.path = lambda.path)
@@ -343,26 +357,29 @@ yw.ic <- function(xx, method = c('lasso', 'ds'),
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
 #' out <- fnets(x, q = NULL, idio.var.order = 1, idio.method = "lasso", lrpc.method = "none")
-#' cpre <- common.predict(out, x, h = 1, common.method = 'restricted', r = NULL)
+#' cpre <- common.predict(out, x, h = 1, common.method = "restricted", r = NULL)
 #' ipre <- idio.predict(out, x, cpre, h = 1)
 #' @export
-idio.predict <- function(object, x, cpre, h = 1){
-  p <- dim(x)[1]; n <- dim(x)[2]
+idio.predict <- function(object, x, cpre, h = 1) {
+  p <- dim(x)[1]
+  n <- dim(x)[2]
   # if(attr(object, 'factor') == 'dynamic'){
 
-    xx <- x - object$mean.x
-    beta <- object$idio.var$beta
-    d <- dim(beta)[1]/p
-    A <- t(beta)
+  xx <- x - object$mean.x
+  beta <- object$idio.var$beta
+  d <- dim(beta)[1] / p
+  A <- t(beta)
 
-    is <- xx - cpre$is
-    if(h >= 1){
-      fc <- matrix(0, nrow = p, ncol = h)
-      for(ii in 1:h){
-        for(ll in 1:d) fc[, ii] <- fc[, ii] + A[, p * (ll - 1) + 1:p] %*% is[, n + ii - ll]
-        is <- cbind(is, fc[, ii])
-      }
-    } else fc <- NA
+  is <- xx - cpre$is
+  if (h >= 1) {
+    fc <- matrix(0, nrow = p, ncol = h)
+    for (ii in 1:h) {
+      for (ll in 1:d) fc[, ii] <- fc[, ii] + A[, p * (ll - 1) + 1:p] %*% is[, n + ii - ll]
+      is <- cbind(is, fc[, ii])
+    }
+  } else {
+    fc <- NA
+  }
   # }
   # if(attr(object, 'factor') == 'static'){
   #   is <- matrix(0, p, n)
@@ -372,49 +389,46 @@ idio.predict <- function(object, x, cpre, h = 1){
 
   out <- list(is = is[, 1:n], fc = fc, h = h)
   return(out)
-
 }
 
 #' @keywords internal
-make.gg <- function(acv, d){
-
+make.gg <- function(acv, d) {
   p <- dim(acv)[1]
   gg <- matrix(0, nrow = p * d, ncol = p)
   GG <- matrix(0, p * d, p * d)
-  for(ll in 1:d){
-    gg[(ll - 1) * p + 1:p, ] <- acv[,, ll + 1]
-    for(lll in ll:d){
-      GG[(ll - 1) * p + 1:p, (lll - 1) * p + 1:p] <- t(acv[,, 1 + lll - ll])
-      GG[(lll - 1) * p + 1:p, (ll - 1) * p + 1:p] <- acv[,, 1 + lll - ll]
+  for (ll in 1:d) {
+    gg[(ll - 1) * p + 1:p, ] <- acv[, , ll + 1]
+    for (lll in ll:d) {
+      GG[(ll - 1) * p + 1:p, (lll - 1) * p + 1:p] <- t(acv[, , 1 + lll - ll])
+      GG[(lll - 1) * p + 1:p, (ll - 1) * p + 1:p] <- acv[, , 1 + lll - ll]
     }
   }
   out <- list(gg = gg, GG = GG)
   return(out)
-
 }
 
 #' @keywords internal
-f.func <- function(GG, gg, A){
+f.func <- function(GG, gg, A) {
   return(.5 * sum(diag(t(A) %*% GG %*% A - 2 * t(A) %*% gg)))
 }
 
 #' @keywords internal
-gradf.func <- function(GG, gg, A){
+gradf.func <- function(GG, gg, A) {
   return(GG %*% (A) - gg)
 }
 
 #' @keywords internal
-Q.func <- function(A, A.up, L, GG, gg){
+Q.func <- function(A, A.up, L, GG, gg) {
   Adiff <- (A - A.up)
   return(f.func(GG, gg, A.up) + sum(Adiff * gradf.func(GG, gg, A.up)) + 0.5 * L * norm(Adiff, "F")^2)
 }
 
 #' @keywords internal
-prox.func <- function(B, lambda, L, GG, gg){
-  b <- B - (1/L) * gradf.func(GG, gg, B)
+prox.func <- function(B, lambda, L, GG, gg) {
+  b <- B - (1 / L) * gradf.func(GG, gg, B)
   sgn <- sign(b)
   ab <- abs(b)
-  sub <- ab - 2*lambda/L
+  sub <- ab - 2 * lambda / L
   sub[sub < 0] <- 0
   out <- sub * sgn
   return(as.matrix(out))
@@ -439,24 +453,24 @@ prox.func <- function(B, lambda, L, GG, gg){
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' Liu, B., Zhang, X. & Liu, Y. (2021) Simultaneous Change Point Inference and Structure Recovery for High Dimensional Gaussian Graphical Models. Journal of Machine Learning Research, 22(274), 1--62.
 #' @keywords internal
-threshold <- function(mat, path.length = 500, do.plot = FALSE){
+threshold <- function(mat, path.length = 500, do.plot = FALSE) {
   p <- dim(mat)[1]
   M <- max(abs(mat), 1e-3)
   m <- max(min(abs(mat)), M * .01, 1e-4)
   rseq <- round(exp(seq(log(M), log(m), length.out = path.length)), digits = 10)
   cusum <- ratio <- rseq * 0
-  for(ii in 1:path.length){
+  for (ii in 1:path.length) {
     A <- mat
     A[abs(A) < rseq[ii]] <- 0
     edges <- sum(A != 0)
-    ratio[ii] <- edges/(prod(dim(mat)) - edges)
+    ratio[ii] <- edges / (prod(dim(mat)) - edges)
   }
   dif <- diff(ratio) / diff(rseq)
-  for(ii in 2:(path.length - 1)) cusum[ii] <- (mean(dif[2:ii - 1]) - mean(dif[ii:(path.length - 1)])) * (ii/sqrt(path.length))*(1 - ii/path.length)
+  for (ii in 2:(path.length - 1)) cusum[ii] <- (mean(dif[2:ii - 1]) - mean(dif[ii:(path.length - 1)])) * (ii / sqrt(path.length)) * (1 - ii / path.length)
 
   thr <- rseq[which.max(abs(cusum))]
 
-  if(do.plot){
+  if (do.plot) {
     par(mfrow = c(1, 3))
     plot(rseq, ratio, type = "l", xlab = "threshold")
     abline(v = thr)
@@ -470,5 +484,4 @@ threshold <- function(mat, path.length = 500, do.plot = FALSE){
   A[abs(A) < thr] <- 0
   out <- list(threshold = thr, thr.mat = A)
   return(out)
-
 }

@@ -129,11 +129,13 @@ p <- 50
 common <- sim.common1(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
-out <- fnets(x, q = NULL, idio.var.order = 1, idio.method = "lasso",
-lrpc.method = "par", cv.args = list(n.folds = 1, path.length = 10, do.plot = TRUE))
-pre <- predict(out, x, h = 1, common.method = 'unrestricted')
-plot(out, type = 'granger', display = 'network', threshold = .05)
-plot(out, type = 'lrpc', display = 'heatmap', threshold = .05)
+out <- fnets(x,
+  q = NULL, idio.var.order = 1, idio.method = "lasso",
+  lrpc.method = "par", cv.args = list(n.folds = 1, path.length = 10, do.plot = TRUE)
+)
+pre <- predict(out, x, h = 1, common.method = "unrestricted")
+plot(out, type = "granger", display = "network", threshold = .05)
+plot(out, type = "lrpc", display = "heatmap", threshold = .05)
 }
 }
 \references{

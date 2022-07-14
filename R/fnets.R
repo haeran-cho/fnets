@@ -88,33 +88,35 @@
 #' common <- sim.common1(n, p)
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
-#' out <- fnets(x, q = NULL, idio.var.order = 1, idio.method = "lasso",
-#' lrpc.method = "par", cv.args = list(n.folds = 1, path.length = 10, do.plot = TRUE))
-#' pre <- predict(out, x, h = 1, common.method = 'unrestricted')
-#' plot(out, type = 'granger', display = 'network', threshold = .05)
-#' plot(out, type = 'lrpc', display = 'heatmap', threshold = .05)
+#' out <- fnets(x,
+#'   q = NULL, idio.var.order = 1, idio.method = "lasso",
+#'   lrpc.method = "par", cv.args = list(n.folds = 1, path.length = 10, do.plot = TRUE)
+#' )
+#' pre <- predict(out, x, h = 1, common.method = "unrestricted")
+#' plot(out, type = "granger", display = "network", threshold = .05)
+#' plot(out, type = "lrpc", display = "heatmap", threshold = .05)
 #' }
 #' @seealso \link[fnets]{predict.fnets}, \link[fnets]{plot.fnets}
 #' @importFrom graphics par
 #' @export
-fnets <- function(x, center = TRUE, factor.model = c('dynamic','static'), q = NULL, ic.op = NULL, kern.const = 4,
+fnets <- function(x, center = TRUE, factor.model = c("dynamic", "static"), q = NULL, ic.op = NULL, kern.const = 4,
                   common.args = list(var.order = NULL, max.var.order = NULL, trunc.lags = 20, n.perm = 10),
-                  idio.var.order = 1, idio.method = c('lasso', 'ds'),
-                  idio.args = list(tuning = c('cv','ic'), n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3)),
+                  idio.var.order = 1, idio.method = c("lasso", "ds"),
+                  idio.args = list(tuning = c("cv", "ic"), n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3)),
                   idio.threshold = FALSE,
-                  lrpc.method = c('par', 'npar', 'none'), lrpc.adaptive = FALSE,
-                  cv.args = list(n.folds = 1, penalty = NULL, path.length = 10, do.plot = FALSE)){
+                  lrpc.method = c("par", "npar", "none"), lrpc.adaptive = FALSE,
+                  cv.args = list(n.folds = 1, penalty = NULL, path.length = 10, do.plot = FALSE)) {
   p <- dim(x)[1]
   n <- dim(x)[2]
 
-  idio.method <- match.arg(idio.method, c('lasso', 'ds'))
-  tuning <- match.arg(idio.args$tuning, c('cv','ic'))
-  factor.model <- match.arg(factor.model, c('dynamic','static'))
-  lrpc.method <- match.arg(lrpc.method, c('par', 'npar', 'none'))
-  if(center) mean.x <- apply(x, 1, mean) else mean.x <- rep(0, p)
+  idio.method <- match.arg(idio.method, c("lasso", "ds"))
+  tuning <- match.arg(idio.args$tuning, c("cv", "ic"))
+  factor.model <- match.arg(factor.model, c("dynamic", "static"))
+  lrpc.method <- match.arg(lrpc.method, c("par", "npar", "none"))
+  if (center) mean.x <- apply(x, 1, mean) else mean.x <- rep(0, p)
   xx <- x - mean.x
 
-  if(factor.model == "static"){
+  if (factor.model == "static") {
     spca <- static.pca(xx, q.max = NULL, q = q, ic.op = ic.op)
     q <- spca$q
     lam <- spca$lam
@@ -123,7 +125,7 @@ fnets <- function(x, center = TRUE, factor.model = c('dynamic','static'), q = NU
     acv <- spca$acv
     cve <- NULL
   }
-  if(factor.model == "dynamic"){
+  if (factor.model == "dynamic") {
     # dynamic pca
     dpca <- dyn.pca(xx, q, ic.op, kern.const)
     q <- dpca$q
@@ -132,52 +134,62 @@ fnets <- function(x, center = TRUE, factor.model = c('dynamic','static'), q = NU
     lam <- NULL
     f <- NULL
     ## common VAR estimation
-    cve <- common.irf.estimation(xx, Gamma_c = acv$Gamma_c, q = q,
-                                 var.order = common.args$var.order, max.var.order = common.args$max.var.order,
-                                 trunc.lags = common.args$trunc.lags, n.perm = common.args$n.perm)
+    cve <- common.irf.estimation(xx,
+      Gamma_c = acv$Gamma_c, q = q,
+      var.order = common.args$var.order, max.var.order = common.args$max.var.order,
+      trunc.lags = common.args$trunc.lags, n.perm = common.args$n.perm
+    )
   }
 
   ## idio estimation
-  if(cv.args$do.plot) par(mfrow = c(1, 1 + lrpc.method %in% c('par', 'npar')))
-  if(tuning == "cv"){
-    icv <- yw.cv(xx, method = idio.method,
-                 lambda.max = NULL, var.order = idio.var.order,
-                 n.folds = cv.args$n.folds, path.length = cv.args$path.length,
-                 q = q, kern.const = kern.const, do.plot = cv.args$do.plot)
+  if (cv.args$do.plot) par(mfrow = c(1, 1 + lrpc.method %in% c("par", "npar")))
+  if (tuning == "cv") {
+    icv <- yw.cv(xx,
+      method = idio.method,
+      lambda.max = NULL, var.order = idio.var.order,
+      n.folds = cv.args$n.folds, path.length = cv.args$path.length,
+      q = q, kern.const = kern.const, do.plot = cv.args$do.plot
+    )
   }
 
-  if(tuning == "ic"){
-    icv <- yw.ic(xx, method = idio.method,
-                 lambda.max = NULL, var.order = idio.var.order,
-                 penalty = cv.args$penalty, path.length = cv.args$path.length,
-                 q = q, kern.const = kern.const, do.plot = cv.args$do.plot)
+  if (tuning == "ic") {
+    icv <- yw.ic(xx,
+      method = idio.method,
+      lambda.max = NULL, var.order = idio.var.order,
+      penalty = cv.args$penalty, path.length = cv.args$path.length,
+      q = q, kern.const = kern.const, do.plot = cv.args$do.plot
+    )
   }
 
 
   mg <- make.gg(acv$Gamma_i, icv$var.order)
-  gg <- mg$gg; GG <- mg$GG
-  if(idio.method == 'lasso') ive <- var.lasso(GG, gg, lambda = icv$lambda, symmetric = 'min', n.iter = idio.args$n.iter, tol = idio.args$tol)
-  if(idio.method == 'ds') ive <- var.dantzig(GG, gg, lambda = icv$lambda, symmetric = 'min', n.cores = idio.args$n.cores)
+  gg <- mg$gg
+  GG <- mg$GG
+  if (idio.method == "lasso") ive <- var.lasso(GG, gg, lambda = icv$lambda, symmetric = "min", n.iter = idio.args$n.iter, tol = idio.args$tol)
+  if (idio.method == "ds") ive <- var.dantzig(GG, gg, lambda = icv$lambda, symmetric = "min", n.cores = idio.args$n.cores)
   ive$var.order <- icv$var.order
-  if(idio.threshold) ive$beta <- threshold(ive$beta, do.plot = cv.args$do.plot)$thr.mat
+  if (idio.threshold) ive$beta <- threshold(ive$beta, do.plot = cv.args$do.plot)$thr.mat
 
-  out <- list(q = q, spec = spec, lam=lam, f=f, acv = acv,
-              common.irf = cve, idio.var = ive, mean.x = mean.x,
-              idio.method = idio.method, lrpc.method = lrpc.method, kern.const = kern.const)
+  out <- list(
+    q = q, spec = spec, lam = lam, f = f, acv = acv,
+    common.irf = cve, idio.var = ive, mean.x = mean.x,
+    idio.method = idio.method, lrpc.method = lrpc.method, kern.const = kern.const
+  )
 
-  if(factor.model == "static") attr(out, 'factor') <- 'static'
-  if(factor.model == "dynamic") attr(out, 'factor') <- 'dynamic'
+  if (factor.model == "static") attr(out, "factor") <- "static"
+  if (factor.model == "dynamic") attr(out, "factor") <- "dynamic"
 
   ## lrpc estimation
-  if(lrpc.method %in% c('par', 'npar')){
-    if(lrpc.method == 'par') lrpc <- par.lrpc(out, x, eta = NULL, cv.args = cv.args, lrpc.adaptive = lrpc.adaptive)
-    if(lrpc.method == 'npar') lrpc <- npar.lrpc(out, x, eta = NULL, cv.args = cv.args)
+  if (lrpc.method %in% c("par", "npar")) {
+    if (lrpc.method == "par") lrpc <- par.lrpc(out, x, eta = NULL, cv.args = cv.args, lrpc.adaptive = lrpc.adaptive)
+    if (lrpc.method == "npar") lrpc <- npar.lrpc(out, x, eta = NULL, cv.args = cv.args)
     out$lrpc <- lrpc
-  } else out$lrpc <- NA
+  } else {
+    out$lrpc <- NA
+  }
 
-  attr(out, 'class') <- 'fnets'
+  attr(out, "class") <- "fnets"
   return(out)
-
 }
 
 #' @title Dynamic PCA
@@ -197,34 +209,34 @@ fnets <- function(x, center = TRUE, factor.model = c('dynamic','static'), q = NU
 #' \item{kern.const}{ input parameter}
 #' @importFrom stats fft
 #' @keywords internal
-dyn.pca <- function(xx, q = NULL, ic.op = 5, kern.const = 4, mm = NULL){
-
+dyn.pca <- function(xx, q = NULL, ic.op = 5, kern.const = 4, mm = NULL) {
   p <- dim(xx)[1]
   n <- dim(xx)[2]
 
-  if(is.null(ic.op)) ic.op <- 5
-  if(is.null(mm)) mm <- min(max(1, kern.const * floor((n/log(n))^(1/3))), floor(n/4) - 1) else mm <- min(max(mm, 1, kern.const * floor((n/log(n))^(1/3))), floor(n/4) - 1)
+  if (is.null(ic.op)) ic.op <- 5
+  if (is.null(mm)) mm <- min(max(1, kern.const * floor((n / log(n))^(1 / 3))), floor(n / 4) - 1) else mm <- min(max(mm, 1, kern.const * floor((n / log(n))^(1 / 3))), floor(n / 4) - 1)
   len <- 2 * mm
-  w <- Bartlett.weights(((-mm):mm)/mm)
+  w <- Bartlett.weights(((-mm):mm) / mm)
 
   # dynamic pca
 
-  if(!is.null(q)){
-    q <- as.integer(q); hl <- NA
+  if (!is.null(q)) {
+    q <- as.integer(q)
+    hl <- NA
     Gamma_x <- Gamma_xw <- array(0, dim = c(p, p, 2 * mm + 1))
-    for(h in 0:(mm - 1)){
-      Gamma_x[, , h + 1] <- xx[, 1:(n - h)] %*% t(xx[, 1:(n - h) + h])/n
+    for (h in 0:(mm - 1)) {
+      Gamma_x[, , h + 1] <- xx[, 1:(n - h)] %*% t(xx[, 1:(n - h) + h]) / n
       Gamma_xw[, , h + 1] <- Gamma_x[, , h + 1] * w[h + mm + 1]
-      if(h != 0){
+      if (h != 0) {
         Gamma_x[, , 2 * mm + 1 - h + 1] <- t(Gamma_x[, , h + 1])
         Gamma_xw[, , 2 * mm + 1 - h + 1] <- t(Gamma_xw[, , h + 1])
       }
     }
     Sigma_x <- aperm(apply(Gamma_xw, c(1, 2), fft), c(2, 3, 1)) / (2 * pi)
     sv <- list(1:(mm + 1))
-    if(q > 0) for(ii in 1:(mm + 1)) sv[[ii]] <- svd(Sigma_x[, , ii], nu = q, nv = 0)
+    if (q > 0) for (ii in 1:(mm + 1)) sv[[ii]] <- svd(Sigma_x[, , ii], nu = q, nv = 0)
   }
-  if(is.null(q)){
+  if (is.null(q)) {
     q.max <- min(50, floor(sqrt(min(n - 1, p))))
     hl <- hl.factor.number(xx, q.max, mm, w, center = FALSE)
     q <- hl$q.hat[ic.op]
@@ -234,11 +246,11 @@ dyn.pca <- function(xx, q = NULL, ic.op = 5, kern.const = 4, mm = NULL){
   }
 
   Gamma_c <- Gamma_i <- Sigma_c <- Sigma_i <- Sigma_x * 0
-  if(q >= 1){
-    for(ii in 1:(mm + 1)){
-      Sigma_c[,, ii] <- sv[[ii]]$u[, 1:q, drop = FALSE] %*% diag(sv[[ii]]$d[1:q], q) %*% Conj(t(sv[[ii]]$u[, 1:q, drop = FALSE]))
-      if(ii > 1){
-        Sigma_c[,, 2 * mm + 1 - (ii - 1) + 1] <- Conj(Sigma_c[,, ii])
+  if (q >= 1) {
+    for (ii in 1:(mm + 1)) {
+      Sigma_c[, , ii] <- sv[[ii]]$u[, 1:q, drop = FALSE] %*% diag(sv[[ii]]$d[1:q], q) %*% Conj(t(sv[[ii]]$u[, 1:q, drop = FALSE]))
+      if (ii > 1) {
+        Sigma_c[, , 2 * mm + 1 - (ii - 1) + 1] <- Conj(Sigma_c[, , ii])
       }
     }
     Gamma_c <- aperm(apply(Sigma_c, c(1, 2), fft, inverse = TRUE), c(2, 3, 1)) * (2 * pi) / (2 * mm + 1)
@@ -252,7 +264,6 @@ dyn.pca <- function(xx, q = NULL, ic.op = 5, kern.const = 4, mm = NULL){
 
   out <- list(q = q, hl = hl, spec = spec, acv = acv, kern.const = kern.const)
   return(out)
-
 }
 
 #' @title Factor number estimator of Hallin and Liška (2007)
@@ -277,33 +288,36 @@ dyn.pca <- function(xx, q = NULL, ic.op = 5, kern.const = 4, mm = NULL){
 #' @importFrom graphics par abline box axis legend
 #' @importFrom stats var
 #' @export
-hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = FALSE, center = TRUE){
-  p <- dim(x)[1]; n <- dim(x)[2]
-  if(is.null(q.max)) q.max <- min(50, floor(sqrt(min(n - 1, p))))
+hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = FALSE, center = TRUE) {
+  p <- dim(x)[1]
+  n <- dim(x)[2]
+  if (is.null(q.max)) q.max <- min(50, floor(sqrt(min(n - 1, p))))
 
-  if(center) mean.x <- apply(x, 1, mean) else mean.x <- rep(0, p)
+  if (center) mean.x <- apply(x, 1, mean) else mean.x <- rep(0, p)
   xx <- x - mean.x
 
-  if(is.null(w)) w <- Bartlett.weights(((-mm):mm)/mm)
+  if (is.null(w)) w <- Bartlett.weights(((-mm):mm) / mm)
 
-  p.seq <- floor(3*p/4 + (1:10) * p/40)
-  n.seq <- n - (9:0) * floor(n/20)
+  p.seq <- floor(3 * p / 4 + (1:10) * p / 40)
+  n.seq <- n - (9:0) * floor(n / 20)
   const.seq <- seq(.001, 2, by = .01)
   IC <- array(0, dim = c(q.max + 1, length(const.seq), 10, 2 * 3))
 
   Gamma_x <- Gamma_xw <- array(0, dim = c(p, p, 2 * mm + 1))
 
-  for(kk in 1:10){
+  for (kk in 1:10) {
     nn <- n.seq[kk]
     pp <- p.seq[kk]
-    pen <- c((1/mm^2 + sqrt(mm/nn) + 1/pp) * log(min(pp, mm^2, sqrt(nn/mm))),
-             1/sqrt(min(pp, mm^2, sqrt(nn/mm))),
-             1/min(pp, mm^2, sqrt(nn/mm)) * log(min(pp, mm^2, sqrt(nn/mm))))
+    pen <- c(
+      (1 / mm^2 + sqrt(mm / nn) + 1 / pp) * log(min(pp, mm^2, sqrt(nn / mm))),
+      1 / sqrt(min(pp, mm^2, sqrt(nn / mm))),
+      1 / min(pp, mm^2, sqrt(nn / mm)) * log(min(pp, mm^2, sqrt(nn / mm)))
+    )
 
-    for(h in 0:(mm - 1)){
-      Gamma_x[, , h + 1] <- xx[, 1:(nn - h)] %*% t(xx[, 1:(nn - h) + h])/nn
+    for (h in 0:(mm - 1)) {
+      Gamma_x[, , h + 1] <- xx[, 1:(nn - h)] %*% t(xx[, 1:(nn - h) + h]) / nn
       Gamma_xw[, , h + 1] <- Gamma_x[, , h + 1] * w[h + mm + 1]
-      if(h != 0){
+      if (h != 0) {
         Gamma_x[, , 2 * mm + 1 - h + 1] <- t(Gamma_x[, , h + 1])
         Gamma_xw[, , 2 * mm + 1 - h + 1] <- t(Gamma_xw[, , h + 1])
       }
@@ -312,17 +326,17 @@ hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = FALSE, cen
     sv <- list(1:(mm + 1))
 
     tmp <- rep(0, q.max + 1)
-    for(ii in 1:(mm + 1)){
-      if(kk == length(n.seq)) nu <- q.max else nu <- 0
+    for (ii in 1:(mm + 1)) {
+      if (kk == length(n.seq)) nu <- q.max else nu <- 0
       sv[[ii]] <- svd(Sigma_x[1:pp, 1:pp, ii], nu = nu, nv = 0)
       dd <- sum(sv[[ii]]$d)
-      tmp[1] <- tmp[1] + dd/pp/(2 * mm + 1)
-      for(jj in 1:q.max) {
+      tmp[1] <- tmp[1] + dd / pp / (2 * mm + 1)
+      for (jj in 1:q.max) {
         dd <- dd - sv[[ii]]$d[jj]
-        tmp[jj + 1] <- tmp[jj + 1] + dd/pp/(2 * mm + 1)
+        tmp[jj + 1] <- tmp[jj + 1] + dd / pp / (2 * mm + 1)
       }
-      for(jj in 1:length(const.seq)){
-        for(pen.op in 1:3){
+      for (jj in 1:length(const.seq)) {
+        for (pen.op in 1:3) {
           IC[, jj, kk, 3 * 0 + pen.op] <- tmp + (0:q.max) * const.seq[jj] * pen[pen.op]
           IC[, jj, kk, 3 * 1 + pen.op] <- log(tmp) + (0:q.max) * const.seq[jj] * pen[pen.op]
         }
@@ -333,36 +347,35 @@ hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = FALSE, cen
   q.mat <- apply(IC, c(2, 3, 4), which.min)
   Sc <- apply(q.mat, c(1, 3), var)
   q.hat <- rep(0, 6)
-  for(ii in 1:6){
+  for (ii in 1:6) {
     ss <- Sc[, ii]
-    if(min(ss) > 0){
-      q.hat[ii] <- min(q.mat[max(which(ss == min(ss))),, ii]) - 1
-    } else{
-      if(sum(ss[-length(const.seq)] != 0 & ss[-1] == 0)){
+    if (min(ss) > 0) {
+      q.hat[ii] <- min(q.mat[max(which(ss == min(ss))), , ii]) - 1
+    } else {
+      if (sum(ss[-length(const.seq)] != 0 & ss[-1] == 0)) {
         q.hat[ii] <- q.mat[which(ss[-length(const.seq)] != 0 & ss[-1] == 0)[1] + 1, 10, ii] - 1
-      } else{
-        q.hat[ii] <- min(q.mat[max(which(ss == 0)),, ii]) - 1
+      } else {
+        q.hat[ii] <- min(q.mat[max(which(ss == 0)), , ii]) - 1
       }
     }
   }
 
-  if(do.plot){
+  if (do.plot) {
     par(mfrow = c(2, 3))
-    for(ii in 1:6){
-      plot(const.seq, q.mat[, 10, ii] - 1, type = 'b', pch = 1, col = 2, bty = 'n', axes = FALSE, xlab = 'constant', ylab = '', main = paste('IC ', ii))
+    for (ii in 1:6) {
+      plot(const.seq, q.mat[, 10, ii] - 1, type = "b", pch = 1, col = 2, bty = "n", axes = FALSE, xlab = "constant", ylab = "", main = paste("IC ", ii))
       box()
       axis(1, at = pretty(range(const.seq)))
       axis(2, at = pretty(range(q.mat[, 10, ii] - 1)), col = 2, col.ticks = 2, col.axis = 2)
       par(new = TRUE)
-      plot(const.seq, Sc[, ii], col = 4, pch = 2, type = 'b', bty = 'n', axes = FALSE, xlab = '', ylab = '')
+      plot(const.seq, Sc[, ii], col = 4, pch = 2, type = "b", bty = "n", axes = FALSE, xlab = "", ylab = "")
       axis(4, at = pretty(range(Sc[, ii])), col = 4, col.ticks = 4, col.axis = 4)
-      legend('topright', legend = c('q', 'Sc'), col = c(2, 4), lty = c(1, 1), pch = c(1, 2), bty = 'n')
+      legend("topright", legend = c("q", "Sc"), col = c(2, 4), lty = c(1, 1), pch = c(1, 2), bty = "n")
     }
   }
 
   ls <- list(q.hat = q.hat, Gamma_x = Gamma_x, Sigma_x = Sigma_x, sv = sv)
   return(ls)
-
 }
 
 #' @title Forecasting by fnets
@@ -390,16 +403,16 @@ hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = FALSE, cen
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 #' @seealso \link[fnets]{fnets}, \link[fnets]{common.predict}, \link[fnets]{idio.predict}
 #' @export
-predict.fnets <- function(object, x, h = 1, common.method = c('restricted', 'unrestricted'), r = NULL, ...){
-
+predict.fnets <- function(object, x, h = 1, common.method = c("restricted", "unrestricted"), r = NULL, ...) {
   cpre <- common.predict(object, x, h, common.method, r)
   ipre <- idio.predict(object, x, cpre, h)
 
-  out <- list(forecast = cpre$fc + ipre$fc,
-              common.pred = cpre, idio.pred = ipre,
-              mean.x = object$mean.x)
+  out <- list(
+    forecast = cpre$fc + ipre$fc,
+    common.pred = cpre, idio.pred = ipre,
+    mean.x = object$mean.x
+  )
   return(out)
-
 }
 
 #' @title Plotting the networks estimated by fnets
@@ -434,85 +447,87 @@ predict.fnets <- function(object, x, h = 1, common.method = c('restricted', 'unr
 #' @importFrom graphics mtext axis
 #' @importFrom RColorBrewer brewer.pal
 #' @export
-plot.fnets <- function(x, type = c('granger', 'pc', 'lrpc'), display = c('network', 'heatmap'),
-                       names = NA, groups = NA, threshold = 0, ...){
-
-  type <- match.arg(type, c('granger', 'pc', 'lrpc'))
-  display <- match.arg(display, c('network', 'heatmap'))
+plot.fnets <- function(x, type = c("granger", "pc", "lrpc"), display = c("network", "heatmap"),
+                       names = NA, groups = NA, threshold = 0, ...) {
+  type <- match.arg(type, c("granger", "pc", "lrpc"))
+  display <- match.arg(display, c("network", "heatmap"))
 
   p <- dim(x$acv$Gamma_x)[1]
   A <- matrix(0, nrow = p, ncol = p)
 
-  if(type == 'granger'){
-    d <- dim(x$idio.var$beta)[1]/p
-    for(ll in 1:d) A <- A + t(x$idio.var$beta)[, (ll - 1) * p + 1:p]
-    nm <- 'Granger causal'
+  if (type == "granger") {
+    d <- dim(x$idio.var$beta)[1] / p
+    for (ll in 1:d) A <- A + t(x$idio.var$beta)[, (ll - 1) * p + 1:p]
+    nm <- "Granger causal"
   }
 
-  if(type == 'pc'){
-    if(x$lrpc.method != 'par'){
-      stop(paste0('Partial correlation matrix is undetected'))
-    } else{
+  if (type == "pc") {
+    if (x$lrpc.method != "par") {
+      stop(paste0("Partial correlation matrix is undetected"))
+    } else {
       A <- x$lrpc$pc
-      nm <- 'Partial correlation'
+      nm <- "Partial correlation"
     }
   }
 
-  if(type == 'lrpc'){
-    if(!(x$lrpc.method %in% c('par', 'npar'))){
-      stop(paste0('Long-run partial correlation matrix is undetected'))
-    } else{
+  if (type == "lrpc") {
+    if (!(x$lrpc.method %in% c("par", "npar"))) {
+      stop(paste0("Long-run partial correlation matrix is undetected"))
+    } else {
       A <- x$lrpc$lrpc
-      nm <- 'Long-run partial correlation'
+      nm <- "Long-run partial correlation"
     }
   }
-  nm <- paste(nm, display, sep = ' ')
+  nm <- paste(nm, display, sep = " ")
 
   A[abs(A) < threshold] <- 0
 
-  if(!is.na(groups[1])){
+  if (!is.na(groups[1])) {
     grps <- perm <- c()
     K <- length(unique(groups))
-    for(ii in 1:K){
+    for (ii in 1:K) {
       permii <- which(groups == unique(groups)[ii])
       perm <- c(perm, permii)
       grps <- c(grps, rep(ii, length(permii)))
     }
-  } else{
+  } else {
     perm <- 1:p
     grps <- rep(1, p)
     K <- 1
   }
   grp.col <- rep(rainbow(K, alpha = 1), table(grps))
   A <- A[perm, perm]
-  if(!is.na(names[1])) names <- names[perm]
+  if (!is.na(names[1])) names <- names[perm]
 
-  if(display == 'network'){
+  if (display == "network") {
     v.col <- rep(rainbow(K, alpha = .2), table(grps))
-    if(type == 'granger') g <- igraph::graph_from_adjacency_matrix(A, mode = 'directed', weighted = TRUE, diag = FALSE, ...)
-    if(type %in% c('pc', 'lrpc')) g <- igraph::graph_from_adjacency_matrix(A, mode = 'undirected', weighted = TRUE, diag = FALSE, ...)
+    if (type == "granger") g <- igraph::graph_from_adjacency_matrix(A, mode = "directed", weighted = TRUE, diag = FALSE, ...)
+    if (type %in% c("pc", "lrpc")) g <- igraph::graph_from_adjacency_matrix(A, mode = "undirected", weighted = TRUE, diag = FALSE, ...)
     lg <- igraph::layout_in_circle(g)
-    igraph::plot.igraph(g, main = nm, layout = lg, vertex.label = names, vertex.label.font = 2,
-                        vertex.shape = 'circle', vertex.color = v.col,
-                        vertex.label.color = grp.col, vertex.label.cex = 0.6,
-                        edge.color = 'gray40', edge.arrow.size = 0.5)
-  } else if(display == "heatmap"){
-    heat.cols <- rev(RColorBrewer::brewer.pal(11, 'RdBu'))
-    if(type == 'granger') mv <- max(1e-3, abs(A))
-    if(type %in% c('pc', 'lrpc')){
+    igraph::plot.igraph(g,
+      main = nm, layout = lg, vertex.label = names, vertex.label.font = 2,
+      vertex.shape = "circle", vertex.color = v.col,
+      vertex.label.color = grp.col, vertex.label.cex = 0.6,
+      edge.color = "gray40", edge.arrow.size = 0.5
+    )
+  } else if (display == "heatmap") {
+    heat.cols <- rev(RColorBrewer::brewer.pal(11, "RdBu"))
+    if (type == "granger") mv <- max(1e-3, abs(A))
+    if (type %in% c("pc", "lrpc")) {
       A[abs(A) > 1] <- sign(A[abs(A) > 1])
       diag(A) <- 0
       mv <- 1.01
     }
     breaks <- seq(-mv, mv, length.out = 12)
 
-    fields::imagePlot(A, axes = FALSE, col = heat.cols,
-                      breaks = breaks, main = nm, ...)
-    if(!is.na(names[1]) || !is.na(groups[1])){
-      if(is.na(names[1])) names <- groups[perm]
-      for(ii in 1:p) mtext(text = names[ii], at = (ii - 1)/(p - 1), side = 1, las = 2, cex = .8, col = grp.col[ii])
-      for(ii in 1:p) mtext(text = names[ii], at = (ii - 1)/(p - 1), side = 2, las = 2, cex = .8, col = grp.col[ii])
+    fields::imagePlot(A,
+      axes = FALSE, col = heat.cols,
+      breaks = breaks, main = nm, ...
+    )
+    if (!is.na(names[1]) || !is.na(groups[1])) {
+      if (is.na(names[1])) names <- groups[perm]
+      for (ii in 1:p) mtext(text = names[ii], at = (ii - 1) / (p - 1), side = 1, las = 2, cex = .8, col = grp.col[ii])
+      for (ii in 1:p) mtext(text = names[ii], at = (ii - 1) / (p - 1), side = 2, las = 2, cex = .8, col = grp.col[ii])
     }
   }
-
 }
