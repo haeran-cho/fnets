@@ -109,6 +109,9 @@ fnets <- function(x, center = TRUE, factor.model = c("dynamic", "static"), q = N
   p <- dim(x)[1]
   n <- dim(x)[2]
 
+  idio.args <- check.list.arg(idio.args)
+  cv.args <- check.list.arg(cv.args)
+
   idio.method <- match.arg(idio.method, c("lasso", "ds"))
   tuning <- match.arg(idio.args$tuning, c("cv", "ic"))
   factor.model <- match.arg(factor.model, c("dynamic", "static"))
@@ -126,7 +129,7 @@ fnets <- function(x, center = TRUE, factor.model = c("dynamic", "static"), q = N
     cve <- NULL
   }
   if (factor.model == "dynamic") {
-    # dynamic pca
+    ## dynamic pca
     dpca <- dyn.pca(xx, q, ic.op, kern.const)
     q <- dpca$q
     spec <- dpca$spec
@@ -218,7 +221,7 @@ dyn.pca <- function(xx, q = NULL, ic.op = 5, kern.const = 4, mm = NULL) {
   len <- 2 * mm
   w <- Bartlett.weights(((-mm):mm) / mm)
 
-  # dynamic pca
+  ## dynamic pca
 
   if (!is.null(q)) {
     q <- as.integer(q)

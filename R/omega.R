@@ -112,6 +112,8 @@ par.lrpc <- function(object, x, eta = NULL,
   p <- dim(x)[1]
   n <- dim(x)[2]
 
+  cv.args <- check.list.arg(cv.args)
+
   GG <- object$idio.var$Gamma
   A <- t(object$idio.var$beta)
   d <- dim(A)[2] / p

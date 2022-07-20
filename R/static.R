@@ -53,6 +53,8 @@ fnets.factor.model <- function(x, center = TRUE, factor.model = c("dynamic", "st
   if (center) mean.x <- apply(x, 1, mean) else mean.x <- rep(0, p)
   xx <- x - mean.x
 
+  common.args <- check.list.arg(common.args)
+
   factor.model <- match.arg(factor.model, c("dynamic", "static"))
   if (factor.model == "static") {
     spca <- static.pca(xx, q = q, ic.op = ic.op, kern.const = kern.const)

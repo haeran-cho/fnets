@@ -47,6 +47,8 @@ fnets.var <- function(x, center = TRUE, method = c("lasso", "ds"),
   p <- dim(x)[1]
   n <- dim(x)[2]
 
+  cv.args <- check.list.arg(cv.args)
+
   method <- match.arg(method, c("lasso", "ds"))
   tuning <- match.arg(cv.args$tuning, c("cv", "ic"))
   if (center) mean.x <- apply(x, 1, mean) else mean.x <- rep(0, p)

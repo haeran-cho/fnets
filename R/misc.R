@@ -34,3 +34,21 @@ var.to.vma <- function(A, trunc.lags) {
   }
   B
 }
+
+#' @keywords internal
+check.list.arg <- function(arg) {
+  arg.name <- deparse(substitute(arg))
+  if(arg.name == "idio.args") default <- list(tuning = c("cv", "ic"), n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3))
+  if(arg.name == "cv.args") default <- list(tuning = c("cv", "ic"), n.folds = 1, penalty = NULL, path.length = 10, do.plot = FALSE)
+  if(arg.name == "common.args") default <- list(var.order = NULL, max.var.order = NULL, trunc.lags = 20, n.perm = 10)
+  out <- check.list.match(arg, default)
+  return(out)
+}
+
+#' @keywords internal
+check.list.match <- function(arg, default) {
+  for (ii in names(default)) {
+    if(is.null(arg[[ii]])) arg[[ii]] <- default[[ii]]
+  }
+  return(arg)
+}
