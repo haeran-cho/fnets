@@ -4,6 +4,7 @@
 #' the impulse response functions and common shocks for the common component,
 #' and VAR parameters, innovation covariance matrix and long-run partial correlations for the idiosyncratic component.
 #' @details See Barigozzi, Cho and Owens (2021) for further details.
+#' List arguments do not need to be specified with all list components; any missing entries will be filled in with the default argument.
 #'
 #' @param x input time series matrix, with each row representing a variable
 #' @param center whether to de-mean the input \code{x} row-wise

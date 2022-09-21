@@ -120,6 +120,7 @@ and VAR parameters, innovation covariance matrix and long-run partial correlatio
 }
 \details{
 See Barigozzi, Cho and Owens (2021) for further details.
+List arguments do not need to be specified with all list components; any missing entries will be filled in with the default argument.
 }
 \examples{
 \dontrun{

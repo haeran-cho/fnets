@@ -69,7 +69,7 @@ common.irf.estimation <- function(xx, Gamma_c, q, var.order = NULL, max.var.orde
   mm <- (dim(Gamma_c)[3] - 1) / 2
   N <- p %/% (q + 1)
   if (!is.null(var.order)) max.var.order <- var.order
-  if (is.null(max.var.order)) max.var.order <- min(max(1, ceiling(10 * log(n, 10) / (q + 1)^2)), 10)
+  if (is.null(max.var.order)) max.var.order <- min(var.order, max(1, ceiling(10 * log(n, 10) / (q + 1)^2)), 10)
 
   if (q < 1) warning(paste0("There should be at least one factor for common component estimation!"))
 
