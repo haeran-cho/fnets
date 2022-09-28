@@ -473,11 +473,11 @@ threshold <- function(mat, path.length = 500, do.plot = FALSE) {
   thr <- rseq[which.max(abs(cusum))]
 
   if (do.plot) {
-    par(mfrow = c(1, 3))
+    par(mfrow = c(1, 2))
     plot(rseq, ratio, type = "l", xlab = "threshold")
     abline(v = thr)
-    plot(rseq[-1], dif, type = "l", xlab = "threshold")
-    abline(v = thr)
+    # plot(rseq[-1], dif, type = "l", xlab = "threshold")
+    # abline(v = thr)
     plot(rseq, abs(cusum), type = "l", xlab = "threshold")
     abline(v = thr)
   }
