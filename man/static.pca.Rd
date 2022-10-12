@@ -4,7 +4,15 @@
 \alias{static.pca}
 \title{Static PCA}
 \usage{
-static.pca(xx, q.max = NULL, q = NULL, ic.op = 2, kern.const = 4, mm = NULL)
+static.pca(
+  xx,
+  q.max = NULL,
+  q = NULL,
+  q.method = c("bn", "er"),
+  ic.op = 2,
+  kern.const = 4,
+  mm = NULL
+)
 }
 \description{
 Static PCA

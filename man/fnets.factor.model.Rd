@@ -9,6 +9,7 @@ fnets.factor.model(
   center = TRUE,
   factor.model = c("dynamic", "static"),
   q = NULL,
+  q.method = c("bn", "er"),
   ic.op = NULL,
   kern.const = 4,
   common.args = list(var.order = NULL, max.var.order = NULL, trunc.lags = 20, n.perm =
@@ -27,6 +28,12 @@ fnets.factor.model(
 }}
 
 \item{q}{number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007) or Bai and Ng (2002), see \link[fnets]{hl.factor.number} and \link[fnets]{bn.factor.number} for further details}
+
+\item{q.method}{a string specifying the factor number selection method when \code{factor.model = "static"}; possible values are:
+\itemize{
+   \item{\code{"bn"}}{ information criteria of Bai and Ng (2002)}
+   \item{\code{"er"}}{ eigenvalue ratio}
+}}
 
 \item{ic.op}{choice of the information criterion, see \link[fnets]{hl.factor.number} or \link[fnets]{bn.factor.number} for further details}
 

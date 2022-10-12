@@ -36,12 +36,11 @@ common.predict <- function(object, x, h = 1, common.method = c("restricted", "un
   xx <- x - object$mean.x
   p <- dim(x)[1]
 
-
+  pre <- list(is = 0 * x, fc = matrix(0, nrow = p, ncol = h))
   if (attr(object, "factor") == "dynamic") {
     common.method <- match.arg(common.method, c("restricted", "unrestricted"))
     if (object$q < 1) {
       warning(paste0("There should be at least one factor for common component estimation!"))
-      pre <- list(is = 0 * x, fc = matrix(0, nrow = p, ncol = h))
     }
     if (object$q >= 1) {
       if (common.method == "restricted") pre <- common.restricted.predict(xx = xx, Gamma_c = object$acv$Gamma_c, q = object$q, r = r, h = h)

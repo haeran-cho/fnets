@@ -14,6 +14,11 @@
 #'    \item{\code{"static"}}{ static factor model}
 #' }
 #' @param q number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007) or Bai and Ng (2002), see \link[fnets]{hl.factor.number} and \link[fnets]{bn.factor.number} for further details
+#' @param q.method a string specifying the factor number selection method when \code{factor.model = "static"}; possible values are:
+#' \itemize{
+#'    \item{\code{"bn"}}{ information criteria of Bai and Ng (2002)}
+#'    \item{\code{"er"}}{ eigenvalue ratio}
+#' }
 #' @param ic.op choice of the information criterion, see \link[fnets]{hl.factor.number} or \link[fnets]{bn.factor.number} for further details
 #' @param kern.const constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA
 #' @param common.args a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
@@ -45,7 +50,8 @@
 #' out <- fnets.factor.model(x, factor.model = "static")
 #' }
 #' @export
-fnets.factor.model <- function(x, center = TRUE, factor.model = c("dynamic", "static"), q = NULL, ic.op = NULL, kern.const = 4,
+fnets.factor.model <- function(x, center = TRUE, factor.model = c("dynamic", "static"), q = NULL, q.method = c("bn","er"),
+                               ic.op = NULL, kern.const = 4,
                                common.args = list(var.order = NULL, max.var.order = NULL, trunc.lags = 20, n.perm = 10)) {
   p <- dim(x)[1]
   n <- dim(x)[2]
@@ -55,9 +61,10 @@ fnets.factor.model <- function(x, center = TRUE, factor.model = c("dynamic", "st
 
   common.args <- check.list.arg(common.args)
 
+  q.method <- match.arg(q.method, c("bn", "er"))
   factor.model <- match.arg(factor.model, c("dynamic", "static"))
   if (factor.model == "static") {
-    spca <- static.pca(xx, q = q, ic.op = ic.op, kern.const = kern.const)
+    spca <- static.pca(xx, q = q, q.method = q.method, ic.op = ic.op, kern.const = kern.const)
     q <- spca$q
     lam <- spca$lam
     f <- spca$f
@@ -162,7 +169,7 @@ bn.factor.number <- function(x, lam = NULL, f = NULL, q.max = NULL, ic.op = 2, d
 
 #' @title Static PCA
 #' @keywords internal
-static.pca <- function(xx, q.max = NULL, q = NULL, ic.op = 2, kern.const = 4, mm = NULL) {
+static.pca <- function(xx, q.max = NULL, q = NULL, q.method = c("bn","er"), ic.op = 2, kern.const = 4, mm = NULL) {
   p <- dim(xx)[1]
   n <- dim(xx)[2]
   cnt <- min(n, p)
@@ -170,6 +177,7 @@ static.pca <- function(xx, q.max = NULL, q = NULL, ic.op = 2, kern.const = 4, mm
 
 
   if (is.null(q.max)) q.max <- min(50, floor(sqrt(min(n - 1, p))))
+  q.method <- match.arg(q.method, c("bn", "er"))
   if (is.null(ic.op)) ic.op <- 2
 
   covx <- xx %*% t(xx) / n
@@ -178,9 +186,13 @@ static.pca <- function(xx, q.max = NULL, q = NULL, ic.op = 2, kern.const = 4, mm
   f <- t(xx) %*% (eig$vectors[, 1:(cnt - 1), drop = FALSE]) / sqrt(p)
 
   bn <- NULL
-  if (is.null(q)) bn <- bn.factor.number(xx, lam = lam, f = f, q.max = q.max, ic.op = ic.op, do.plot = FALSE, center = FALSE)
-  q <- bn$q.hat
-
+  if (is.null(q)) {
+    if(q.method == "er") q <- which.max(eig$values[1:q.max] / eig$values[1 + 1:q.max])
+    if(q.method == "bn") {
+      bn <- bn.factor.number(xx, lam = lam, f = f, q.max = q.max, ic.op = ic.op, do.plot = FALSE, center = FALSE)
+      q <- bn$q.hat
+    }
+  }
 
   # q <- as.integer(q); hl <- NA
   proj <- eig$vectors[, 1:q, drop = FALSE] %*% t(eig$vectors[, 1:q, drop = FALSE])

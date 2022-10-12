@@ -13,7 +13,12 @@
 #'    \item{\code{"dynamic"}}{ dynamic factor model}
 #'    \item{\code{"static"}}{ static factor model}
 #' }
-#' @param q number of dynamic factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007) or Bai and Ng (2002), see \link[fnets]{hl.factor.number} and \link[fnets]{bn.factor.number} for further details
+#' @param q number of dynamic factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007) or Bai and Ng (2002), or eigenvalue ratio, see \link[fnets]{hl.factor.number} and \link[fnets]{bn.factor.number} for further details
+#' @param q.method a string specifying the factor number selection method when \code{factor.model = "static"}; possible values are:
+#' \itemize{
+#'    \item{\code{"bn"}}{ information criteria of Bai and Ng (2002)}
+#'    \item{\code{"er"}}{ eigenvalue ratio}
+#' }
 #' @param ic.op choice of the information criterion, see \link[fnets]{hl.factor.number} and \link[fnets]{bn.factor.number} for further details
 #' @param kern.const constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA
 #' @param common.args a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
@@ -100,7 +105,7 @@
 #' @seealso \link[fnets]{predict.fnets}, \link[fnets]{plot.fnets}
 #' @importFrom graphics par
 #' @export
-fnets <- function(x, center = TRUE, factor.model = c("dynamic", "static"), q = NULL, ic.op = NULL, kern.const = 4,
+fnets <- function(x, center = TRUE, factor.model = c("dynamic", "static"), q = NULL, q.method = c("bn","er"), ic.op = NULL, kern.const = 4,
                   common.args = list(var.order = NULL, max.var.order = NULL, trunc.lags = 20, n.perm = 10),
                   idio.var.order = 1, idio.method = c("lasso", "ds"),
                   idio.args = list(tuning = c("cv", "ic"), n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3)),
@@ -113,6 +118,7 @@ fnets <- function(x, center = TRUE, factor.model = c("dynamic", "static"), q = N
   idio.args <- check.list.arg(idio.args)
   cv.args <- check.list.arg(cv.args)
 
+  q.method <- match.arg(q.method, c("bn", "er"))
   idio.method <- match.arg(idio.method, c("lasso", "ds"))
   tuning <- match.arg(idio.args$tuning, c("cv", "ic"))
   factor.model <- match.arg(factor.model, c("dynamic", "static"))
@@ -121,7 +127,7 @@ fnets <- function(x, center = TRUE, factor.model = c("dynamic", "static"), q = N
   xx <- x - mean.x
 
   if (factor.model == "static") {
-    spca <- static.pca(xx, q.max = NULL, q = q, ic.op = ic.op)
+    spca <- static.pca(xx, q.max = NULL, q = q, q.method = q.method, ic.op = ic.op)
     q <- spca$q
     lam <- spca$lam
     f <- spca$f
