@@ -91,7 +91,7 @@
 #' set.seed(123)
 #' n <- 500
 #' p <- 50
-#' common <- sim.common1(n, p)
+#' common <- sim.dynamic(n, p)
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
 #' out <- fnets(x,

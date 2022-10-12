@@ -45,7 +45,7 @@
 #' set.seed(123)
 #' n <- 500
 #' p <- 50
-#' common <- sim.common2(n, p)
+#' common <- sim.static(n, p)
 #' x <- common$data
 #' out <- fnets.factor.model(x, factor.model = "static")
 #' }

@@ -10,10 +10,10 @@
 #' \item{q}{ number of factors}
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110
 #' @examples
-#' common <- sim.common1(500, 50)
+#' common <- sim.dynamic(500, 50)
 #' @importFrom stats rnorm runif rt
 #' @export
-sim.common1 <- function(n, p, q = 2, heavy = FALSE) {
+sim.dynamic <- function(n, p, q = 2, heavy = FALSE) {
   trunc.lags <- min(20, round(n / log(n)))
   chi <- matrix(0, p, n)
   if (!heavy) {
@@ -45,10 +45,10 @@ sim.common1 <- function(n, p, q = 2, heavy = FALSE) {
 #' \item{r}{ number of static factors}
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @examples
-#' common <- sim.common2(500, 50)
+#' common <- sim.static(500, 50)
 #' @importFrom stats rnorm runif rt
 #' @export
-sim.common2 <- function(n, p, q = 2, heavy = FALSE) {
+sim.static <- function(n, p, q = 2, heavy = FALSE) {
   lags <- 1
   r <- q * (lags + 1)
   burnin <- 100
