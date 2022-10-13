@@ -59,7 +59,7 @@ See Barigozzi, Cho and Owens (2021) for further details, and Cai, Liu and Zhou (
 set.seed(123)
 n <- 500
 p <- 50
-common <- sim.dynamic(n, p)
+common <- sim.unrestricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
 out <- fnets(x, q = NULL, idio.method = "lasso", lrpc.method = "none")

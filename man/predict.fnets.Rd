@@ -22,11 +22,11 @@
 
 \item{common.method}{a string specifying the method for common component forecasting; possible values are:
 \itemize{
-   \item{\code{"restricted"}}{ performs forecasting under a restrictive static factor model}
+   \item{\code{"restricted"}}{ performs forecasting under a restricted factor model}
    \item{\code{"unrestricted"}}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
 }}
 
-\item{r}{number of static factors; if \code{common.method = "restricted"} and \code{r = NULL},
+\item{r}{number of restricted factors; if \code{common.method = "restricted"} and \code{r = NULL},
 it is estimated as the maximiser of the ratio of the successive eigenvalues of the estimate of the common component covariance matrix,
 see Ahn and Horenstein (2013)}
 

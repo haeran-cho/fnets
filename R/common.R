@@ -6,16 +6,16 @@
 #' @param h forecasting horizon
 #' @param common.method a string specifying the method for common component forecasting; possible values are:
 #' \itemize{
-#'    \item{\code{"restricted"}}{ performs forecasting under a restrictive static factor model}
+#'    \item{\code{"restricted"}}{ performs forecasting under a restrictive restricted factor model}
 #'    \item{\code{"unrestricted"}}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
 #' }
-#' @param r number of static factors; if \code{common.method = "restricted"} and \code{r = NULL},
+#' @param r number of restricted factors; if \code{common.method = "restricted"} and \code{r = NULL},
 #' it is estimated as the maximiser of the ratio of the successive eigenvalues
 #' of the estimate of the common component covariance matrix, see Ahn and Horenstein (2013)
 #' @return a list containing
 #' \item{is}{ in-sample estimator of the common component}
 #' \item{fc}{ forecasts of the common component for a given forecasting horizon \code{h}}
-#' \item{r}{ static factor number}
+#' \item{r}{ restricted factor number}
 #' \item{h}{ forecast horizon}
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
@@ -25,7 +25,7 @@
 #' set.seed(123)
 #' n <- 500
 #' p <- 50
-#' common <- sim.dynamic(n, p)
+#' common <- sim.unrestricted(n, p)
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
 #' out <- fnets(x, q = NULL, idio.var.order = 1, idio.method = "lasso", lrpc.method = "none")
@@ -37,7 +37,7 @@ common.predict <- function(object, x, h = 1, common.method = c("restricted", "un
   p <- dim(x)[1]
 
   pre <- list(is = 0 * x, fc = matrix(0, nrow = p, ncol = h))
-  if (attr(object, "factor") == "dynamic") {
+  if (attr(object, "factor") == "unrestricted") {
     common.method <- match.arg(common.method, c("restricted", "unrestricted"))
     if (object$q < 1) {
       warning(paste0("There should be at least one factor for common component estimation!"))
@@ -48,11 +48,11 @@ common.predict <- function(object, x, h = 1, common.method = c("restricted", "un
     }
   }
 
-  if (attr(object, "factor") == "static") {
+  if (attr(object, "factor") == "restricted") {
     if (common.method == "restricted") {
       pre <- common.restricted.predict(xx = xx, Gamma_c = object$acv$Gamma_c, q = object$q, r = object$q, h = h)
     } else {
-      stop(paste0("common.method must be restricted under static factor model"))
+      stop(paste0("common.method must be restricted under restricted factor model"))
     }
   }
   return(pre)

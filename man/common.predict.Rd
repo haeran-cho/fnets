@@ -21,11 +21,11 @@ common.predict(
 
 \item{common.method}{a string specifying the method for common component forecasting; possible values are:
 \itemize{
-   \item{\code{"restricted"}}{ performs forecasting under a restrictive static factor model}
+   \item{\code{"restricted"}}{ performs forecasting under a restrictive restricted factor model}
    \item{\code{"unrestricted"}}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
 }}
 
-\item{r}{number of static factors; if \code{common.method = "restricted"} and \code{r = NULL},
+\item{r}{number of restricted factors; if \code{common.method = "restricted"} and \code{r = NULL},
 it is estimated as the maximiser of the ratio of the successive eigenvalues
 of the estimate of the common component covariance matrix, see Ahn and Horenstein (2013)}
 }
@@ -33,7 +33,7 @@ of the estimate of the common component covariance matrix, see Ahn and Horenstei
 a list containing
 \item{is}{ in-sample estimator of the common component}
 \item{fc}{ forecasts of the common component for a given forecasting horizon \code{h}}
-\item{r}{ static factor number}
+\item{r}{ restricted factor number}
 \item{h}{ forecast horizon}
 }
 \description{
@@ -44,7 +44,7 @@ for a given forecasting horizon by estimating the best linear predictors
 set.seed(123)
 n <- 500
 p <- 50
-common <- sim.dynamic(n, p)
+common <- sim.unrestricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
 out <- fnets(x, q = NULL, idio.var.order = 1, idio.method = "lasso", lrpc.method = "none")

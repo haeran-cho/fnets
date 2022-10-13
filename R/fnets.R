@@ -10,11 +10,11 @@
 #' @param center whether to de-mean the input \code{x} row-wise
 #' @param factor.model a string specifying the method to be adopted for factor model estimation; possible values are:
 #' \itemize{
-#'    \item{\code{"dynamic"}}{ dynamic factor model}
-#'    \item{\code{"static"}}{ static factor model}
+#'    \item{\code{"unrestricted"}}{ unrestricted factor model}
+#'    \item{\code{"restricted"}}{ restricted factor model}
 #' }
-#' @param q number of dynamic factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007) or Bai and Ng (2002), or eigenvalue ratio, see \link[fnets]{hl.factor.number} and \link[fnets]{bn.factor.number} for further details
-#' @param q.method a string specifying the factor number selection method when \code{factor.model = "static"}; possible values are:
+#' @param q number of unrestricted factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007) or Bai and Ng (2002), or eigenvalue ratio, see \link[fnets]{hl.factor.number} and \link[fnets]{bn.factor.number} for further details
+#' @param q.method a string specifying the factor number selection method when \code{factor.model = "restricted"}; possible values are:
 #' \itemize{
 #'    \item{\code{"bn"}}{ information criteria of Bai and Ng (2002)}
 #'    \item{\code{"er"}}{ eigenvalue ratio}
@@ -63,12 +63,12 @@
 #' }
 #' @return an S3 object of class \code{fnets}, which contains the following fields:
 #' \item{q}{ number of factors}
-#' \item{spec}{ if \code{factor.model = "dynamic"} a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
+#' \item{spec}{ if \code{factor.model = "unrestricted"} a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
 #' \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
-#' \item{common.irf}{  if \code{factor.model = "dynamic"} and \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})
+#' \item{common.irf}{  if \code{factor.model = "unrestricted"} and \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})
 #' and common shocks (an array of dimension \code{(q, n)}) for the common component}
-#' \item{lam}{ if \code{factor.model = "static"}, factor loadings}
-#' \item{f}{ if \code{factor.model = "static"}, factor series}
+#' \item{lam}{ if \code{factor.model = "restricted"}, factor loadings}
+#' \item{f}{ if \code{factor.model = "restricted"}, factor series}
 #' \item{idio.var}{ a list containing the following fields:
 #' \itemize{
 #' \item{\code{beta}}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
@@ -91,7 +91,7 @@
 #' set.seed(123)
 #' n <- 500
 #' p <- 50
-#' common <- sim.dynamic(n, p)
+#' common <- sim.unrestricted(n, p)
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
 #' out <- fnets(x,
@@ -105,7 +105,7 @@
 #' @seealso \link[fnets]{predict.fnets}, \link[fnets]{plot.fnets}
 #' @importFrom graphics par
 #' @export
-fnets <- function(x, center = TRUE, factor.model = c("dynamic", "static"), q = NULL, q.method = c("bn","er"), ic.op = NULL, kern.const = 4,
+fnets <- function(x, center = TRUE, factor.model = c("unrestricted", "restricted"), q = NULL, q.method = c("bn","er"), ic.op = NULL, kern.const = 4,
                   common.args = list(var.order = NULL, max.var.order = NULL, trunc.lags = 20, n.perm = 10),
                   idio.var.order = 1, idio.method = c("lasso", "ds"),
                   idio.args = list(tuning = c("cv", "ic"), n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3)),
@@ -121,12 +121,12 @@ fnets <- function(x, center = TRUE, factor.model = c("dynamic", "static"), q = N
   q.method <- match.arg(q.method, c("bn", "er"))
   idio.method <- match.arg(idio.method, c("lasso", "ds"))
   tuning <- match.arg(idio.args$tuning, c("cv", "ic"))
-  factor.model <- match.arg(factor.model, c("dynamic", "static"))
+  factor.model <- match.arg(factor.model, c("unrestricted", "restricted"))
   lrpc.method <- match.arg(lrpc.method, c("par", "npar", "none"))
   if (center) mean.x <- apply(x, 1, mean) else mean.x <- rep(0, p)
   xx <- x - mean.x
 
-  if (factor.model == "static") {
+  if (factor.model == "restricted") {
     spca <- static.pca(xx, q.max = NULL, q = q, q.method = q.method, ic.op = ic.op)
     q <- spca$q
     lam <- spca$lam
@@ -135,7 +135,7 @@ fnets <- function(x, center = TRUE, factor.model = c("dynamic", "static"), q = N
     acv <- spca$acv
     cve <- NULL
   }
-  if (factor.model == "dynamic") {
+  if (factor.model == "unrestricted") {
     ## dynamic pca
     dpca <- dyn.pca(xx, q, ic.op, kern.const)
     q <- dpca$q
@@ -186,8 +186,7 @@ fnets <- function(x, center = TRUE, factor.model = c("dynamic", "static"), q = N
     idio.method = idio.method, lrpc.method = lrpc.method, kern.const = kern.const
   )
 
-  if (factor.model == "static") attr(out, "factor") <- "static"
-  if (factor.model == "dynamic") attr(out, "factor") <- "dynamic"
+  attr(out, "factor") <- factor.model
 
   ## lrpc estimation
   if (lrpc.method %in% c("par", "npar")) {
@@ -397,10 +396,10 @@ hl.factor.number <- function(x, q.max = NULL, mm, w = NULL, do.plot = FALSE, cen
 #' @param h forecasting horizon
 #' @param common.method a string specifying the method for common component forecasting; possible values are:
 #' \itemize{
-#'    \item{\code{"restricted"}}{ performs forecasting under a restrictive static factor model}
+#'    \item{\code{"restricted"}}{ performs forecasting under a restricted factor model}
 #'    \item{\code{"unrestricted"}}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
 #' }
-#' @param r number of static factors; if \code{common.method = "restricted"} and \code{r = NULL},
+#' @param r number of restricted factors; if \code{common.method = "restricted"} and \code{r = NULL},
 #' it is estimated as the maximiser of the ratio of the successive eigenvalues of the estimate of the common component covariance matrix,
 #' see Ahn and Horenstein (2013)
 #' @param ... not used

@@ -36,7 +36,7 @@ a list containing
 \item{ic}{ vector of information criteria values}
 }
 \description{
-Estimates the number of static factors by minimising an information criterion.
+Estimates the number of restricted factors by minimising an information criterion.
 Currently the five information criteria proposed in Bai and Ng (2002) (\code{ic.op = 1,...,5}) are implemented,
 with \code{ic.op = 2} recommended as a default choice based on numerical experiments.
 }
@@ -49,7 +49,7 @@ library(fnets)
 set.seed(123)
 n <- 500
 p <- 50
-common <- sim.static(n, p)
+common <- sim.restricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data * apply(idio$data, 1, sd) / apply(common$data, 1, sd) + idio$data
 

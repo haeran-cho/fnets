@@ -22,7 +22,7 @@
 #' set.seed(123)
 #' n <- 500
 #' p <- 50
-#' common <- sim.dynamic(n, p)
+#' common <- sim.unrestricted(n, p)
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
 #' out <- fnets(x, q = NULL, idio.method = "lasso", lrpc.method = "none")
@@ -91,7 +91,7 @@ npar.lrpc <- function(object, x, eta = NULL,
 #' set.seed(123)
 #' n <- 500
 #' p <- 50
-#' common <- sim.dynamic(n, p)
+#' common <- sim.unrestricted(n, p)
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
 #' out <- fnets(x, q = NULL, idio.method = "lasso", lrpc.method = "none")

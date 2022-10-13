@@ -7,7 +7,7 @@
 fnets.factor.model(
   x,
   center = TRUE,
-  factor.model = c("dynamic", "static"),
+  factor.model = c("unrestricted", "restricted"),
   q = NULL,
   q.method = c("bn", "er"),
   ic.op = NULL,
@@ -23,13 +23,13 @@ fnets.factor.model(
 
 \item{factor.model}{a string specifying the method to be adopted for factor model estimation; possible values are:
 \itemize{
-   \item{\code{"dynamic"}}{ dynamic factor model}
-   \item{\code{"static"}}{ static factor model}
+   \item{\code{"unrestricted"}}{ unrestricted factor model}
+   \item{\code{"restricted"}}{ restricted factor model}
 }}
 
 \item{q}{number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007) or Bai and Ng (2002), see \link[fnets]{hl.factor.number} and \link[fnets]{bn.factor.number} for further details}
 
-\item{q.method}{a string specifying the factor number selection method when \code{factor.model = "static"}; possible values are:
+\item{q.method}{a string specifying the factor number selection method when \code{factor.model = "restricted"}; possible values are:
 \itemize{
    \item{\code{"bn"}}{ information criteria of Bai and Ng (2002)}
    \item{\code{"er"}}{ eigenvalue ratio}
@@ -50,16 +50,16 @@ fnets.factor.model(
 \value{
 an S3 object of class \code{fnets}, which contains the following fields:
 \item{q}{ number of factors}
-\item{spec}{ if \code{method = "dynamic"} a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
+\item{spec}{ if \code{factor.model = "unrestricted"} a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
 \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
-\item{common.irf}{ if if \code{method = "dynamic"} and \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})
+\item{common.irf}{ if if \code{factor.model = "unrestricted"} and \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})
 and common shocks (an array of dimension \code{(q, n)}) for the common component}
-\item{lam}{ if \code{method = "static"} factor loadings}
-\item{f}{ if \code{method = "static"} factor series}
+\item{lam}{ if \code{factor.model = "restricted"} factor loadings}
+\item{f}{ if \code{factor.model = "restricted"} factor series}
 \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
 }
 \description{
-Dynamic and static factor model estimation
+Unrestricted and restricted factor model estimation
 }
 \details{
 See Barigozzi, Cho and Owens (2021) for further details.
@@ -69,9 +69,9 @@ See Barigozzi, Cho and Owens (2021) for further details.
 set.seed(123)
 n <- 500
 p <- 50
-common <- sim.static(n, p)
+common <- sim.restricted(n, p)
 x <- common$data
-out <- fnets.factor.model(x, factor.model = "static")
+out <- fnets.factor.model(x, factor.model = "restricted")
 }
 }
 \references{

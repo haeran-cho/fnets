@@ -1,19 +1,19 @@
-#' @title Simulate data from a dynamic factor model
-#' @description Simulate the common component following a dynamic factor model that does not admit a static representation;
+#' @title Simulate data from an unrestricted factor model
+#' @description Simulate the common component following an unrestricted factor model that does not admit a restricted representation;
 #' see the model (C1) in the reference.
 #' @param n sample size
 #' @param p dimension
-#' @param q number of dynamic factors
+#' @param q number of unrestricted factors
 #' @param heavy if \code{heavy = FALSE}, common shocks are generated from \code{rnorm} whereas if \code{heavy = TRUE}, from \code{rt} with \code{df = 5} and then scaled by \code{sqrt(3 / 5)}
 #' @return a list containing
 #' \item{data}{ generated series}
 #' \item{q}{ number of factors}
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110
 #' @examples
-#' common <- sim.dynamic(500, 50)
+#' common <- sim.unrestricted(500, 50)
 #' @importFrom stats rnorm runif rt
 #' @export
-sim.dynamic <- function(n, p, q = 2, heavy = FALSE) {
+sim.unrestricted <- function(n, p, q = 2, heavy = FALSE) {
   trunc.lags <- min(20, round(n / log(n)))
   chi <- matrix(0, p, n)
   if (!heavy) {
@@ -32,23 +32,23 @@ sim.dynamic <- function(n, p, q = 2, heavy = FALSE) {
   return(list(data = chi, q = q))
 }
 
-#' @title Simulate data from a static factor model
-#' @description Simulate the common component following a dynamic factor model that admits a static representation;
+#' @title Simulate data from a restricted factor model
+#' @description Simulate the common component following an unrestricted factor model that admits a restricted representation;
 #' see the model (C2) in the reference.
 #' @param n sample size
 #' @param p dimension
-#' @param q number of dynamic factors; number of static factors is given by \code{2 * q}
+#' @param q number of unrestricted factors; number of restricted factors is given by \code{2 * q}
 #' @param heavy if \code{heavy = FALSE}, common shocks are generated from \code{rnorm} whereas if \code{heavy = TRUE}, from \code{rt} with \code{df = 5} and then scaled by \code{sqrt(3 / 5)}
 #' @return a list containing
 #' \item{data}{ generated series}
 #' \item{q}{ number of factors}
-#' \item{r}{ number of static factors}
+#' \item{r}{ number of restricted factors}
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
 #' @examples
-#' common <- sim.static(500, 50)
+#' common <- sim.restricted(500, 50)
 #' @importFrom stats rnorm runif rt
 #' @export
-sim.static <- function(n, p, q = 2, heavy = FALSE) {
+sim.restricted <- function(n, p, q = 2, heavy = FALSE) {
   lags <- 1
   r <- q * (lags + 1)
   burnin <- 100

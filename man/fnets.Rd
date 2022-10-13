@@ -7,7 +7,7 @@
 fnets(
   x,
   center = TRUE,
-  factor.model = c("dynamic", "static"),
+  factor.model = c("unrestricted", "restricted"),
   q = NULL,
   q.method = c("bn", "er"),
   ic.op = NULL,
@@ -31,13 +31,13 @@ fnets(
 
 \item{factor.model}{a string specifying the method to be adopted for factor model estimation; possible values are:
 \itemize{
-   \item{\code{"dynamic"}}{ dynamic factor model}
-   \item{\code{"static"}}{ static factor model}
+   \item{\code{"unrestricted"}}{ unrestricted factor model}
+   \item{\code{"restricted"}}{ restricted factor model}
 }}
 
-\item{q}{number of dynamic factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007) or Bai and Ng (2002), or eigenvalue ratio, see \link[fnets]{hl.factor.number} and \link[fnets]{bn.factor.number} for further details}
+\item{q}{number of unrestricted factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007) or Bai and Ng (2002), or eigenvalue ratio, see \link[fnets]{hl.factor.number} and \link[fnets]{bn.factor.number} for further details}
 
-\item{q.method}{a string specifying the factor number selection method when \code{factor.model = "static"}; possible values are:
+\item{q.method}{a string specifying the factor number selection method when \code{factor.model = "restricted"}; possible values are:
 \itemize{
    \item{\code{"bn"}}{ information criteria of Bai and Ng (2002)}
    \item{\code{"er"}}{ eigenvalue ratio}
@@ -98,12 +98,12 @@ for selecting the tuning parameters involved in VAR parameter and (long-run) par
 \value{
 an S3 object of class \code{fnets}, which contains the following fields:
 \item{q}{ number of factors}
-\item{spec}{ if \code{factor.model = "dynamic"} a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
+\item{spec}{ if \code{factor.model = "unrestricted"} a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
 \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
-\item{common.irf}{  if \code{factor.model = "dynamic"} and \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})
+\item{common.irf}{  if \code{factor.model = "unrestricted"} and \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})
 and common shocks (an array of dimension \code{(q, n)}) for the common component}
-\item{lam}{ if \code{factor.model = "static"}, factor loadings}
-\item{f}{ if \code{factor.model = "static"}, factor series}
+\item{lam}{ if \code{factor.model = "restricted"}, factor loadings}
+\item{f}{ if \code{factor.model = "restricted"}, factor series}
 \item{idio.var}{ a list containing the following fields:
 \itemize{
 \item{\code{beta}}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
@@ -134,7 +134,7 @@ List arguments do not need to be specified with all list components; any missing
 set.seed(123)
 n <- 500
 p <- 50
-common <- sim.dynamic(n, p)
+common <- sim.unrestricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
 out <- fnets(x,

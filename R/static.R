@@ -3,18 +3,18 @@
 
 
 #' @title Factor model estimation
-#' @description Dynamic and static factor model estimation
+#' @description Unrestricted and restricted factor model estimation
 #' @details See Barigozzi, Cho and Owens (2021) for further details.
 #'
 #' @param x input time series matrix, with each row representing a variable
 #' @param center whether to de-mean the input \code{x} row-wise
 #' @param factor.model a string specifying the method to be adopted for factor model estimation; possible values are:
 #' \itemize{
-#'    \item{\code{"dynamic"}}{ dynamic factor model}
-#'    \item{\code{"static"}}{ static factor model}
+#'    \item{\code{"unrestricted"}}{ unrestricted factor model}
+#'    \item{\code{"restricted"}}{ restricted factor model}
 #' }
 #' @param q number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007) or Bai and Ng (2002), see \link[fnets]{hl.factor.number} and \link[fnets]{bn.factor.number} for further details
-#' @param q.method a string specifying the factor number selection method when \code{factor.model = "static"}; possible values are:
+#' @param q.method a string specifying the factor number selection method when \code{factor.model = "restricted"}; possible values are:
 #' \itemize{
 #'    \item{\code{"bn"}}{ information criteria of Bai and Ng (2002)}
 #'    \item{\code{"er"}}{ eigenvalue ratio}
@@ -30,12 +30,12 @@
 #' }
 #' @return an S3 object of class \code{fnets}, which contains the following fields:
 #' \item{q}{ number of factors}
-#' \item{spec}{ if \code{method = "dynamic"} a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
+#' \item{spec}{ if \code{factor.model = "unrestricted"} a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
 #' \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
-#' \item{common.irf}{ if if \code{method = "dynamic"} and \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})
+#' \item{common.irf}{ if if \code{factor.model = "unrestricted"} and \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})
 #' and common shocks (an array of dimension \code{(q, n)}) for the common component}
-#' \item{lam}{ if \code{method = "static"} factor loadings}
-#' \item{f}{ if \code{method = "static"} factor series}
+#' \item{lam}{ if \code{factor.model = "restricted"} factor loadings}
+#' \item{f}{ if \code{factor.model = "restricted"} factor series}
 #' \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
@@ -45,12 +45,12 @@
 #' set.seed(123)
 #' n <- 500
 #' p <- 50
-#' common <- sim.static(n, p)
+#' common <- sim.restricted(n, p)
 #' x <- common$data
-#' out <- fnets.factor.model(x, factor.model = "static")
+#' out <- fnets.factor.model(x, factor.model = "restricted")
 #' }
 #' @export
-fnets.factor.model <- function(x, center = TRUE, factor.model = c("dynamic", "static"), q = NULL, q.method = c("bn","er"),
+fnets.factor.model <- function(x, center = TRUE, factor.model = c("unrestricted", "restricted"), q = NULL, q.method = c("bn","er"),
                                ic.op = NULL, kern.const = 4,
                                common.args = list(var.order = NULL, max.var.order = NULL, trunc.lags = 20, n.perm = 10)) {
   p <- dim(x)[1]
@@ -62,8 +62,8 @@ fnets.factor.model <- function(x, center = TRUE, factor.model = c("dynamic", "st
   common.args <- check.list.arg(common.args)
 
   q.method <- match.arg(q.method, c("bn", "er"))
-  factor.model <- match.arg(factor.model, c("dynamic", "static"))
-  if (factor.model == "static") {
+  factor.model <- match.arg(factor.model, c("unrestricted", "restricted"))
+  if (factor.model == "restricted") {
     spca <- static.pca(xx, q = q, q.method = q.method, ic.op = ic.op, kern.const = kern.const)
     q <- spca$q
     lam <- spca$lam
@@ -73,7 +73,7 @@ fnets.factor.model <- function(x, center = TRUE, factor.model = c("dynamic", "st
     cve <- NULL
   }
   # dynamic pca
-  if (factor.model == "dynamic") {
+  if (factor.model == "unrestricted") {
     dpca <- dyn.pca(xx, q, ic.op, kern.const)
     q <- dpca$q
     spec <- dpca$spec
@@ -94,8 +94,7 @@ fnets.factor.model <- function(x, center = TRUE, factor.model = c("dynamic", "st
     q = q, spec = spec, lam = lam, f = f, acv = acv,
     common.irf = cve, mean.x = mean.x
   )
-  if (factor.model == "static") attr(out, "factor") <- "static"
-  if (factor.model == "dynamic") attr(out, "factor") <- "dynamic"
+  attr(out, "factor") <- factor.model
   attr(out, "class") <- "fnets"
 
   return(out)
@@ -103,7 +102,7 @@ fnets.factor.model <- function(x, center = TRUE, factor.model = c("dynamic", "st
 
 
 #' @title Factor number estimator of Bai and Ng (2002)
-#' @description Estimates the number of static factors by minimising an information criterion.
+#' @description Estimates the number of restricted factors by minimising an information criterion.
 #' Currently the five information criteria proposed in Bai and Ng (2002) (\code{ic.op = 1,...,5}) are implemented,
 #' with \code{ic.op = 2} recommended as a default choice based on numerical experiments.
 #' @details See Bai and Ng (2002) for further details.
