@@ -464,79 +464,83 @@ plot.fnets <- function(x, type = c("granger", "pc", "lrpc"), display = c("networ
   p <- dim(x$acv$Gamma_x)[1]
   A <- matrix(0, nrow = p, ncol = p)
 
-  if (type == "granger") {
-    d <- dim(x$idio.var$beta)[1] / p
-    for (ll in 1:d) A <- A + t(x$idio.var$beta)[, (ll - 1) * p + 1:p]
-    nm <- "Granger causal"
-  }
-
-  if (type == "pc") {
-    if (x$lrpc.method != "par") {
-      stop(paste0("Partial correlation matrix is undetected"))
-    } else {
-      A <- x$lrpc$pc
-      nm <- "Partial correlation"
-    }
-  }
-
-  if (type == "lrpc") {
-    if (!(x$lrpc.method %in% c("par", "npar"))) {
-      stop(paste0("Long-run partial correlation matrix is undetected"))
-    } else {
-      A <- x$lrpc$lrpc
-      nm <- "Long-run partial correlation"
-    }
-  }
-  nm <- paste(nm, display, sep = " ")
-
-  A[abs(A) < threshold] <- 0
-
-  if (!is.na(groups[1])) {
-    grps <- perm <- c()
-    K <- length(unique(groups))
-    for (ii in 1:K) {
-      permii <- which(groups == unique(groups)[ii])
-      perm <- c(perm, permii)
-      grps <- c(grps, rep(ii, length(permii)))
-    }
+  if(is.null(out$idio.var)){
+    warning(paste0("object contains no idiosyncratic component"))
   } else {
-    perm <- 1:p
-    grps <- rep(1, p)
-    K <- 1
-  }
-  grp.col <- rep(rainbow(K, alpha = 1), table(grps))
-  A <- A[perm, perm]
-  if (!is.na(names[1])) names <- names[perm]
-
-  if (display == "network") {
-    v.col <- rep(rainbow(K, alpha = .2), table(grps))
-    if (type == "granger") g <- igraph::graph_from_adjacency_matrix(A, mode = "directed", weighted = TRUE, diag = FALSE, ...)
-    if (type %in% c("pc", "lrpc")) g <- igraph::graph_from_adjacency_matrix(A, mode = "undirected", weighted = TRUE, diag = FALSE, ...)
-    lg <- igraph::layout_in_circle(g)
-    igraph::plot.igraph(g,
-      main = nm, layout = lg, vertex.label = names, vertex.label.font = 2,
-      vertex.shape = "circle", vertex.color = v.col,
-      vertex.label.color = grp.col, vertex.label.cex = 0.6,
-      edge.color = "gray40", edge.arrow.size = 0.5
-    )
-  } else if (display == "heatmap") {
-    heat.cols <- rev(RColorBrewer::brewer.pal(11, "RdBu"))
-    if (type == "granger") mv <- max(1e-3, abs(A))
-    if (type %in% c("pc", "lrpc")) {
-      A[abs(A) > 1] <- sign(A[abs(A) > 1])
-      diag(A) <- 0
-      mv <- 1.01
+    if (type == "granger") {
+      d <- dim(x$idio.var$beta)[1] / p
+      for (ll in 1:d) A <- A + t(x$idio.var$beta)[, (ll - 1) * p + 1:p]
+      nm <- "Granger causal"
     }
-    breaks <- seq(-mv, mv, length.out = 12)
 
-    fields::imagePlot(A,
-      axes = FALSE, col = heat.cols,
-      breaks = breaks, main = nm, ...
-    )
-    if (!is.na(names[1]) || !is.na(groups[1])) {
-      if (is.na(names[1])) names <- groups[perm]
-      for (ii in 1:p) mtext(text = names[ii], at = (ii - 1) / (p - 1), side = 1, las = 2, cex = .8, col = grp.col[ii])
-      for (ii in 1:p) mtext(text = names[ii], at = (ii - 1) / (p - 1), side = 2, las = 2, cex = .8, col = grp.col[ii])
+    if (type == "pc") {
+      if (x$lrpc.method != "par") {
+        stop(paste0("Partial correlation matrix is undetected"))
+      } else {
+        A <- x$lrpc$pc
+        nm <- "Partial correlation"
+      }
+    }
+
+    if (type == "lrpc") {
+      if (!(x$lrpc.method %in% c("par", "npar"))) {
+        stop(paste0("Long-run partial correlation matrix is undetected"))
+      } else {
+        A <- x$lrpc$lrpc
+        nm <- "Long-run partial correlation"
+      }
+    }
+    nm <- paste(nm, display, sep = " ")
+
+    A[abs(A) < threshold] <- 0
+
+    if (!is.na(groups[1])) {
+      grps <- perm <- c()
+      K <- length(unique(groups))
+      for (ii in 1:K) {
+        permii <- which(groups == unique(groups)[ii])
+        perm <- c(perm, permii)
+        grps <- c(grps, rep(ii, length(permii)))
+      }
+    } else {
+      perm <- 1:p
+      grps <- rep(1, p)
+      K <- 1
+    }
+    grp.col <- rep(rainbow(K, alpha = 1), table(grps))
+    A <- A[perm, perm]
+    if (!is.na(names[1])) names <- names[perm]
+
+    if (display == "network") {
+      v.col <- rep(rainbow(K, alpha = .2), table(grps))
+      if (type == "granger") g <- igraph::graph_from_adjacency_matrix(A, mode = "directed", weighted = TRUE, diag = FALSE, ...)
+      if (type %in% c("pc", "lrpc")) g <- igraph::graph_from_adjacency_matrix(A, mode = "undirected", weighted = TRUE, diag = FALSE, ...)
+      lg <- igraph::layout_in_circle(g)
+      igraph::plot.igraph(g,
+                          main = nm, layout = lg, vertex.label = names, vertex.label.font = 2,
+                          vertex.shape = "circle", vertex.color = v.col,
+                          vertex.label.color = grp.col, vertex.label.cex = 0.6,
+                          edge.color = "gray40", edge.arrow.size = 0.5
+      )
+    } else if (display == "heatmap") {
+      heat.cols <- rev(RColorBrewer::brewer.pal(11, "RdBu"))
+      if (type == "granger") mv <- max(1e-3, abs(A))
+      if (type %in% c("pc", "lrpc")) {
+        A[abs(A) > 1] <- sign(A[abs(A) > 1])
+        diag(A) <- 0
+        mv <- 1.01
+      }
+      breaks <- seq(-mv, mv, length.out = 12)
+
+      fields::imagePlot(A,
+                        axes = FALSE, col = heat.cols,
+                        breaks = breaks, main = nm, ...
+      )
+      if (!is.na(names[1]) || !is.na(groups[1])) {
+        if (is.na(names[1])) names <- groups[perm]
+        for (ii in 1:p) mtext(text = names[ii], at = (ii - 1) / (p - 1), side = 1, las = 2, cex = .8, col = grp.col[ii])
+        for (ii in 1:p) mtext(text = names[ii], at = (ii - 1) / (p - 1), side = 2, las = 2, cex = .8, col = grp.col[ii])
+      }
     }
   }
 }
