@@ -48,7 +48,7 @@ fnets.factor.model(
 }}
 }
 \value{
-an S3 object of class \code{fnets}, which contains the following fields:
+an S3 object of class \code{fm}, which contains the following fields:
 \item{q}{ number of factors}
 \item{spec}{ if \code{factor.model = "unrestricted"} a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
 \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}

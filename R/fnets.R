@@ -464,7 +464,7 @@ plot.fnets <- function(x, type = c("granger", "pc", "lrpc"), display = c("networ
   p <- dim(x$acv$Gamma_x)[1]
   A <- matrix(0, nrow = p, ncol = p)
 
-  if(is.null(out$idio.var)){
+  if(is.null(x$idio.var)){
     warning(paste0("object contains no idiosyncratic component"))
   } else {
     if (type == "granger") {

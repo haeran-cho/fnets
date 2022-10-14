@@ -28,7 +28,7 @@
 #'    \item{\code{trunc.lags}}{ truncation lag for impulse response function estimation}
 #'    \item{\code{n.perm}}{ number of cross-sectional permutations involved in impulse response function estimation}
 #' }
-#' @return an S3 object of class \code{fnets}, which contains the following fields:
+#' @return an S3 object of class \code{fm}, which contains the following fields:
 #' \item{q}{ number of factors}
 #' \item{spec}{ if \code{factor.model = "unrestricted"} a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
 #' \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
@@ -95,7 +95,7 @@ fnets.factor.model <- function(x, center = TRUE, factor.model = c("unrestricted"
     common.irf = cve, mean.x = mean.x
   )
   attr(out, "factor") <- factor.model
-  attr(out, "class") <- "fnets"
+  attr(out, "class") <- "fm" #"fnets"
 
   return(out)
 }
@@ -209,4 +209,36 @@ static.pca <- function(xx, q.max = NULL, q = NULL, q.method = c("bn","er"), ic.o
   Gamma_i <- Gamma_x - Gamma_c
   acv <- list(Gamma_x = Gamma_x, Gamma_c = Re(Gamma_c), Gamma_i = Re(Gamma_i))
   return(list(q = q, lam = lam, f = f, acv = acv))
+}
+
+
+#' @title Forecasting for factor models
+#' @method predict fm
+#' @description Produces forecasts of the data for a given forecasting horizon by
+#'estimating the best linear predictors of the common component
+#' @param object \code{fm} object
+#' @param x input time series matrix, with each row representing a variable
+#' @param h forecasting horizon
+#' @param common.method a string specifying the method for common component forecasting; possible values are:
+#' \itemize{
+#'    \item{\code{"restricted"}}{ performs forecasting under a restricted factor model}
+#'    \item{\code{"unrestricted"}}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
+#' }
+#' @param r number of restricted factors; if \code{common.method = "restricted"} and \code{r = NULL},
+#' it is estimated as the maximiser of the ratio of the successive eigenvalues of the estimate of the common component covariance matrix,
+#' see Ahn and Horenstein (2013)
+#' @param ... not used
+#' @return a list containing
+#' \item{forecast}{ forecasts for the given forecasting horizon}
+#' \item{common.pred}{ a list containing forecasting results for the common component}
+#' \item{idio.pred}{ a list containing forecasting results for the idiosyncratic component}
+#' \item{mean.x}{ \code{mean.x} argument from \code{object}}
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+#' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
+#' @seealso \link[fnets]{fnets.factor.model}, \link[fnets]{common.predict}
+#' @export
+predict.fm <- function(object, x, h = 1, common.method = c("restricted", "unrestricted"), r = NULL, ...) {
+  common.method <- match.arg(common.method, c("unrestricted", "restricted"))
+  out <- common.predict(object = object, x = x, h = h, common.method = common.method, r = r)
+  return(out)
 }
