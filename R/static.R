@@ -238,7 +238,7 @@ static.pca <- function(xx, q.max = NULL, q = NULL, q.method = c("bn","er"), ic.o
 #' @seealso \link[fnets]{fnets.factor.model}, \link[fnets]{common.predict}
 #' @export
 predict.fm <- function(object, x, h = 1, common.method = c("restricted", "unrestricted"), r = NULL, ...) {
-  common.method <- match.arg(common.method, c("unrestricted", "restricted"))
+  common.method <- match.arg(common.method, c("restricted","unrestricted"))
   out <- common.predict(object = object, x = x, h = h, common.method = common.method, r = r)
   return(out)
 }
