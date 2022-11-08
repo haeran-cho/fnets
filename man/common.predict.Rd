@@ -4,13 +4,7 @@
 \alias{common.predict}
 \title{Forecasting the factor-driven common component}
 \usage{
-common.predict(
-  object,
-  x,
-  h = 1,
-  common.method = c("restricted", "unrestricted"),
-  r = NULL
-)
+common.predict(object, x, h = 1, forecast.restricted = TRUE, r = c("ic", "er"))
 }
 \arguments{
 \item{object}{\code{fnets} object}
@@ -19,15 +13,14 @@ common.predict(
 
 \item{h}{forecasting horizon}
 
-\item{common.method}{a string specifying the method for common component forecasting; possible values are:
-\itemize{
-   \item{\code{"restricted"}}{ performs forecasting under a restrictive restricted factor model}
-   \item{\code{"unrestricted"}}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
-}}
+\item{forecast.restricted}{whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component}
 
-\item{r}{number of restricted factors; if \code{common.method = "restricted"} and \code{r = NULL},
-it is estimated as the maximiser of the ratio of the successive eigenvalues
-of the estimate of the common component covariance matrix, see Ahn and Horenstein (2013)}
+\item{r}{number of restricted factors, or a string specifying the factor number selection method when \code{forecast.restricted = TRUE};
+ possible values are:
+\itemize{
+   \item{\code{"ic"}}{ information criteria of Bai and Ng (2002)}
+   \item{\code{"er"}}{ eigenvalue ratio}
+}}
 }
 \value{
 a list containing
@@ -47,12 +40,12 @@ p <- 50
 common <- sim.unrestricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
-out <- fnets(x, q = NULL, idio.var.order = 1, idio.method = "lasso", lrpc.method = "none")
-cpre <- common.predict(out, x, h = 1, common.method = "restricted", r = NULL)
+out <- fnets(x, q = NULL, var.order = 1, var.method = "lasso", do.lrpc = FALSE)
+cpre <- common.predict(out, x, h = 1, r = NULL)
 ipre <- idio.predict(out, x, cpre, h = 1)
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 
 Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 

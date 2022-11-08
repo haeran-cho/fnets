@@ -4,14 +4,7 @@
 \alias{predict.fm}
 \title{Forecasting for factor models}
 \usage{
-\method{predict}{fm}(
-  object,
-  x,
-  h = 1,
-  common.method = c("restricted", "unrestricted"),
-  r = NULL,
-  ...
-)
+\method{predict}{fm}(object, x, h = 1, forecast.restricted = TRUE, r = c("ic", "er"), ...)
 }
 \arguments{
 \item{object}{\code{fm} object}
@@ -20,31 +13,29 @@
 
 \item{h}{forecasting horizon}
 
-\item{common.method}{a string specifying the method for common component forecasting; possible values are:
-\itemize{
-   \item{\code{"restricted"}}{ performs forecasting under a restricted factor model}
-   \item{\code{"unrestricted"}}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
-}}
+\item{forecast.restricted}{whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component}
 
-\item{r}{number of restricted factors; if \code{common.method = "restricted"} and \code{r = NULL},
-it is estimated as the maximiser of the ratio of the successive eigenvalues of the estimate of the common component covariance matrix,
-see Ahn and Horenstein (2013)}
+\item{r}{number of restricted factors, or a string specifying the factor number selection method when \code{forecast.restricted = TRUE};
+ possible values are:
+\itemize{
+   \item{\code{"ic"}}{ information criteria of Bai and Ng (2002)}
+   \item{\code{"er"}}{ eigenvalue ratio}
+}}
 
 \item{...}{not used}
 }
 \value{
 a list containing
+\item{is}{ in-sample predictions}
 \item{forecast}{ forecasts for the given forecasting horizon}
-\item{common.pred}{ a list containing forecasting results for the common component}
-\item{idio.pred}{ a list containing forecasting results for the idiosyncratic component}
-\item{mean.x}{ \code{mean.x} argument from \code{object}}
+\item{r}{ factor number}
 }
 \description{
 Produces forecasts of the data for a given forecasting horizon by
 estimating the best linear predictors of the common component
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+Barigozzi, M., Cho, H. & Owens, D. (2021) Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 
 Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 }

@@ -1,63 +1,4 @@
-#' @title Nonparametric estimation of long-run partial correlations of factor-adjusted VAR processes
-#' @description Returns a nonparametric estimate of long-run partial correlations of the VAR process
-#' from the inverse of long-run covariance matrix obtained via constrained \code{l1}-minimisation.
-#' @param object \code{fnets} object
-#' @param x input time series matrix; with each row representing a variable
-#' @param eta regularisation parameter; if \code{eta = NULL}, it is selected by cross validation
-#' @param cv.args a list specifying arguments for the cross validation procedure
-#' for selecting the tuning parameter involved in long-run partial correlation matrix estimation. It contains:
-#' \itemize{
-#'    \item{\code{n.folds}}{ number of folds}
-#'    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
-#'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
-#' }
-#' @param do.correct whether to correct for any negative entries in the diagonals of the inverse of long-run covariance matrix
-#' @param n.cores number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}
-#' @return a list containing
-#' \item{Omega}{ estimated inverse of the long-run covariance matrix}
-#' \item{lrpc}{ estimated long-run partial correlation matrix}
-#' \item{eta}{ regularisation parameter}
-#' @examples
-#' \dontrun{
-#' set.seed(123)
-#' n <- 500
-#' p <- 50
-#' common <- sim.unrestricted(n, p)
-#' idio <- sim.var(n, p)
-#' x <- common$data + idio$data
-#' out <- fnets(x, q = NULL, idio.method = "lasso", lrpc.method = "none")
-#' nlrpc <- npar.lrpc(out, x, cv.args = list(n.folds = 1, path.length = 10, do.plot = TRUE))
-#' out$lrpc <- nlrpc
-#' out$lrpc.method <- "npar"
-#' plot(out, type = "lrpc", display = "heatmap", threshold = .05)
-#' }
-#' @importFrom parallel detectCores
-#' @export
-npar.lrpc <- function(object, x, eta = NULL,
-                      cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
-                      do.correct = TRUE, n.cores = min(parallel::detectCores() - 1, 3)) {
-  xx <- x - object$mean.x
-  p <- dim(x)[1]
-  GG <- Re(object$spec$Sigma_i[, , 1])
 
-  if (is.null(eta)) {
-    dcv <- direct.cv(object, xx,
-      target = "spec", symmetric = "min",
-      n.folds = cv.args$n.folds, path.length = cv.args$path.length,
-      q = object$q, kern.const = object$kern.const, n.cores = n.cores,
-      do.plot = cv.args$do.plot
-    )
-    eta <- dcv$eta
-  }
-  DD <- direct.inv.est(GG,
-    eta = eta, symmetric = "min",
-    do.correct = do.correct, n.cores = n.cores
-  )$DD
-  lrpc <- -t(t(DD) / sqrt(diag(DD))) / sqrt(diag(DD))
-  out <- list(Omega = DD, lrpc = lrpc, eta = eta)
-
-  return(out)
-}
 
 #' @title Parametric estimation of long-run partial correlations of factor-adjusted VAR processes
 #' @description Returns a parametric estimate of long-run partial correlations of the VAR process
@@ -66,7 +7,7 @@ npar.lrpc <- function(object, x, eta = NULL,
 #' @param object \code{fnets} object
 #' @param x input time series matrix; with each row representing a variable
 #' @param eta regularisation parameter; if \code{eta = NULL}, it is selected by cross validation
-#' @param cv.args a list specifying arguments for the cross validation procedure
+#' @param tuning.args a list specifying arguments for the cross validation procedure
 #' for selecting the tuning parameter involved in long-run partial correlation matrix estimation. It contains:
 #' \itemize{
 #'    \item{\code{n.folds}}{ number of folds}
@@ -84,8 +25,8 @@ npar.lrpc <- function(object, x, eta = NULL,
 #' \item{lrpc}{ estimated long-run partial correlation matrix}
 #' \item{eta}{ regularisation parameter}
 #' \item{lrpc.adaptive}{ was the adaptive procedure used}
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
-#' Cai, T. T., Liu, W., & Zhou, H. H. (2016). Estimating sparse precision matrix: Optimal rates of convergence and adaptive estimation. The Annals of Statistics, 44(2), 455-488.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series.
+#' @references Cai, T. T., Liu, W., & Zhou, H. H. (2016). Estimating sparse precision matrix: Optimal rates of convergence and adaptive estimation. The Annals of Statistics, 44(2), 455-488.
 #' @examples
 #' \dontrun{
 #' set.seed(123)
@@ -94,17 +35,17 @@ npar.lrpc <- function(object, x, eta = NULL,
 #' common <- sim.unrestricted(n, p)
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
-#' out <- fnets(x, q = NULL, idio.method = "lasso", lrpc.method = "none")
-#' plrpc <- par.lrpc(out, x, cv.args = list(n.folds = 1, path.length = 10, do.plot = TRUE))
+#' out <- fnets(x, q = NULL, var.method = "lasso", do.lrpc = FALSE)
+#' plrpc <- par.lrpc(out, x, tuning.args = list(n.folds = 1, path.length = 10, do.plot = TRUE))
 #' out$lrpc <- plrpc
-#' out$lrpc.method <- "par"
+#' out$do.lrpc <- TRUE
 #' plot(out, type = "pc", display = "network", threshold = .05)
 #' plot(out, type = "lrpc", display = "heatmap", threshold = .05)
 #' }
 #' @importFrom parallel detectCores
 #' @export
 par.lrpc <- function(object, x, eta = NULL,
-                     cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
+                     tuning.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
                      lrpc.adaptive = FALSE, eta.adaptive = NULL,
                      do.correct = TRUE,
                      n.cores = min(parallel::detectCores() - 1, 3)) {
@@ -112,7 +53,7 @@ par.lrpc <- function(object, x, eta = NULL,
   p <- dim(x)[1]
   n <- dim(x)[2]
 
-  cv.args <- check.list.arg(cv.args)
+  tuning.args <- check.list.arg(tuning.args)
 
   GG <- object$idio.var$Gamma
   A <- t(object$idio.var$beta)
@@ -124,10 +65,10 @@ par.lrpc <- function(object, x, eta = NULL,
   if (is.null(eta)) {
     dcv <- direct.cv(object, xx,
       target = "acv", symmetric = "min",
-      n.folds = cv.args$n.folds, path.length = cv.args$path.length,
-      q = object$q, kern.const = object$kern.const, n.cores = n.cores,
+      n.folds = tuning.args$n.folds, path.length = tuning.args$path.length,
+      q = object$q, kern.bw = object$kern.bw, n.cores = n.cores,
       lrpc.adaptive = lrpc.adaptive, eta.adaptive = eta.adaptive,
-      do.plot = cv.args$do.plot
+      do.plot = tuning.args$do.plot
     )
     eta <- dcv$eta
   }
@@ -159,12 +100,13 @@ par.lrpc <- function(object, x, eta = NULL,
 #' @importFrom parallel detectCores
 #' @importFrom graphics abline
 direct.cv <- function(object, xx, target = c("spec", "acv"), symmetric = c("min", "max", "avg", "none"),
-                      n.folds = 1, path.length = 10, q = 0, kern.const = 4, n.cores = min(parallel::detectCores() - 1, 3),
+                      n.folds = 1, path.length = 10, q = 0, kern.bw = NULL, n.cores = min(parallel::detectCores() - 1, 3),
                       lrpc.adaptive = FALSE, eta.adaptive = NULL,
                       do.plot = FALSE) {
   n <- ncol(xx)
   p <- nrow(xx)
 
+  if(is.null(kern.bw)) kern.bw <- 4 * floor((n/log(n))^(1/3))
   target <- match.arg(target, c("spec", "acv"))
   if (target == "spec") {
     GG <- Re(object$spec$Sigma_i[, , 1])
@@ -187,12 +129,12 @@ direct.cv <- function(object, xx, target = c("spec", "acv"), symmetric = c("min"
     train.x <- xx[, ind.list[[fold]][train.ind]]
     test.x <- xx[, ind.list[[fold]][-train.ind]]
     if (target == "spec") {
-      train.GG <- Re(dyn.pca(train.x, q = q, kern.const = kern.const)$spec$Sigma_i[, , 1])
-      test.GG <- Re(dyn.pca(test.x, q = q, kern.const = kern.const)$spec$Sigma_i[, , 1])
+      train.GG <- Re(dyn.pca(train.x, q = q, kern.bw = kern.bw)$spec$Sigma_i[, , 1])
+      test.GG <- Re(dyn.pca(test.x, q = q, kern.bw = kern.bw)$spec$Sigma_i[, , 1])
     }
     if (target == "acv") {
-      train.G0 <- dyn.pca(train.x, q = q, kern.const = kern.const, mm = d)$acv$Gamma_i
-      test.G0 <- dyn.pca(test.x, q = q, kern.const = kern.const, mm = d)$acv$Gamma_i
+      train.G0 <- dyn.pca(train.x, q = q, kern.bw = kern.bw, mm = d)$acv$Gamma_i
+      test.G0 <- dyn.pca(test.x, q = q, kern.bw = kern.bw, mm = d)$acv$Gamma_i
       train.GG <- train.G0[, , 1]
       test.GG <- test.G0[, , 1]
       for (ll in 1:d) {

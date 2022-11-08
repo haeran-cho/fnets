@@ -8,7 +8,7 @@ par.lrpc(
   object,
   x,
   eta = NULL,
-  cv.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
+  tuning.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
   lrpc.adaptive = FALSE,
   eta.adaptive = NULL,
   do.correct = TRUE,
@@ -22,7 +22,7 @@ par.lrpc(
 
 \item{eta}{regularisation parameter; if \code{eta = NULL}, it is selected by cross validation}
 
-\item{cv.args}{a list specifying arguments for the cross validation procedure
+\item{tuning.args}{a list specifying arguments for the cross validation procedure
 for selecting the tuning parameter involved in long-run partial correlation matrix estimation. It contains:
 \itemize{
    \item{\code{n.folds}}{ number of folds}
@@ -62,15 +62,16 @@ p <- 50
 common <- sim.unrestricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
-out <- fnets(x, q = NULL, idio.method = "lasso", lrpc.method = "none")
-plrpc <- par.lrpc(out, x, cv.args = list(n.folds = 1, path.length = 10, do.plot = TRUE))
+out <- fnets(x, q = NULL, var.method = "lasso", do.lrpc = FALSE)
+plrpc <- par.lrpc(out, x, tuning.args = list(n.folds = 1, path.length = 10, do.plot = TRUE))
 out$lrpc <- plrpc
-out$lrpc.method <- "par"
+out$do.lrpc <- TRUE
 plot(out, type = "pc", display = "network", threshold = .05)
 plot(out, type = "lrpc", display = "heatmap", threshold = .05)
 }
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series.
+
 Cai, T. T., Liu, W., & Zhou, H. H. (2016). Estimating sparse precision matrix: Optimal rates of convergence and adaptive estimation. The Annals of Statistics, 44(2), 455-488.
 }

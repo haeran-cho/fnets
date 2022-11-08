@@ -28,5 +28,5 @@ Simulate a VAR(1) process; see the reference for the generation of the transitio
 idio <- sim.var(500, 50)
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series.
+Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series.
 }

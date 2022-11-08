@@ -6,11 +6,11 @@
 \usage{
 static.pca(
   xx,
-  q.max = NULL,
   q = NULL,
-  q.method = c("bn", "er"),
-  ic.op = 2,
-  kern.const = 4,
+  q.method = c("ic", "er"),
+  q.max = NULL,
+  pen.op = 2,
+  kern.bw = NULL,
   mm = NULL
 )
 }

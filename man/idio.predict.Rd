@@ -32,10 +32,10 @@ p <- 50
 common <- sim.unrestricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
-out <- fnets(x, q = NULL, idio.var.order = 1, idio.method = "lasso", lrpc.method = "none")
-cpre <- common.predict(out, x, h = 1, common.method = "restricted", r = NULL)
+out <- fnets(x, q = NULL, var.order = 1, var.method = "lasso", do.lrpc = FALSE)
+cpre <- common.predict(out, x, h = 1, r = NULL)
 ipre <- idio.predict(out, x, cpre, h = 1)
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 }

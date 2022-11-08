@@ -12,7 +12,7 @@ yw.cv(
   n.folds = 1,
   path.length = 10,
   q = 0,
-  kern.const = 4,
+  kern.bw = NULL,
   do.plot = FALSE
 )
 }

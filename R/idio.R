@@ -11,10 +11,10 @@
 #' }
 #' @param var.order order of the VAR process; if a vector of integers is supplied, the order is chosen via \code{tuning}
 #' @param lambda regularisation parameter; if \code{lambda = NULL}, \code{tuning} is employed to select the parameter
-#' @param cv.args a list specifying arguments for \code{tuning}
+#' @param tuning.args a list specifying arguments for \code{tuning}
 #' for selecting the regularisation parameter (and VAR order). It contains:
 #' \itemize{
-#'    \item{\code{tuning}} a string specifying the selection procedure for \code{idio.var.order} and \code{lambda}; possible values are:
+#'    \item{\code{tuning}} a string specifying the selection procedure for \code{var.order} and \code{lambda}; possible values are:
 #'    \itemize{
 #'       \item{\code{"cv"}}{ cross validation}
 #'       \item{\code{"ic"}}{ information criterion}
@@ -24,7 +24,7 @@
 #'    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
-#' @param idio.threshold whether to perform adaptive thresholding of \code{beta} with \link[fnets]{threshold}
+#' @param var.threshold whether to perform adaptive thresholding of VAR parameter estimator with \link[fnets]{threshold}
 #' @param n.iter maximum number of descent steps; applicable when \code{method = "lasso"}
 #' @param tol numerical tolerance for increases in the loss function; applicable when \code{method = "lasso"}
 #' @param n.cores number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{method = "ds"}
@@ -37,20 +37,20 @@
 #' \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
 #' @example R/examples/var_ex.R
 #' @importFrom parallel detectCores
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @export
 fnets.var <- function(x, center = TRUE, method = c("lasso", "ds"),
                       lambda = NULL, var.order = 1,
-                      cv.args = list(tuning = c("cv", "ic"), n.folds = 1, path.length = 10, do.plot = FALSE),
-                      idio.threshold = FALSE,
+                      tuning.args = list(tuning = c("cv", "ic"), n.folds = 1, path.length = 10, do.plot = FALSE),
+                      var.threshold = FALSE,
                       n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3)) {
   p <- dim(x)[1]
   n <- dim(x)[2]
 
-  cv.args <- check.list.arg(cv.args)
+  tuning.args <- check.list.arg(tuning.args)
 
   method <- match.arg(method, c("lasso", "ds"))
-  tuning <- match.arg(cv.args$tuning, c("cv", "ic"))
+  tuning <- match.arg(tuning.args$tuning, c("cv", "ic"))
   if (center) mean.x <- apply(x, 1, mean) else mean.x <- rep(0, p)
   xx <- x - mean.x
   dpca <- dyn.pca(xx, q = 0)
@@ -61,16 +61,16 @@ fnets.var <- function(x, center = TRUE, method = c("lasso", "ds"),
     icv <- yw.cv(xx,
       method = method,
       lambda.max = NULL, var.order = var.order,
-      n.folds = cv.args$n.folds, path.length = cv.args$path.length,
-      q = 0, kern.const = 4, do.plot = cv.args$do.plot
+      n.folds = tuning.args$n.folds, path.length = tuning.args$path.length,
+      q = 0, kern.bw = NULL, do.plot = tuning.args$do.plot
     )
   }
   if (tuning == "ic") {
     icv <- yw.ic(xx,
       method = method,
       lambda.max = NULL, var.order = var.order,
-      penalty = cv.args$penalty, path.length = cv.args$path.length,
-      q = 0, kern.const = 4, do.plot = cv.args$do.plot
+      penalty = tuning.args$penalty, path.length = tuning.args$path.length,
+      q = 0, kern.bw = NULL, do.plot = tuning.args$do.plot
     )
   }
 
@@ -82,7 +82,7 @@ fnets.var <- function(x, center = TRUE, method = c("lasso", "ds"),
   if (method == "ds") ive <- var.dantzig(GG, gg, lambda = icv$lambda, symmetric = "min", n.cores = n.cores)
   ive$var.order <- icv$var.order
   ive$mean.x <- mean.x
-  if (idio.threshold) ive$beta <- threshold(ive$beta, do.plot = cv.args$do.plot)
+  if (var.threshold) ive$beta <- threshold(ive$beta, do.plot = tuning.args$do.plot)
 
   return(ive)
 }
@@ -188,10 +188,11 @@ var.dantzig <- function(GG, gg, lambda, symmetric = "min", n.cores = min(paralle
 yw.cv <- function(xx, method = c("lasso", "ds"),
                   lambda.max = NULL, var.order = 1,
                   n.folds = 1, path.length = 10,
-                  q = 0, kern.const = 4, do.plot = FALSE) {
+                  q = 0, kern.bw = NULL, do.plot = FALSE) {
   n <- ncol(xx)
   p <- nrow(xx)
 
+  if(is.null(kern.bw)) kern.bw <- 4 * floor((n/log(n))^(1/3))
   if (is.null(lambda.max)) lambda.max <- max(abs(xx %*% t(xx) / n)) * 1
   lambda.path <- round(exp(seq(log(lambda.max), log(lambda.max * .0001), length.out = path.length)), digits = 10)
 
@@ -204,8 +205,8 @@ yw.cv <- function(xx, method = c("lasso", "ds"),
     train.ind <- 1:ceiling(length(ind.list[[fold]]) * .5)
     train.x <- xx[, ind.list[[fold]][train.ind]]
     test.x <- xx[, ind.list[[fold]][-train.ind]]
-    train.acv <- dyn.pca(train.x, q = q, kern.const = kern.const, mm = max(var.order))$acv$Gamma_i
-    test.acv <- dyn.pca(test.x, q = q, kern.const = kern.const, mm = max(var.order))$acv$Gamma_i
+    train.acv <- dyn.pca(train.x, q = q, kern.bw = kern.bw, mm = max(var.order))$acv$Gamma_i
+    test.acv <- dyn.pca(test.x, q = q, kern.bw = kern.bw, mm = max(var.order))$acv$Gamma_i
 
     for (jj in 1:length(var.order)) {
       mg <- make.gg(train.acv, var.order[jj])
@@ -279,9 +280,10 @@ ebic <- function(object, n, penalty = 1) {
 yw.ic <- function(xx, method = c("lasso", "ds"),
                   lambda.max = NULL, var.order = 1,
                   penalty = NULL, path.length = 10,
-                  q = 0, kern.const = 4, do.plot = FALSE) {
+                  q = 0, kern.bw = NULL, do.plot = FALSE) {
   n <- ncol(xx)
   p <- nrow(xx)
+  if(is.null(kern.bw)) kern.bw <- 4 * floor((n/log(n))^(1/3))
   if (is.null(penalty)) penalty <- 1 / (1 + exp(5 - p / n))
   if (is.null(lambda.max)) lambda.max <- max(abs(xx %*% t(xx) / n)) * 1
   lambda.path <- round(exp(seq(log(lambda.max), log(lambda.max * .0001), length.out = path.length)), digits = 10)
@@ -291,7 +293,7 @@ yw.ic <- function(xx, method = c("lasso", "ds"),
   dimnames(ic.err.mat)[[2]] <- var.order
 
 
-  acv <- dyn.pca(xx, q = q, kern.const = kern.const, mm = max(var.order))$acv$Gamma_i
+  acv <- dyn.pca(xx, q = q, kern.bw = kern.bw, mm = max(var.order))$acv$Gamma_i
 
   for (jj in 1:length(var.order)) {
     mg <- make.gg(acv, var.order[jj])
@@ -350,7 +352,7 @@ yw.ic <- function(xx, method = c("lasso", "ds"),
 #' \item{is}{ in-sample estimator of the idiosyncratic component}
 #' \item{fc}{ forecasts of the idiosyncratic component for a given forecasting horizon \code{h}}
 #' \item{h}{ forecast horizon}
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @examples
 #' set.seed(123)
 #' n <- 500
@@ -358,8 +360,8 @@ yw.ic <- function(xx, method = c("lasso", "ds"),
 #' common <- sim.unrestricted(n, p)
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
-#' out <- fnets(x, q = NULL, idio.var.order = 1, idio.method = "lasso", lrpc.method = "none")
-#' cpre <- common.predict(out, x, h = 1, common.method = "restricted", r = NULL)
+#' out <- fnets(x, q = NULL, var.order = 1, var.method = "lasso", do.lrpc = FALSE)
+#' cpre <- common.predict(out, x, h = 1, r = NULL)
 #' ipre <- idio.predict(out, x, cpre, h = 1)
 #' @export
 idio.predict <- function(object, x, cpre, h = 1) {

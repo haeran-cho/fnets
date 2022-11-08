@@ -4,24 +4,14 @@
 \alias{bn.factor.number}
 \title{Factor number estimator of Bai and Ng (2002)}
 \usage{
-bn.factor.number(
-  x,
-  lam = NULL,
-  f = NULL,
-  q.max = NULL,
-  ic.op = 2,
-  do.plot = FALSE,
-  center = TRUE
-)
+bn.factor.number(x, covx = NULL, q.max = NULL, do.plot = FALSE, center = TRUE)
 }
 \arguments{
 \item{x}{input time series matrix, with each row representing a variable}
 
-\item{lam, f}{loading and factor matrices; if \code{lam = NULL} or \code{f = NULL}, these are obtained with PCA}
+\item{covx}{covariance of \code{x}}
 
 \item{q.max}{maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}}
-
-\item{ic.op}{chosen information criterion}
 
 \item{do.plot}{whether to plot the value of the information criterion}
 
@@ -30,15 +20,12 @@ bn.factor.number(
 \value{
 a list containing
 \item{q.hat}{ the mimimiser of the chosen information criteria}
-\item{lam}{ loading matrix}
-\item{f}{ factor series}
-\item{q.max}{ maximum number of factors}
-\item{ic}{ vector of information criteria values}
+\item{sv}{ svd of \code{covx}}
 }
 \description{
 Estimates the number of restricted factors by minimising an information criterion.
-Currently the five information criteria proposed in Bai and Ng (2002) (\code{ic.op = 1,...,5}) are implemented,
-with \code{ic.op = 2} recommended as a default choice based on numerical experiments.
+Currently the five information criteria proposed in Bai and Ng (2002) (\code{pen.op = 1,...,5}) are implemented,
+with \code{pen.op = 2} recommended as a default choice based on numerical experiments.
 }
 \details{
 See Bai and Ng (2002) for further details.
@@ -53,9 +40,12 @@ common <- sim.restricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data * apply(idio$data, 1, sd) / apply(common$data, 1, sd) + idio$data
 
-bn <- bn.factor.number(x, q.max = NULL, center = FALSE, do.plot = TRUE)
+bn <- factor.number(x, restricted = TRUE, do.plot = TRUE)
 bn$q.hat
 }
 \references{
 Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221. \cr
+
+Alessi, L., Barigozzi, M.,  and Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
 }
+\keyword{internal}

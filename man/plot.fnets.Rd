@@ -20,8 +20,8 @@
 \item{type}{a string specifying which of the above three networks (i)--(iii) to visualise; possible values are
 \itemize{
    \item{\code{"granger"}}{ directed network representing Granger causal linkages}
-   \item{\code{"pc"}}{ undirected network representing contemporaneous linkages; available when \code{x$lrpc.method = "par"}}
-   \item{\code{"lrpc"}}{ undirected network summarising Granger causal and contemporaneous linkages; available when \code{x$lrpc.method = "par"} or \code{x$lrpc.method = "npar"}}
+   \item{\code{"pc"}}{ undirected network representing contemporaneous linkages; available when \code{x$do.lrpc = TRUE}}
+   \item{\code{"lrpc"}}{ undirected network summarising Granger causal and contemporaneous linkages; available when \code{x$do.lrpc = TRUE}}
 }}
 
 \item{display}{a string specifying how to visualise the network; possible values are:
@@ -49,7 +49,7 @@ Produces a plot visualising three networks underlying factor-adjusted VAR proces
 See Barigozzi, Cho and Owens (2021) for further details.
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 }
 \seealso{
 \link[fnets]{fnets}

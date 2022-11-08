@@ -4,20 +4,19 @@
 #' @param object \code{fnets} object
 #' @param x input time series matrix, with each row representing a variable
 #' @param h forecasting horizon
-#' @param common.method a string specifying the method for common component forecasting; possible values are:
+#' @param forecast.restricted whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component
+#' @param r number of restricted factors, or a string specifying the factor number selection method when \code{forecast.restricted = TRUE};
+#'  possible values are:
 #' \itemize{
-#'    \item{\code{"restricted"}}{ performs forecasting under a restrictive restricted factor model}
-#'    \item{\code{"unrestricted"}}{ performs forecasting under an unrestrictive, blockwise VAR representation of the common component}
+#'    \item{\code{"ic"}}{ information criteria of Bai and Ng (2002)}
+#'    \item{\code{"er"}}{ eigenvalue ratio}
 #' }
-#' @param r number of restricted factors; if \code{common.method = "restricted"} and \code{r = NULL},
-#' it is estimated as the maximiser of the ratio of the successive eigenvalues
-#' of the estimate of the common component covariance matrix, see Ahn and Horenstein (2013)
 #' @return a list containing
 #' \item{is}{ in-sample estimator of the common component}
 #' \item{fc}{ forecasts of the common component for a given forecasting horizon \code{h}}
 #' \item{r}{ restricted factor number}
 #' \item{h}{ forecast horizon}
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 #' @references Forni, M., Hallin, M., Lippi, M. & Reichlin, L. (2005). The generalized dynamic factor model: one-sided estimation and forecasting. Journal of the American Statistical Association, 100(471), 830--840.
 #' @references Forni, M., Hallin, M., Lippi, M. & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
@@ -28,31 +27,35 @@
 #' common <- sim.unrestricted(n, p)
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
-#' out <- fnets(x, q = NULL, idio.var.order = 1, idio.method = "lasso", lrpc.method = "none")
-#' cpre <- common.predict(out, x, h = 1, common.method = "restricted", r = NULL)
+#' out <- fnets(x, q = NULL, var.order = 1, var.method = "lasso", do.lrpc = FALSE)
+#' cpre <- common.predict(out, x, h = 1, r = NULL)
 #' ipre <- idio.predict(out, x, cpre, h = 1)
 #' @export
-common.predict <- function(object, x, h = 1, common.method = c("restricted", "unrestricted"), r = NULL) {
+common.predict <- function(object, x, h = 1, forecast.restricted = TRUE, r = c("ic","er")) {
   xx <- x - object$mean.x
   p <- dim(x)[1]
 
+  if(!is.numeric(r)) {
+    r.method <- match.arg(r, c("ic", "er"))
+    r <- NULL
+  } else r.method <- NULL
+
   pre <- list(is = 0 * x, fc = matrix(0, nrow = p, ncol = h))
   if (attr(object, "factor") == "unrestricted") {
-    common.method <- match.arg(common.method, c("restricted", "unrestricted"))
     if (object$q < 1) {
       warning(paste0("There should be at least one factor for common component estimation!"))
     }
     if (object$q >= 1) {
-      if (common.method == "restricted") pre <- common.restricted.predict(xx = xx, Gamma_c = object$acv$Gamma_c, q = object$q, r = r, h = h)
-      if (common.method == "unrestricted") pre <- common.unrestricted.predict(xx = xx, cve = object$common.irf, h = h)
+      if (forecast.restricted) pre <- common.restricted.predict(xx = xx, Gamma_c = object$acv$Gamma_c, q = object$q, r = r, r.method = r.method, h = h)
+      if (!forecast.restricted) pre <- common.unrestricted.predict(xx = xx, cve = object$common.irf, h = h)
     }
   }
 
   if (attr(object, "factor") == "restricted") {
-    if (common.method == "restricted") {
-      pre <- common.restricted.predict(xx = xx, Gamma_c = object$acv$Gamma_c, q = object$q, r = object$q, h = h)
+    if (forecast.restricted) {
+      pre <- common.restricted.predict(xx = xx, Gamma_c = object$acv$Gamma_c, q = object$q, r = object$q, r.method = r.method, h = h)
     } else {
-      stop(paste0("common.method must be restricted under restricted factor model"))
+      stop(paste0("forecast.restricted must be TRUE under restricted factor model"))
     }
   }
   return(pre)
@@ -60,15 +63,15 @@ common.predict <- function(object, x, h = 1, common.method = c("restricted", "un
 
 #' @title Blockwise VAR estimation under GDFM
 #' @references Forni, M., Hallin, M., Lippi, M. & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @keywords internal
-common.irf.estimation <- function(xx, Gamma_c, q, var.order = NULL, max.var.order = NULL, trunc.lags, n.perm) {
+common.irf.estimation <- function(xx, Gamma_c, q, factor.var.order = NULL, max.var.order = NULL, trunc.lags, n.perm) {
   n <- dim(xx)[2]
   p <- dim(xx)[1]
   mm <- (dim(Gamma_c)[3] - 1) / 2
   N <- p %/% (q + 1)
-  if (!is.null(var.order)) max.var.order <- var.order
-  if (is.null(max.var.order)) max.var.order <- min(var.order, max(1, ceiling(10 * log(n, 10) / (q + 1)^2)), 10)
+  if (!is.null(factor.var.order)) max.var.order <- factor.var.order
+  if (is.null(max.var.order)) max.var.order <- min(factor.var.order, max(1, ceiling(10 * log(n, 10) / (q + 1)^2)), 10)
 
   if (q < 1) warning(paste0("There should be at least one factor for common component estimation!"))
 
@@ -89,11 +92,11 @@ common.irf.estimation <- function(xx, Gamma_c, q, var.order = NULL, max.var.orde
         pblock <- perm.index[block]
         nblock <- length(block)
 
-        if (is.null(var.order)) {
+        if (is.null(factor.var.order)) {
           bic <- common.bic(Gamma_c_perm, block, n, max.var.order)
           s <- which.min(bic[-1])
         } else {
-          s <- var.order
+          s <- factor.var.order
         }
 
         tmp <- common.yw.est(Gamma_c_perm, block, s)$A
@@ -137,7 +140,7 @@ common.irf.estimation <- function(xx, Gamma_c, q, var.order = NULL, max.var.orde
 }
 
 #' @keywords internal
-common.restricted.predict <- function(xx, Gamma_c, q, r = NULL, max.r = NULL, h = 1) {
+common.restricted.predict <- function(xx, Gamma_c, q, r = NULL, max.r = NULL, r.method = NULL, h = 1) {
   p <- dim(xx)[1]
   n <- dim(xx)[2]
   if (is.null(max.r)) max.r <- max(q, min(50, round(sqrt(min(n, p)))))
@@ -146,8 +149,20 @@ common.restricted.predict <- function(xx, Gamma_c, q, r = NULL, max.r = NULL, h 
     h <- (dim(Gamma_c)[3] - 1) / 2
   }
 
-  sv <- svd(Gamma_c[, , 1], nu = max.r, nv = 0)
-  if (is.null(r)) r <- which.max(sv$d[q:max.r] / sv$d[1 + q:max.r]) + q - 1
+
+  if (is.null(r)){
+    if(r.method == "ic"){
+      bn <- bn.factor.number(xx, covx = Gamma_c[, , 1], q.max = max.r)
+      r  <- bn$q.hat[2]
+      sv <- bn$sv
+    }
+    if(r.method == "er"){
+      sv <- svd(Gamma_c[, , 1], nu = max.r, nv = 0)
+      r <- which.max(sv$d[q:max.r] / sv$d[1 + q:max.r]) + q - 1
+    }
+  }
+
+
 
   is <- sv$u[, 1:r, drop = FALSE] %*% t(sv$u[, 1:r, drop = FALSE]) %*% xx
   if (h >= 1) {

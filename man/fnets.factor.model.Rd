@@ -7,13 +7,12 @@
 fnets.factor.model(
   x,
   center = TRUE,
-  factor.model = c("unrestricted", "restricted"),
-  q = NULL,
-  q.method = c("bn", "er"),
-  ic.op = NULL,
-  kern.const = 4,
-  common.args = list(var.order = NULL, max.var.order = NULL, trunc.lags = 20, n.perm =
-    10)
+  fm.restricted = FALSE,
+  q = c("ic", "er"),
+  pen.op = NULL,
+  kern.bw = NULL,
+  common.args = list(factor.var.order = NULL, max.var.order = NULL, trunc.lags = 20,
+    n.perm = 10)
 )
 }
 \arguments{
@@ -21,27 +20,22 @@ fnets.factor.model(
 
 \item{center}{whether to de-mean the input \code{x} row-wise}
 
-\item{factor.model}{a string specifying the method to be adopted for factor model estimation; possible values are:
-\itemize{
-   \item{\code{"unrestricted"}}{ unrestricted factor model}
-   \item{\code{"restricted"}}{ restricted factor model}
-}}
+\item{fm.restricted}{whether to estimate a restricted factor model using static PCA}
 
-\item{q}{number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007) or Bai and Ng (2002), see \link[fnets]{hl.factor.number} and \link[fnets]{bn.factor.number} for further details}
-
-\item{q.method}{a string specifying the factor number selection method when \code{factor.model = "restricted"}; possible values are:
+\item{q}{Either a string specifying the factor number selection method when \code{fm.restricted = TRUE}; possible values are:
 \itemize{
-   \item{\code{"bn"}}{ information criteria of Bai and Ng (2002)}
+   \item{\code{"ic"}}{ information criteria of Hallin and Liška (2007) or Bai and Ng (2002), see \link[fnets]{factor.number}}
    \item{\code{"er"}}{ eigenvalue ratio}
-}}
+};
+or the number of unrestricted factors.}
 
-\item{ic.op}{choice of the information criterion, see \link[fnets]{hl.factor.number} or \link[fnets]{bn.factor.number} for further details}
+\item{pen.op}{choice of the information criterion penalty, see \link[fnets]{hl.factor.number} or \link[fnets]{bn.factor.number} for further details}
 
-\item{kern.const}{constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA}
+\item{kern.bw}{kernel bandwidth for dynamic PCA; defaults to \code{4 * floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))}}
 
 \item{common.args}{a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
 \itemize{
-   \item{\code{var.order}}{ order of the blockwise VAR representation of the common component. If \code{var.order = NULL}, it is selected blockwise by Schwarz criterion}
+   \item{\code{factor.var.order}}{ order of the blockwise VAR representation of the common component. If \code{factor.var.order = NULL}, it is selected blockwise by Schwarz criterion}
    \item{\code{max.var.order}}{ maximum blockwise VAR order for the Schwarz criterion}
    \item{\code{trunc.lags}}{ truncation lag for impulse response function estimation}
    \item{\code{n.perm}}{ number of cross-sectional permutations involved in impulse response function estimation}
@@ -50,12 +44,11 @@ fnets.factor.model(
 \value{
 an S3 object of class \code{fm}, which contains the following fields:
 \item{q}{ number of factors}
-\item{spec}{ if \code{factor.model = "unrestricted"} a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
+\item{spec}{ if \code{fm.restricted = FALSE} a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
 \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
-\item{common.irf}{ if if \code{factor.model = "unrestricted"} and \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})
-and common shocks (an array of dimension \code{(q, n)}) for the common component}
-\item{lam}{ if \code{factor.model = "restricted"} factor loadings}
-\item{f}{ if \code{factor.model = "restricted"} factor series}
+\item{loadings}{ if \code{fm.restricted = TRUE}, factor loadings; if \code{fm.restricted = FALSE} and \code{q >= 1},
+a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})}
+\item{factors}{ if \code{fm.restricted = TRUE}, factor series; else, common shocks (an array of dimension \code{(q, n)})}
 \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
 }
 \description{
@@ -71,11 +64,11 @@ n <- 500
 p <- 50
 common <- sim.restricted(n, p)
 x <- common$data
-out <- fnets.factor.model(x, factor.model = "restricted")
+out <- fnets.factor.model(x, fm.restricted = TRUE)
 }
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+Barigozzi, M., Cho, H. & Owens, D. (2021) Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 
 Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 

@@ -7,21 +7,20 @@
 fnets(
   x,
   center = TRUE,
-  factor.model = c("unrestricted", "restricted"),
-  q = NULL,
-  q.method = c("bn", "er"),
-  ic.op = NULL,
-  kern.const = 4,
-  common.args = list(var.order = NULL, max.var.order = NULL, trunc.lags = 20, n.perm =
-    10),
-  idio.var.order = 1,
-  idio.method = c("lasso", "ds"),
-  idio.args = list(tuning = c("cv", "ic"), n.iter = 100, tol = 0, n.cores =
+  fm.restricted = FALSE,
+  q = c("ic", "er"),
+  pen.op = NULL,
+  kern.bw = NULL,
+  common.args = list(factor.var.order = NULL, max.var.order = NULL, trunc.lags = 20,
+    n.perm = 10),
+  var.order = 1,
+  var.method = c("lasso", "ds"),
+  var.args = list(tuning = c("cv", "ic"), n.iter = 100, tol = 0, n.cores =
     min(parallel::detectCores() - 1, 3)),
-  idio.threshold = FALSE,
-  lrpc.method = c("par", "npar", "none"),
+  var.threshold = FALSE,
+  do.lrpc = TRUE,
   lrpc.adaptive = FALSE,
-  cv.args = list(n.folds = 1, penalty = NULL, path.length = 10, do.plot = FALSE)
+  tuning.args = list(n.folds = 1, penalty = NULL, path.length = 10, do.plot = FALSE)
 )
 }
 \arguments{
@@ -29,64 +28,54 @@ fnets(
 
 \item{center}{whether to de-mean the input \code{x} row-wise}
 
-\item{factor.model}{a string specifying the method to be adopted for factor model estimation; possible values are:
-\itemize{
-   \item{\code{"unrestricted"}}{ unrestricted factor model}
-   \item{\code{"restricted"}}{ restricted factor model}
-}}
+\item{fm.restricted}{whether to estimate a restricted factor model using static PCA}
 
-\item{q}{number of unrestricted factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007) or Bai and Ng (2002), or eigenvalue ratio, see \link[fnets]{hl.factor.number} and \link[fnets]{bn.factor.number} for further details}
-
-\item{q.method}{a string specifying the factor number selection method when \code{factor.model = "restricted"}; possible values are:
+\item{q}{Either a string specifying the factor number selection method when \code{fm.restricted = TRUE}; possible values are:
 \itemize{
-   \item{\code{"bn"}}{ information criteria of Bai and Ng (2002)}
+   \item{\code{"ic"}}{ information criteria of Hallin and Liška (2007) or Bai and Ng (2002), see \link[fnets]{factor.number}}
    \item{\code{"er"}}{ eigenvalue ratio}
-}}
+};
+or the number of unrestricted factors.}
 
-\item{ic.op}{choice of the information criterion, see \link[fnets]{hl.factor.number} and \link[fnets]{bn.factor.number} for further details}
+\item{pen.op}{choice of the information criterion penalty, see \link[fnets]{factor.number} for further details}
 
-\item{kern.const}{constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA}
+\item{kern.bw}{kernel bandwidth for dynamic PCA; defaults to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}}
 
 \item{common.args}{a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
 \itemize{
-   \item{\code{var.order}}{ order of the blockwise VAR representation of the common component. If \code{var.order = NULL}, it is selected blockwise by Schwarz criterion}
+   \item{\code{factor.var.order}}{ order of the blockwise VAR representation of the common component. If \code{factor.var.order = NULL}, it is selected blockwise by Schwarz criterion}
    \item{\code{max.var.order}}{ maximum blockwise VAR order for the Schwarz criterion}
    \item{\code{trunc.lags}}{ truncation lag for impulse response function estimation}
    \item{\code{n.perm}}{ number of cross-sectional permutations involved in impulse response function estimation}
 }}
 
-\item{idio.var.order}{order of the idiosyncratic VAR process; if a vector of integers is supplied, the order is chosen via \code{tuning}}
+\item{var.order}{order of the idiosyncratic VAR process; if a vector of integers is supplied, the order is chosen via \code{tuning}}
 
-\item{idio.method}{a string specifying the method to be adopted for idiosyncratic VAR process estimation; possible values are:
+\item{var.method}{a string specifying the method to be adopted for idiosyncratic VAR process estimation; possible values are:
 \itemize{
        \item{\code{"lasso"}}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
        \item{\code{"ds"}}{ Dantzig Selector-type constrained \code{l1}-minimisation}
 }}
 
-\item{idio.args}{a list specifying the tuning parameters required for estimating the idiosyncratic VAR process. It contains:
+\item{var.args}{a list specifying the tuning parameters required for estimating the idiosyncratic VAR process. It contains:
 \itemize{
-   \item{\code{tuning}} a string specifying the selection procedure for \code{idio.var.order} and \code{lambda}; possible values are:
+   \item{\code{tuning}} a string specifying the selection procedure for \code{var.order} and \code{lambda}; possible values are:
    \itemize{
       \item{\code{"cv"}}{ cross validation}
       \item{\code{"ic"}}{ information criterion}
    }
-   \item{\code{n.iter}}{ maximum number of descent steps; applicable when \code{idio.method = "lasso"}}
-   \item{\code{tol}}{ numerical tolerance for increases in the loss function; applicable when \code{idio.method = "lasso"}}
-   \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{idio.method = "ds"}}
+   \item{\code{n.iter}}{ maximum number of descent steps; applicable when \code{var.method = "lasso"}}
+   \item{\code{tol}}{ numerical tolerance for increases in the loss function; applicable when \code{var.method = "lasso"}}
+   \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{var.method = "ds"}}
 }}
 
-\item{idio.threshold}{whether to perform adaptive thresholding of \code{beta} with \link[fnets]{threshold}}
+\item{var.threshold}{whether to perform adaptive thresholding of VAR parameter estimator with \link[fnets]{threshold}}
 
-\item{lrpc.method}{a string specifying the type of estimator for long-run partial correlation matrix estimation; possible values are:
-\itemize{
-   \item{\code{"par"}}{ parametric estimator based on the VAR model assumption}
-   \item{\code{"npar"}}{ nonparametric estimator from inverting the long-run covariance matrix of the idiosyncratic component via constrained \code{l1}-minimisation}
-   \item{\code{"none"}}{ do not estimate the long-run partial correlation matrix}
-}}
+\item{do.lrpc}{whether to estimate the long-run partial correlation}
 
 \item{lrpc.adaptive}{whether to use the adaptive estimation procedure}
 
-\item{cv.args}{a list specifying arguments for \code{tuning}
+\item{tuning.args}{a list specifying arguments for \code{tuning}
 for selecting the tuning parameters involved in VAR parameter and (long-run) partial correlation matrix estimation. It contains:
 \itemize{
    \item{\code{n.folds}}{ if \code{tuning = "cv"}, number of folds}
@@ -98,29 +87,27 @@ for selecting the tuning parameters involved in VAR parameter and (long-run) par
 \value{
 an S3 object of class \code{fnets}, which contains the following fields:
 \item{q}{ number of factors}
-\item{spec}{ if \code{factor.model = "unrestricted"} a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
+\item{spec}{ if \code{fm.restricted = FALSE} a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
 \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
-\item{common.irf}{  if \code{factor.model = "unrestricted"} and \code{q >= 1}, a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})
-and common shocks (an array of dimension \code{(q, n)}) for the common component}
-\item{lam}{ if \code{factor.model = "restricted"}, factor loadings}
-\item{f}{ if \code{factor.model = "restricted"}, factor series}
+\item{loadings}{ if \code{fm.restricted = TRUE}, factor loadings; if \code{fm.restricted = FALSE} and \code{q >= 1},
+a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})}
+\item{factors}{ if \code{fm.restricted = TRUE}, factor series; else, common shocks (an array of dimension \code{(q, n)})}
 \item{idio.var}{ a list containing the following fields:
 \itemize{
 \item{\code{beta}}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
 \item{\code{Gamma}}{ estimate of the innovation covariance matrix}
 \item{\code{lambda}}{ regularisation parameter}
-\item{\code{convergence}}{ returned when \code{idio.method = "lasso"}; indicates whether a convergence criterion is met}
+\item{\code{convergence}}{ returned when \code{var.method = "lasso"}; indicates whether a convergence criterion is met}
 \item{\code{var.order}}{ VAR order}
 }}
-\item{lrpc}{ see the output of \link[fnets]{par.lrpc} if \code{lrpc.method = 'par'}
-and that of \link[fnets]{npar.lrpc} if \code{lrpc.method = 'npar'}}
+\item{lrpc}{ see the output of \link[fnets]{par.lrpc}}
 \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
-\item{idio.method}{ input parameter}
-\item{lrpc.method}{ input parameter}
-\item{kern.const}{ input parameter}
+\item{var.method}{ input parameter}
+\item{do.lrpc}{ input parameter}
+\item{kern.bw}{ input parameter}
 }
 \description{
-Operating under factor-adjusted vector autoregressive (VAR) model,
+Operating under a factor-adjusted vector autoregressive (VAR) model,
 the function estimates the spectral density and autocovariance matrices of the factor-driven common component and the idiosyncratic VAR process,
 the impulse response functions and common shocks for the common component,
 and VAR parameters, innovation covariance matrix and long-run partial correlations for the idiosyncratic component.
@@ -138,16 +125,16 @@ common <- sim.unrestricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
 out <- fnets(x,
-  q = NULL, idio.var.order = 1, idio.method = "lasso",
-  lrpc.method = "par", cv.args = list(n.folds = 1, path.length = 10, do.plot = TRUE)
+  q = NULL, var.order = 1, var.method = "lasso", var.threshold = TRUE,
+  do.lrpc = TRUE, tuning.args = list(n.folds = 1, path.length = 10, do.plot = TRUE)
 )
 pre <- predict(out, x, h = 1, common.method = "unrestricted")
-plot(out, type = "granger", display = "network", threshold = .05)
-plot(out, type = "lrpc", display = "heatmap", threshold = .05)
+plot(out, type = "granger", display = "network")
+plot(out, type = "lrpc", display = "heatmap")
 }
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 
 Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 

@@ -7,5 +7,5 @@ common <- sim.restricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data * apply(idio$data, 1, sd) / apply(common$data, 1, sd) + idio$data
 
-bn <- bn.factor.number(x, q.max = NULL, center = FALSE, do.plot = TRUE)
+bn <- factor.number(x, restricted = TRUE, do.plot = TRUE)
 bn$q.hat

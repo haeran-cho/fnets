@@ -4,20 +4,20 @@
 \alias{dyn.pca}
 \title{Dynamic PCA}
 \usage{
-dyn.pca(xx, q = NULL, ic.op = 5, kern.const = 4, mm = NULL)
+dyn.pca(xx, q = NULL, pen.op = 5, kern.bw = NULL, mm = NULL)
 }
 \arguments{
 \item{xx}{centred input time series matrix, with each row representing a variable}
 
 \item{q}{number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007)}
 
-\item{ic.op}{choice of the information criterion. Currently the three options from Hallin and Liška (2007) (\code{ic.op = 1, 2} or \code{3}) and
-their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
-with \code{ic.op = 5} recommended as a default choice based on numerical experiments}
+\item{pen.op}{choice of the information criterion penalty. Currently the three options from Hallin and Liška (2007) (\code{pen.op = 1, 2} or \code{3}) and
+their variations with logarithm taken on the cost (\code{pen.op = 4, 5} or \code{6}) are implemented,
+with \code{pen.op = 5} recommended as a default choice based on numerical experiments}
 
-\item{kern.const}{constant multiplied to \code{floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))} which determines the kernel bandwidth for dynamic PCA}
+\item{kern.bw}{kernel bandwidth for dynamic PCA; defaults to \code{floor(4 * (dim(x)[2]/log(dim(x)[2]))^(1/3)))}}
 
-\item{mm}{bandwidth; if \code{mm = NULL}, it is chosen using \code{kern.const}}
+\item{mm}{bandwidth; if \code{mm = NULL}, it is chosen using \code{kern.bw}}
 }
 \value{
 a list containing
@@ -25,7 +25,7 @@ a list containing
 \item{hl}{ if \code{q = NULL}, the output from \link[fnets]{hl.factor.number}}
 \item{spec}{ a list containing the estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
 \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
-\item{kern.const}{ input parameter}
+\item{kern.bw}{ input parameter}
 }
 \description{
 Performs principal components analysis in frequency domain for identifying common and idiosyncratic components.
