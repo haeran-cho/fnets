@@ -24,7 +24,7 @@ a list containing
 }
 \description{
 Estimates the number of restricted factors by minimising an information criterion.
-Currently the five information criteria proposed in Bai and Ng (2002) (\code{pen.op = 1,...,5}) are implemented,
+Currently three information criteria proposed in Owens, Cho, and Barigozzi (2022) (\code{pen.op = 1,2,3}) are implemented,
 with \code{pen.op = 2} recommended as a default choice based on numerical experiments.
 }
 \details{
@@ -44,6 +44,8 @@ bn <- factor.number(x, restricted = TRUE, do.plot = TRUE)
 bn$q.hat
 }
 \references{
+preprint
+
 Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221. \cr
 
 Alessi, L., Barigozzi, M.,  and Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.

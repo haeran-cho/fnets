@@ -97,7 +97,7 @@ fnets.factor.model <- function(x, center = TRUE, fm.restricted = FALSE, q = c("i
 
 #' @title Factor number estimator of Bai and Ng (2002)
 #' @description Estimates the number of restricted factors by minimising an information criterion.
-#' Currently the five information criteria proposed in Bai and Ng (2002) (\code{pen.op = 1,...,5}) are implemented,
+#' Currently three information criteria proposed in Owens, Cho, and Barigozzi (2022) (\code{pen.op = 1,2,3}) are implemented,
 #' with \code{pen.op = 2} recommended as a default choice based on numerical experiments.
 #' @details See Bai and Ng (2002) for further details.
 #' @param x input time series matrix, with each row representing a variable
@@ -109,6 +109,7 @@ fnets.factor.model <- function(x, center = TRUE, fm.restricted = FALSE, q = c("i
 #' \item{q.hat}{ the mimimiser of the chosen information criteria}
 #' \item{sv}{ svd of \code{covx}}
 #' @example R/examples/bn_ex.R
+#' @references preprint
 #' @references Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221. \cr
 #' @references Alessi, L., Barigozzi, M.,  and Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
 #' @importFrom graphics abline
