@@ -438,7 +438,7 @@ dyn.pca <-
     p <- dim(xx)[1]
     n <- dim(xx)[2]
 
-    q.method <- match.arg(q.method, c("ic","er"))
+    q.method <- match.arg(q.method, c("ic", "er"))
     if (is.null(pen.op))
       pen.op <- 5
     if (is.null(kern.bw))
@@ -454,7 +454,7 @@ dyn.pca <-
     ## dynamic pca
     flag <- FALSE
     if (!is.null(q) | (is.null(q) & q.method == "er")) {
-      if(is.null(q) & q.method == "er") {
+      if (is.null(q) & q.method == "er") {
         q <- min(50, floor(sqrt(min(n - 1, p))))
         flag <- TRUE
       }
@@ -476,18 +476,20 @@ dyn.pca <-
         for (ii in 1:(mm + 1))
           sv[[ii]] <- svd(Sigma_x[, , ii], nu = q, nv = 0)
     }
-      if(q.method=="ic"){
-        q.max <- min(50, floor(sqrt(min(n - 1, p))))
-        q.method.out <- hl.factor.number(xx, q.max, mm, w, center = FALSE)
-        q <- q.method.out$q.hat[pen.op]
-        Gamma_x <- q.method.out$Gamma_x
-        Sigma_x <- q.method.out$Sigma_x
-        sv <- q.method.out$sv
-      }
-      if(flag){# q.method=="er"
-        q.method.out <- sv$d[1:q] / sv$d[1 + 1:q]
-        q <- which.max(q.method.out)
-      }
+    if (q.method == "ic") {
+      q.max <- min(50, floor(sqrt(min(n - 1, p))))
+      q.method.out <-
+        hl.factor.number(xx, q.max, mm, w, center = FALSE)
+      q <- q.method.out$q.hat[pen.op]
+      Gamma_x <- q.method.out$Gamma_x
+      Sigma_x <- q.method.out$Sigma_x
+      sv <- q.method.out$sv
+    }
+    if (flag) {
+      # q.method=="er"
+      q.method.out <- sv$d[1:q] / sv$d[1 + 1:q]
+      q <- which.max(q.method.out)
+    }
 
 
 

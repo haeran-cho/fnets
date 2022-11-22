@@ -1,6 +1,7 @@
 
 
 
+
 #' @title Parametric estimation of long-run partial correlations of factor-adjusted VAR processes
 #' @description Returns a parametric estimate of long-run partial correlations of the VAR process
 #' from the VAR parameter estimates and the inverse of innovation covariance matrix obtained via constrained \code{l1}-minimisation.
@@ -269,7 +270,7 @@ direct.inv.est <-
     p <- dim(GG)[1]
     f.obj <- rep(1, 2 * p)
     f.con <- rbind(-GG, GG)
-    f.con <- cbind(f.con,-f.con)
+    f.con <- cbind(f.con, -f.con)
     f.dir <- rep("<=", 2 * p)
 
     cl <- parallel::makePSOCKcluster(n.cores)
@@ -323,7 +324,7 @@ adaptive.direct.inv.est <-
     f.dir <- rep("<=", 2 * p)
 
     f.con.0 <- rbind(-GG.n, GG.n) # initialise
-    f.con.0 <- cbind(f.con.0,-f.con.0)
+    f.con.0 <- cbind(f.con.0, -f.con.0)
     ## Step 1 //
     cl <- parallel::makePSOCKcluster(n.cores)
     doParallel::registerDoParallel(cl)

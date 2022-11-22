@@ -190,7 +190,7 @@ var.lasso <-
     Gamma <- GG[1:p, 1:p]
     for (ll in 1:d)
       Gamma <-
-      Gamma - A[, (ll - 1) * p + 1:p] %*% gg[(ll - 1) * p + 1:p,]
+      Gamma - A[, (ll - 1) * p + 1:p] %*% gg[(ll - 1) * p + 1:p, ]
     Gamma <- make.symmetric(Gamma, symmetric)
     out <-
       list(
@@ -221,7 +221,7 @@ var.dantzig <-
 
     f.obj <- rep(1, 2 * p * d)
     f.con <- rbind(-GG, GG)
-    f.con <- cbind(f.con,-f.con)
+    f.con <- cbind(f.con, -f.con)
     f.dir <- rep("<=", 2 * p * d)
 
     cl <- parallel::makePSOCKcluster(n.cores)
@@ -247,7 +247,7 @@ var.dantzig <-
     Gamma <- GG[1:p, 1:p]
     for (ll in 1:d)
       Gamma <-
-      Gamma - A[, (ll - 1) * p + 1:p] %*% gg[(ll - 1) * p + 1:p,]
+      Gamma - A[, (ll - 1) * p + 1:p] %*% gg[(ll - 1) * p + 1:p, ]
     Gamma <- make.symmetric(Gamma, symmetric)
 
     out <- list(beta = beta,
@@ -310,9 +310,11 @@ yw.cv <- function(xx,
       test.GG <- mg$GG
       for (ii in 1:path.length) {
         if (method == "ds")
-          train.beta <- var.dantzig(GG, gg, lambda = lambda.path[ii])$beta
+          train.beta <-
+            var.dantzig(GG, gg, lambda = lambda.path[ii])$beta
         if (method == "lasso")
-          train.beta <- var.lasso(GG, gg, lambda = lambda.path[ii])$beta
+          train.beta <-
+            var.lasso(GG, gg, lambda = lambda.path[ii])$beta
         beta.gg <- t(train.beta) %*% test.gg
         cv.err.mat[ii, jj] <- cv.err.mat[ii, jj] +
           sum(diag(
@@ -564,7 +566,7 @@ make.gg <- function(acv, d) {
   gg <- matrix(0, nrow = p * d, ncol = p)
   GG <- matrix(0, p * d, p * d)
   for (ll in 1:d) {
-    gg[(ll - 1) * p + 1:p,] <- acv[, , ll + 1]
+    gg[(ll - 1) * p + 1:p, ] <- acv[, , ll + 1]
     for (lll in ll:d) {
       GG[(ll - 1) * p + 1:p, (lll - 1) * p + 1:p] <-
         t(acv[, , 1 + lll - ll])

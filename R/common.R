@@ -133,10 +133,10 @@ common.irf.estimation <-
           perm.index <- 1:p
         else
           perm.index <- sample(p, p)
-        Gamma_c_perm <- Gamma_c[perm.index, perm.index,]
+        Gamma_c_perm <- Gamma_c[perm.index, perm.index, ]
 
         A <- list()
-        z <- xx[perm.index,]
+        z <- xx[perm.index, ]
         z[, 1:max.var.order] <- NA
         for (jj in 1:N) {
           if (jj == N)
@@ -177,10 +177,10 @@ common.irf.estimation <-
           pblock <- perm.index[block]
           invA <- var.to.vma(A[[jj]], trunc.lags + 1)
           for (ll in 1:(trunc.lags + 2)) {
-            tmp.irf[pblock, , ll,] <- invA[, , ll] %*% R[block,]
+            tmp.irf[pblock, , ll, ] <- invA[, , ll] %*% R[block, ]
           }
         }
-        B0 <- tmp.irf[1:q, , 1,]
+        B0 <- tmp.irf[1:q, , 1, ]
         if (all(B0 == 0)) {
           H <- as.matrix(B0)
         } else {
@@ -188,7 +188,7 @@ common.irf.estimation <-
           H <- solve(B0) %*% C0
         }
         for (ll in 1:(trunc.lags + 2))
-          irf.array[, , ll, ii] <- tmp.irf[, , ll,] %*% H
+          irf.array[, , ll, ii] <- tmp.irf[, , ll, ] %*% H
         u.array[, , ii] <- t(H) %*% u
       }
 
@@ -320,7 +320,8 @@ common.bic <- function(Gcp, block, len, max.var.order = 5) {
     cye <- common.yw.est(Gcp, block, ii)
     G0 <-
       Gcp[block, block, 1] - cye$B %*% t(cye$A) - cye$A %*% t(cye$B) + cye$A %*% cye$C %*% t(cye$A)
-    bic[ii + 1] <- log(det(G0)) + 2 * log(len) * ii * nblock ^ 2 / len
+    bic[ii + 1] <-
+      log(det(G0)) + 2 * log(len) * ii * nblock ^ 2 / len
   }
   bic
 }

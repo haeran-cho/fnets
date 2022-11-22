@@ -1,8 +1,3 @@
-
-
-
-
-
 #' @title Static PCA
 #' @keywords internal
 static.pca <-
@@ -39,7 +34,7 @@ static.pca <-
 
 
     if (is.null(q)) {
-      if (q.method == "er"){
+      if (q.method == "er") {
         q.method.out <- eig$values[1:q.max] / eig$values[1 + 1:q.max]
         q <- which.max(q.method.out)
       }
