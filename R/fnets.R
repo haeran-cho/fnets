@@ -9,12 +9,12 @@
 #' @param x input time series matrix, with each row representing a variable
 #' @param center whether to de-mean the input \code{x} row-wise
 #' @param fm.restricted whether to estimate a restricted factor model using static PCA
-#' @param q Either a string specifying the factor number selection method when \code{fm.restricted = TRUE}; possible values are:
+#' @param q Either the number of factors or a string specifying the factor number selection method; possible values are:
 #' \itemize{
-#'    \item{\code{"ic"}}{ information criteria of Hallin and Liška (2007) or Bai and Ng (2002), see \link[fnets]{factor.number}}
-#'    \item{\code{"er"}}{ eigenvalue ratio}
+#'    \item{\code{"ic"}}{ information criteria of Bai and Ng (2002) and Hallin and Liška (2007)}
+#'    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013)}
 #' };
-#' or the number of unrestricted factors.
+#' see \link[fnets]{factor.number}.
 #' @param pen.op choice of the information criterion penalty, see \link[fnets]{factor.number} for further details
 #' @param kern.bw kernel bandwidth for dynamic PCA; defaults to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}
 #' @param common.args a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
@@ -74,7 +74,7 @@
 #' \item{kern.bw}{ input parameter}
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
-#' @references Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221. \cr
+#' @references Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221.
 #' @examples
 #' \dontrun{
 #' set.seed(123)
