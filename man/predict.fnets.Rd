@@ -36,9 +36,11 @@ Produces forecasts of the data for a given forecasting horizon by
 separately estimating the best linear predictors of common and idiosyncratic components
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-
 Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
+
+Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+
+Owens, D., Cho, H. & Barigozzi, M. (2022)
 }
 \seealso{
 \link[fnets]{fnets}, \link[fnets]{common.predict}, \link[fnets]{idio.predict}

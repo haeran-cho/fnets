@@ -18,7 +18,7 @@
 \item{r}{number of restricted factors, or a string specifying the factor number selection method when \code{forecast.restricted = TRUE};
  possible values are:
 \itemize{
-   \item{\code{"ic"}}{ information criteria of Bai and Ng (2002)}
+   \item{\code{"ic"}}{ information criteria of Alessi, Barigozzi & Capasso (2010)}
    \item{\code{"er"}}{ eigenvalue ratio}
 }}
 
@@ -35,9 +35,13 @@ Produces forecasts of the data for a given forecasting horizon by
 estimating the best linear predictors of the common component
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2021) Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-
 Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
+
+Alessi, L., Barigozzi, M.,  & Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
+
+Barigozzi, M., Cho, H. & Owens, D. (2022) Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+
+Owens, D., Cho, H. & Barigozzi, M. (2022)
 }
 \seealso{
 \link[fnets]{fnets.factor.model}, \link[fnets]{common.predict}

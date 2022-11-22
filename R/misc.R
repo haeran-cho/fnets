@@ -1,6 +1,7 @@
 #' @title Bartlett weights
 #' @keywords internal
-Bartlett.weights <- function(x) 1 - abs(x)
+Bartlett.weights <- function(x)
+  1 - abs(x)
 
 #' @keywords internal
 make.symmetric <- function(DD, symmetric) {
@@ -16,7 +17,8 @@ make.symmetric <- function(DD, symmetric) {
       DD <- DD + t(DD)
       diag(DD) <- diag(DD) / 2
     }
-    if (symmetric == "avg") DD <- (DD + t(DD)) / 2
+    if (symmetric == "avg")
+      DD <- (DD + t(DD)) / 2
   }
   DD
 }
@@ -30,7 +32,9 @@ var.to.vma <- function(A, trunc.lags) {
   B <- array(0, dim = c(d, d, trunc.lags + 1))
   B[, , 1] <- diag(1, d)
   for (ii in 1:trunc.lags) {
-    for (jj in 1:min(ii, l)) B[, , ii + 1] <- B[, , ii + 1] + B[, , ii - jj + 1] %*% A[, (jj - 1) * d + 1:d]
+    for (jj in 1:min(ii, l))
+      B[, , ii + 1] <-
+        B[, , ii + 1] + B[, , ii - jj + 1] %*% A[, (jj - 1) * d + 1:d]
   }
   B
 }
@@ -38,9 +42,31 @@ var.to.vma <- function(A, trunc.lags) {
 #' @keywords internal
 check.list.arg <- function(arg) {
   arg.name <- deparse(substitute(arg))
-  if(arg.name == "var.args") default <- list(tuning = c("cv", "ic"), n.iter = 100, tol = 0, n.cores = min(parallel::detectCores() - 1, 3))
-  if(arg.name == "tuning.args") default <- list(tuning = c("cv", "ic"), n.folds = 1, penalty = NULL, path.length = 10, do.plot = FALSE)
-  if(arg.name == "common.args") default <- list(var.order = NULL, max.var.order = NULL, trunc.lags = 20, n.perm = 10)
+  if (arg.name == "var.args")
+    default <-
+      list(
+        tuning = c("cv", "bic"),
+        n.iter = 100,
+        tol = 0,
+        n.cores = min(parallel::detectCores() - 1, 3)
+      )
+  if (arg.name == "tuning.args")
+    default <-
+      list(
+        tuning = c("cv", "bic"),
+        n.folds = 1,
+        penalty = NULL,
+        path.length = 10,
+        do.plot = FALSE
+      )
+  if (arg.name == "common.args")
+    default <-
+      list(
+        var.order = NULL,
+        max.var.order = NULL,
+        trunc.lags = 20,
+        n.perm = 10
+      )
   out <- check.list.match(arg, default)
   return(out)
 }
@@ -48,7 +74,8 @@ check.list.arg <- function(arg) {
 #' @keywords internal
 check.list.match <- function(arg, default) {
   for (ii in names(default)) {
-    if(is.null(arg[[ii]])) arg[[ii]] <- default[[ii]]
+    if (is.null(arg[[ii]]))
+      arg[[ii]] <- default[[ii]]
   }
   return(arg)
 }

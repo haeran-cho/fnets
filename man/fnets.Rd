@@ -15,7 +15,7 @@ fnets(
     n.perm = 10),
   var.order = 1,
   var.method = c("lasso", "ds"),
-  var.args = list(tuning = c("cv", "ic"), n.iter = 100, tol = 0, n.cores =
+  var.args = list(tuning = c("cv", "bic"), n.iter = 100, tol = 0, n.cores =
     min(parallel::detectCores() - 1, 3)),
   var.threshold = FALSE,
   do.lrpc = TRUE,
@@ -30,12 +30,12 @@ fnets(
 
 \item{fm.restricted}{whether to estimate a restricted factor model using static PCA}
 
-\item{q}{Either a string specifying the factor number selection method when \code{fm.restricted = TRUE}; possible values are:
+\item{q}{Either the number of factors or a string specifying the factor number selection method; possible values are:
 \itemize{
-   \item{\code{"ic"}}{ information criteria of Hallin and Liška (2007) or Bai and Ng (2002), see \link[fnets]{factor.number}}
-   \item{\code{"er"}}{ eigenvalue ratio}
+   \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE} modifying Bai and Ng (2002)}
+   \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013)}
 };
-or the number of unrestricted factors.}
+see \link[fnets]{factor.number}.}
 
 \item{pen.op}{choice of the information criterion penalty, see \link[fnets]{factor.number} for further details}
 
@@ -62,7 +62,7 @@ or the number of unrestricted factors.}
    \item{\code{tuning}} a string specifying the selection procedure for \code{var.order} and \code{lambda}; possible values are:
    \itemize{
       \item{\code{"cv"}}{ cross validation}
-      \item{\code{"ic"}}{ information criterion}
+      \item{\code{"bic"}}{ information criterion}
    }
    \item{\code{n.iter}}{ maximum number of descent steps; applicable when \code{var.method = "lasso"}}
    \item{\code{tol}}{ numerical tolerance for increases in the loss function; applicable when \code{var.method = "lasso"}}
@@ -79,7 +79,7 @@ or the number of unrestricted factors.}
 for selecting the tuning parameters involved in VAR parameter and (long-run) partial correlation matrix estimation. It contains:
 \itemize{
    \item{\code{n.folds}}{ if \code{tuning = "cv"}, number of folds}
-   \item{\code{penalty}}{ if \code{tuning = "ic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, defaults to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}}
+   \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, defaults to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}}
    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 }}
@@ -113,7 +113,7 @@ the impulse response functions and common shocks for the common component,
 and VAR parameters, innovation covariance matrix and long-run partial correlations for the idiosyncratic component.
 }
 \details{
-See Barigozzi, Cho and Owens (2021) for further details.
+See Barigozzi, Cho and Owens (2022) and Owens, Cho and Barigozzi (2022) for further details.
 List arguments do not need to be specified with all list components; any missing entries will be filled in with the default argument.
 }
 \examples{
@@ -134,11 +134,17 @@ plot(out, type = "lrpc", display = "heatmap")
 }
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
+
+Alessi, L., Barigozzi, M.,  & Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
+
+Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221.
+
+Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 
 Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 
-Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221. \cr
+Owens, D., Cho, H. & Barigozzi, M. (2022)
 }
 \seealso{
 \link[fnets]{predict.fnets}, \link[fnets]{plot.fnets}

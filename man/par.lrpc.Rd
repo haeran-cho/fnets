@@ -52,7 +52,7 @@ Returns a parametric estimate of long-run partial correlations of the VAR proces
 from the VAR parameter estimates and the inverse of innovation covariance matrix obtained via constrained \code{l1}-minimisation.
 }
 \details{
-See Barigozzi, Cho and Owens (2021) for further details, and Cai, Liu and Zhou (2016) for further details on the adaptive estimation procedure.
+See Barigozzi, Cho and Owens (2022) for further details, and Cai, Liu and Zhou (2016) for further details on the adaptive estimation procedure.
 }
 \examples{
 \dontrun{
@@ -71,7 +71,9 @@ plot(out, type = "lrpc", display = "heatmap", threshold = .05)
 }
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series.
+Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series.
 
 Cai, T. T., Liu, W., & Zhou, H. H. (2016). Estimating sparse precision matrix: Optimal rates of convergence and adaptive estimation. The Annals of Statistics, 44(2), 455-488.
+
+Owens, D., Cho, H. & Barigozzi, M. (2022)
 }

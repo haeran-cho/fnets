@@ -46,10 +46,12 @@ Produces a plot visualising three networks underlying factor-adjusted VAR proces
 (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
 }
 \details{
-See Barigozzi, Cho and Owens (2021) for further details.
+See Barigozzi, Cho and Owens (2022) for further details.
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+
+Owens, D., Cho, H. & Barigozzi, M. (2022)
 }
 \seealso{
 \link[fnets]{fnets}

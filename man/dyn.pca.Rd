@@ -4,12 +4,25 @@
 \alias{dyn.pca}
 \title{Dynamic PCA}
 \usage{
-dyn.pca(xx, q = NULL, pen.op = 5, kern.bw = NULL, mm = NULL)
+dyn.pca(
+  xx,
+  q = NULL,
+  q.method = c("ic", "er"),
+  pen.op = 5,
+  kern.bw = NULL,
+  mm = NULL
+)
 }
 \arguments{
 \item{xx}{centred input time series matrix, with each row representing a variable}
 
 \item{q}{number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007)}
+
+\item{q.method}{A string specifying the factor number selection method; possible values are:
+\itemize{
+   \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE} modifying Bai and Ng (2002)}
+   \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013)}
+}}
 
 \item{pen.op}{choice of the information criterion penalty. Currently the three options from Hallin and Liška (2007) (\code{pen.op = 1, 2} or \code{3}) and
 their variations with logarithm taken on the cost (\code{pen.op = 4, 5} or \code{6}) are implemented,
@@ -22,7 +35,7 @@ with \code{pen.op = 5} recommended as a default choice based on numerical experi
 \value{
 a list containing
 \item{q}{ number of factors}
-\item{hl}{ if \code{q = NULL}, the output from \link[fnets]{hl.factor.number}}
+\item{q.method.out}{ if \code{q = NULL}, the output from the chosen \code{q.method}, either a vector of eigenvalue ratios or \link[fnets]{hl.factor.number}}
 \item{spec}{ a list containing the estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
 \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
 \item{kern.bw}{ input parameter}

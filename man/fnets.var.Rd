@@ -10,7 +10,7 @@ fnets.var(
   method = c("lasso", "ds"),
   lambda = NULL,
   var.order = 1,
-  tuning.args = list(tuning = c("cv", "ic"), n.folds = 1, path.length = 10, do.plot =
+  tuning.args = list(tuning = c("cv", "bic"), n.folds = 1, path.length = 10, do.plot =
     FALSE),
   var.threshold = FALSE,
   n.iter = 100,
@@ -39,10 +39,10 @@ for selecting the regularisation parameter (and VAR order). It contains:
    \item{\code{tuning}} a string specifying the selection procedure for \code{var.order} and \code{lambda}; possible values are:
    \itemize{
       \item{\code{"cv"}}{ cross validation}
-      \item{\code{"ic"}}{ information criterion}
+      \item{\code{"bic"}}{ information criterion}
    }
    \item{\code{n.folds}}{ if \code{tuning = "cv"}, number of folds}
-   \item{\code{penalty}}{ if \code{tuning = "ic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, defaults to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}}
+   \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, defaults to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}}
    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 }}
@@ -69,7 +69,7 @@ Estimates the VAR parameter matrices via \code{l1}-regularised Yule-Walker estim
 and innovation covariance matrix via constrained \code{l1}-minimisation.
 }
 \details{
-Further information can be found in Barigozzi, Cho and Owens (2021).
+Further information can be found in Barigozzi, Cho and Owens (2022).
 }
 \examples{
 library(fnets)
@@ -87,5 +87,7 @@ fv <- fnets.var(x,
 norm(fv$beta - t(idio$A), "F") / norm(t(idio$A), "F")
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+
+Owens, D., Cho, H. & Barigozzi, M. (2022)
 }

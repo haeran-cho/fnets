@@ -37,5 +37,7 @@ cpre <- common.predict(out, x, h = 1, r = NULL)
 ipre <- idio.predict(out, x, cpre, h = 1)
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+
+Owens, D., Cho, H. & Barigozzi, M. (2022)
 }
