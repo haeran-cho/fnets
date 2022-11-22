@@ -3,7 +3,7 @@
 #' the function estimates the spectral density and autocovariance matrices of the factor-driven common component and the idiosyncratic VAR process,
 #' the impulse response functions and common shocks for the common component,
 #' and VAR parameters, innovation covariance matrix and long-run partial correlations for the idiosyncratic component.
-#' @details See Barigozzi, Cho and Owens (2021) for further details.
+#' @details See Barigozzi, Cho and Owens (2022) and Owens, Cho and Barigozzi (2022) for further details.
 #' List arguments do not need to be specified with all list components; any missing entries will be filled in with the default argument.
 #'
 #' @param x input time series matrix, with each row representing a variable
@@ -11,7 +11,7 @@
 #' @param fm.restricted whether to estimate a restricted factor model using static PCA
 #' @param q Either the number of factors or a string specifying the factor number selection method; possible values are:
 #' \itemize{
-#'    \item{\code{"ic"}}{ information criteria of Bai and Ng (2002) and Hallin and Liška (2007)}
+#'    \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE} modifying Bai and Ng (2002)}
 #'    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013)}
 #' };
 #' see \link[fnets]{factor.number}.
@@ -72,9 +72,12 @@
 #' \item{var.method}{ input parameter}
 #' \item{do.lrpc}{ input parameter}
 #' \item{kern.bw}{ input parameter}
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-#' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
+#' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
+#' @references Alessi, L., Barigozzi, M.,  & Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
 #' @references Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+#' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2022)
 #' @examples
 #' \dontrun{
 #' set.seed(123)
@@ -162,7 +165,6 @@ fnets <- function(x, center = TRUE, fm.restricted = FALSE, q = c("ic","er"), pen
     )
   }
 
-
   mg <- make.gg(acv$Gamma_i, icv$var.order)
   gg <- mg$gg
   GG <- mg$GG
@@ -179,8 +181,6 @@ fnets <- function(x, center = TRUE, fm.restricted = FALSE, q = c("ic","er"), pen
 
   if(fm.restricted) attr(out, "factor") <- "restricted" else  attr(out, "factor") <- "unrestricted"
 
-
-
   ## lrpc estimation
   if (do.lrpc) {
     out$lrpc <- par.lrpc(out, x, eta = NULL, tuning.args = tuning.args, lrpc.adaptive = lrpc.adaptive)
@@ -189,6 +189,95 @@ fnets <- function(x, center = TRUE, fm.restricted = FALSE, q = c("ic","er"), pen
   }
 
   attr(out, "class") <- "fnets"
+  return(out)
+}
+
+#' @title Factor model estimation
+#' @description Unrestricted and restricted factor model estimation
+#' @details See Barigozzi, Cho and Owens (2021) for further details.
+#'
+#' @param x input time series matrix, with each row representing a variable
+#' @param center whether to de-mean the input \code{x} row-wise
+#' @param fm.restricted whether to estimate a restricted factor model using static PCA
+#' @param q Either a string specifying the factor number selection method when \code{fm.restricted = TRUE}; possible values are:
+#' \itemize{
+#'    \item{\code{"ic"}}{ information criteria of Hallin and Liška (2007) or Bai and Ng (2002), see \link[fnets]{factor.number}}
+#'    \item{\code{"er"}}{ eigenvalue ratio}
+#' };
+#' or the number of unrestricted factors.
+#' @param pen.op choice of the information criterion penalty, see \link[fnets]{hl.factor.number} or \link[fnets]{bn.factor.number} for further details
+#' @param kern.bw kernel bandwidth for dynamic PCA; defaults to \code{4 * floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))}
+#' @param common.args a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
+#' \itemize{
+#'    \item{\code{factor.var.order}}{ order of the blockwise VAR representation of the common component. If \code{factor.var.order = NULL}, it is selected blockwise by Schwarz criterion}
+#'    \item{\code{max.var.order}}{ maximum blockwise VAR order for the Schwarz criterion}
+#'    \item{\code{trunc.lags}}{ truncation lag for impulse response function estimation}
+#'    \item{\code{n.perm}}{ number of cross-sectional permutations involved in impulse response function estimation}
+#' }
+#' @return an S3 object of class \code{fm}, which contains the following fields:
+#' \item{q}{ number of factors}
+#' \item{spec}{ if \code{fm.restricted = FALSE} a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
+#' \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
+#' \item{loadings}{ if \code{fm.restricted = TRUE}, factor loadings; if \code{fm.restricted = FALSE} and \code{q >= 1},
+#' a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})}
+#' \item{factors}{ if \code{fm.restricted = TRUE}, factor series; else, common shocks (an array of dimension \code{(q, n)})}
+#' \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2021) Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+#' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
+#' @references Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221. \cr
+#' @examples
+#' \dontrun{
+#' set.seed(123)
+#' n <- 500
+#' p <- 50
+#' common <- sim.restricted(n, p)
+#' x <- common$data
+#' out <- fnets.factor.model(x, fm.restricted = TRUE)
+#' }
+#' @export
+fnets.factor.model <- function(x, center = TRUE, fm.restricted = FALSE, q = c("ic","er"), pen.op = NULL, kern.bw = NULL,
+                               common.args = list(factor.var.order = NULL, max.var.order = NULL, trunc.lags = 20, n.perm = 10)) {
+  p <- dim(x)[1]
+  n <- dim(x)[2]
+
+  if (center) mean.x <- apply(x, 1, mean) else mean.x <- rep(0, p)
+  xx <- x - mean.x
+
+  if(!is.numeric(q)) {
+    q.method <- match.arg(q, c("ic", "er"))
+    q <- NULL
+  } else q.method <- NULL
+
+  common.args <- check.list.arg(common.args)
+  if(is.null(kern.bw)) kern.bw <- 4 * floor((n/log(n))^(1/3))
+  q.method <- match.arg(q.method, c("ic", "er"))
+  if (fm.restricted) {
+    spca <- static.pca(xx, q = q, q.method = q.method, pen.op = pen.op, kern.bw = kern.bw)
+    q <- spca$q
+    loadings <- spca$lam
+    factors <- spca$f
+    spec <- NULL
+    acv <- spca$acv
+  } else {
+    dpca <- dyn.pca(xx, q, pen.op, kern.bw)
+    q <- dpca$q
+    spec <- dpca$spec
+    acv <- dpca$acv
+    ## common VAR estimation
+    cve <- common.irf.estimation(xx,
+      Gamma_c = acv$Gamma_c, q = q,
+      factor.var.order = common.args$factor.var.order, max.var.order = common.args$max.var.order,
+      trunc.lags = common.args$trunc.lags, n.perm = common.args$n.perm
+    )
+    loadings <- cve$irf.est
+    factors <- cve$u.est
+  }
+  out <- list(
+    q = q, spec = spec, loadings = loadings, factors = factors, acv = acv, mean.x = mean.x
+  )
+  if(fm.restricted) attr(out, "factor") <- "restricted" else  attr(out, "factor") <- "unrestricted"
+  attr(out, "class") <- "fm" #"fnets"
+
   return(out)
 }
 
@@ -266,8 +355,6 @@ dyn.pca <- function(xx, q = NULL, pen.op = 5, kern.bw = NULL, mm = NULL) {
   out <- list(q = q, hl = hl, spec = spec, acv = acv, kern.bw = kern.bw)
   return(out)
 }
-
-
 
 #' @title Factor number estimators of Hallin and Liška (2007) and Bai and Ng (2002)
 #' @description Estimates the number of factors by minimising an information criterion over sub-samples of the data.
