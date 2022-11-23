@@ -12,7 +12,7 @@ fnets.var(
   var.order = 1,
   tuning.args = list(tuning = c("cv", "bic"), n.folds = 1, path.length = 10, do.plot =
     FALSE),
-  var.threshold = FALSE,
+  do.threshold = FALSE,
   n.iter = 100,
   tol = 0,
   n.cores = min(parallel::detectCores() - 1, 3)
@@ -47,7 +47,7 @@ for selecting the regularisation parameter (and VAR order). It contains:
    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 }}
 
-\item{var.threshold}{whether to perform adaptive thresholding of VAR parameter estimator with \link[fnets]{threshold}}
+\item{do.threshold}{whether to perform adaptive thresholding of VAR parameter estimator with \link[fnets]{threshold}}
 
 \item{n.iter}{maximum number of descent steps; applicable when \code{method = "lasso"}}
 

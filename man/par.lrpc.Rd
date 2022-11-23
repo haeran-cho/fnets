@@ -12,6 +12,8 @@ par.lrpc(
   lrpc.adaptive = FALSE,
   eta.adaptive = NULL,
   do.correct = TRUE,
+  do.threshold = c(FALSE, FALSE),
+  do.plot = FALSE,
   n.cores = min(parallel::detectCores() - 1, 3)
 )
 }
@@ -35,6 +37,11 @@ for selecting the tuning parameter involved in long-run partial correlation matr
 \item{eta.adaptive}{regularisation parameter for Step 1 of the adaptive estimation procedure; if \code{eta.adaptive = NULL}, defaults to \code{2 * sqrt(log(dim(x)[1])/dim(x)[2])}}
 
 \item{do.correct}{whether to correct for any negative entries in the diagonals of the inverse of long-run covariance matrix}
+
+\item{do.threshold}{whether to perform adaptive thresholding of parameter estimators with \link[fnets]{threshold};
+entries correspond to thresholding \code{Delta} and \code{Omega} respectively}
+
+\item{do.plot}{whether to plot thresholding output}
 
 \item{n.cores}{number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}}
 }

@@ -41,7 +41,8 @@
 #'    \item{\code{tol}}{ numerical tolerance for increases in the loss function; applicable when \code{var.method = "lasso"}}
 #'    \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{var.method = "ds"}}
 #' }
-#' @param var.threshold whether to perform adaptive thresholding of VAR parameter estimator with \link[fnets]{threshold}
+#' @param do.threshold whether to perform adaptive thresholding of parameter estimators with \link[fnets]{threshold};
+#' entries correspond to thresholding \code{beta}, \code{Delta}, and \code{Omega} respectively
 #' @param do.lrpc whether to estimate the long-run partial correlation
 #' @param lrpc.adaptive whether to use the adaptive estimation procedure
 #' @param tuning.args a list specifying arguments for \code{tuning}
@@ -87,7 +88,7 @@
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
 #' out <- fnets(x,
-#'   q = NULL, var.order = 1, var.method = "lasso", var.threshold = TRUE,
+#'   q = NULL, var.order = 1, var.method = "lasso", do.threshold = c(TRUE,FALSE,FALSE),
 #'   do.lrpc = TRUE, tuning.args = list(n.folds = 1, path.length = 10, do.plot = TRUE)
 #' )
 #' pre <- predict(out, x, h = 1, common.method = "unrestricted")
@@ -118,7 +119,7 @@ fnets <-
              tol = 0,
              n.cores = min(parallel::detectCores() - 1, 3)
            ),
-           var.threshold = FALSE,
+           do.threshold = c(FALSE,FALSE,FALSE),
            do.lrpc = TRUE,
            lrpc.adaptive = FALSE,
            tuning.args = list(
@@ -238,7 +239,7 @@ fnets <-
         n.cores = var.args$n.cores
       )
     ive$var.order <- icv$var.order
-    if (var.threshold)
+    if (do.threshold[1])
       ive$beta <-
       threshold(ive$beta, do.plot = tuning.args$do.plot)$thr.mat
 
@@ -269,6 +270,8 @@ fnets <-
           x,
           eta = NULL,
           tuning.args = tuning.args,
+          do.threshold = do.threshold[2:3],
+          do.plot = tuning.args$do.plot,
           lrpc.adaptive = lrpc.adaptive
         )
     } else {

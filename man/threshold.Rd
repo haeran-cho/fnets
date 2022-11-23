@@ -38,4 +38,3 @@ Liu, B., Zhang, X. & Liu, Y. (2021) Simultaneous Change Point Inference and Stru
 
 Owens, D., Cho, H. & Barigozzi, M. (2022)
 }
-\keyword{internal}

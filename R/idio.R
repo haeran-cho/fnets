@@ -24,7 +24,7 @@
 #'    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
-#' @param var.threshold whether to perform adaptive thresholding of VAR parameter estimator with \link[fnets]{threshold}
+#' @param do.threshold whether to perform adaptive thresholding of VAR parameter estimator with \link[fnets]{threshold}
 #' @param n.iter maximum number of descent steps; applicable when \code{method = "lasso"}
 #' @param tol numerical tolerance for increases in the loss function; applicable when \code{method = "lasso"}
 #' @param n.cores number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{method = "ds"}
@@ -51,7 +51,7 @@ fnets.var <- function(x,
                         path.length = 10,
                         do.plot = FALSE
                       ),
-                      var.threshold = FALSE,
+                      do.threshold = FALSE,
                       n.iter = 100,
                       tol = 0,
                       n.cores = min(parallel::detectCores() - 1, 3)) {
@@ -124,7 +124,7 @@ fnets.var <- function(x,
     )
   ive$var.order <- icv$var.order
   ive$mean.x <- mean.x
-  if (var.threshold)
+  if (do.threshold)
     ive$beta <- threshold(ive$beta, do.plot = tuning.args$do.plot)
 
   return(ive)
@@ -625,41 +625,50 @@ prox.func <- function(B, lambda, L, GG, gg) {
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Liu, B., Zhang, X. & Liu, Y. (2021) Simultaneous Change Point Inference and Structure Recovery for High Dimensional Gaussian Graphical Models. Journal of Machine Learning Research, 22(274), 1--62.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022)
-#' @keywords internal
+#' @export
 threshold <- function(mat,
                       path.length = 500,
                       do.plot = FALSE) {
-  p <- dim(mat)[1]
-  M <- max(abs(mat), 1e-3)
-  m <- max(min(abs(mat)), M * .01, 1e-4)
-  rseq <-
-    round(exp(seq(log(M), log(m), length.out = path.length)), digits = 10)
-  cusum <- ratio <- rseq * 0
-  for (ii in 1:path.length) {
+  if(!is.null(attr(mat, "thresholded"))) {
+    warning("This matrix has already been thresholded. Returning input.")
     A <- mat
-    A[abs(A) < rseq[ii]] <- 0
-    edges <- sum(A != 0)
-    ratio[ii] <- edges / (prod(dim(mat)) - edges)
+    thr <- 0
+  } else {
+    p <- dim(mat)[1]
+    M <- max(abs(mat), 1e-3)
+    m <- max(min(abs(mat)), M * .01, 1e-4)
+    rseq <-
+      round(exp(seq(log(M), log(m), length.out = path.length)), digits = 10)
+    cusum <- ratio <- rseq * 0
+    for (ii in 1:path.length) {
+      A <- mat
+      A[abs(A) < rseq[ii]] <- 0
+      edges <- sum(A != 0)
+      ratio[ii] <- edges / (prod(dim(mat)) - edges)
+    }
+    dif <- diff(ratio) / diff(rseq)
+    for (ii in 2:(path.length - 1))
+      cusum[ii] <-
+      (mean(dif[2:ii - 1]) - mean(dif[ii:(path.length - 1)])) * (ii / sqrt(path.length)) * (1 - ii / path.length)
+
+    thr <- rseq[which.max(abs(cusum))]
+
+    if (do.plot) {
+      par(mfrow = c(1, 2))
+      plot(rseq, ratio, type = "l", xlab = "threshold")
+      abline(v = thr)
+      # plot(rseq[-1], dif, type = "l", xlab = "threshold")
+      # abline(v = thr)
+      plot(rseq, abs(cusum), type = "l", xlab = "threshold")
+      abline(v = thr)
+    }
+
+    A <- mat
+    A[abs(A) < thr] <- 0
+
+    attr(A, "thresholded") <- TRUE
   }
-  dif <- diff(ratio) / diff(rseq)
-  for (ii in 2:(path.length - 1))
-    cusum[ii] <-
-    (mean(dif[2:ii - 1]) - mean(dif[ii:(path.length - 1)])) * (ii / sqrt(path.length)) * (1 - ii / path.length)
 
-  thr <- rseq[which.max(abs(cusum))]
-
-  if (do.plot) {
-    par(mfrow = c(1, 2))
-    plot(rseq, ratio, type = "l", xlab = "threshold")
-    abline(v = thr)
-    # plot(rseq[-1], dif, type = "l", xlab = "threshold")
-    # abline(v = thr)
-    plot(rseq, abs(cusum), type = "l", xlab = "threshold")
-    abline(v = thr)
-  }
-
-  A <- mat
-  A[abs(A) < thr] <- 0
   out <- list(threshold = thr, thr.mat = A)
   return(out)
 }

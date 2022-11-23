@@ -19,6 +19,9 @@
 #' @param lrpc.adaptive whether to use the adaptive estimation procedure
 #' @param eta.adaptive regularisation parameter for Step 1 of the adaptive estimation procedure; if \code{eta.adaptive = NULL}, defaults to \code{2 * sqrt(log(dim(x)[1])/dim(x)[2])}
 #' @param do.correct whether to correct for any negative entries in the diagonals of the inverse of long-run covariance matrix
+#' @param do.threshold whether to perform adaptive thresholding of parameter estimators with \link[fnets]{threshold};
+#' entries correspond to thresholding \code{Delta} and \code{Omega} respectively
+#' @param do.plot whether to plot thresholding output
 #' @param n.cores number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}
 #' @return a list containing
 #' \item{Delta}{ estimated inverse of the innovation covariance matrix}
@@ -56,6 +59,8 @@ par.lrpc <- function(object,
                      lrpc.adaptive = FALSE,
                      eta.adaptive = NULL,
                      do.correct = TRUE,
+                     do.threshold = c(FALSE,FALSE),
+                     do.plot = FALSE,
                      n.cores = min(parallel::detectCores() - 1, 3)) {
   xx <- x - object$mean.x
   p <- dim(x)[1]
@@ -110,10 +115,13 @@ par.lrpc <- function(object,
       n.cores = n.cores
     )$DD
   }
+  if(do.threshold[1])
+    Delta <- threshold(Delta, do.plot = do.plot)$thr.mat
   Omega <- 2 * pi * t(A1) %*% Delta %*% A1
   if (do.correct)
     Omega <- correct.diag(Re(object$spec$Sigma_i[, , 1]), Omega)
-
+  if(do.threshold[2])
+    Omega <- threshold(Omega, do.plot = do.plot)$thr.mat
   pc <- -t(t(Delta) / sqrt(diag(Delta))) / sqrt(diag(Delta))
   lrpc <- -t(t(Omega) / sqrt(diag(Omega))) / sqrt(diag(Omega))
   out <-

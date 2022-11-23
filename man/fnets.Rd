@@ -17,7 +17,7 @@ fnets(
   var.method = c("lasso", "ds"),
   var.args = list(tuning = c("cv", "bic"), n.iter = 100, tol = 0, n.cores =
     min(parallel::detectCores() - 1, 3)),
-  var.threshold = FALSE,
+  do.threshold = c(FALSE, FALSE, FALSE),
   do.lrpc = TRUE,
   lrpc.adaptive = FALSE,
   tuning.args = list(n.folds = 1, penalty = NULL, path.length = 10, do.plot = FALSE)
@@ -69,7 +69,8 @@ see \link[fnets]{factor.number}.}
    \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{var.method = "ds"}}
 }}
 
-\item{var.threshold}{whether to perform adaptive thresholding of VAR parameter estimator with \link[fnets]{threshold}}
+\item{do.threshold}{whether to perform adaptive thresholding of parameter estimators with \link[fnets]{threshold};
+entries correspond to thresholding \code{beta}, \code{Delta}, and \code{Omega} respectively}
 
 \item{do.lrpc}{whether to estimate the long-run partial correlation}
 
@@ -125,7 +126,7 @@ common <- sim.unrestricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
 out <- fnets(x,
-  q = NULL, var.order = 1, var.method = "lasso", var.threshold = TRUE,
+  q = NULL, var.order = 1, var.method = "lasso", do.threshold = c(TRUE,FALSE,FALSE),
   do.lrpc = TRUE, tuning.args = list(n.folds = 1, path.length = 10, do.plot = TRUE)
 )
 pre <- predict(out, x, h = 1, common.method = "unrestricted")
