@@ -17,7 +17,6 @@
 #' @param q.max maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}
 #' @param mm bandwidth; defaults to \code{floor(4 * (dim(x)[2]/log(dim(x)[2]))^(1/3)))}
 #' @param w vector of length \code{2 * mm + 1} containing symmetric weights; if \code{w = NULL}, default weights are generated using the Bartlett kernel and \code{mm}
-#' @param covx covariance matrix of x
 #' @param do.plot whether to plot the information criteria values
 #' @param center whether to de-mean the input \code{x} row-wise
 #' @return if \code{method = "ic"}, a list containing
@@ -47,9 +46,9 @@ factor.number <-
            q.max = NULL,
            mm = NULL,
            w = NULL,
-           covx = NULL,
            do.plot = FALSE,
            center = TRUE) {
+    covx <- NULL
     p <- dim(x)[1]
     method <- match.arg(method, c("ic", "er"))
     if(method == "er"){
