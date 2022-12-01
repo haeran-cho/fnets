@@ -141,8 +141,6 @@ fnets <-
     } else
       q.method <- NULL
 
-    if (is.null(kern.bw))
-      kern.bw <-  floor(4 * (n / log(n)) ^ (1 / 3))
     var.method <- match.arg(var.method, c("lasso", "ds"))
     tuning <- match.arg(var.args$tuning, c("cv", "bic"))
     if (center)
@@ -163,9 +161,13 @@ fnets <-
       q <- spca$q
       loadings <- spca$lam
       factors <- spca$f
-      spec <- NULL
+      spec <- NA
       acv <- spca$acv
+      kern.bw <- NA
     } else {
+      if (is.null(kern.bw))
+        kern.bw <-  floor(4 * (n / log(n)) ^ (1 / 3))
+
       ## dynamic pca
       dpca <- dyn.pca(xx, q, q.method, pen.op, kern.bw)
       q <- dpca$q

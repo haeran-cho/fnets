@@ -1,7 +1,3 @@
-
-
-
-
 #' @title Parametric estimation of long-run partial correlations of factor-adjusted VAR processes
 #' @description Returns a parametric estimate of long-run partial correlations of the VAR process
 #' from the VAR parameter estimates and the inverse of innovation covariance matrix obtained via constrained \code{l1}-minimisation.
@@ -29,7 +25,7 @@
 #' \item{pc}{ estimated innovation partial correlation matrix}
 #' \item{lrpc}{ estimated long-run partial correlation matrix}
 #' \item{eta}{ regularisation parameter}
-#' \item{lrpc.adaptive}{ was the adaptive procedure used}
+#' \item{lrpc.adaptive}{ input argument }
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series.
 #' @references Cai, T. T., Liu, W., & Zhou, H. H. (2016). Estimating sparse precision matrix: Optimal rates of convergence and adaptive estimation. The Annals of Statistics, 44(2), 455-488.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022)
