@@ -287,9 +287,10 @@ hl.factor.number <-
 
 
 
-#' @title Factor number estimator of Bai and Ng (2002)
-#' @description Estimates the number of restricted factors by minimising an information criterion.
-#' Currently three information criteria proposed in Owens, Cho, and Barigozzi (2022) (\code{pen.op = 1,2,3}) are implemented,
+#' @title Factor number estimator of Alessi, Barigozzi and Capasso (2010)
+#' @description Estimates the number of factors by minimising an information criterion over sub-samples of the data.
+#' Currently the three information criteria proposed in Alessi, Barigozzi and Capasso (2010) (\code{pen.op = 1, 2} or \code{3})
+#' and their variations with logarithm taken on the cost (\code{pen.op = 4, 5} or \code{6}) are implemented,
 #' with \code{pen.op = 2} recommended as a default choice based on numerical experiments.
 #' @details See Bai and Ng (2002) for further details.
 #' @param x input time series matrix, with each row representing a variable
@@ -331,7 +332,7 @@ abc.factor.number <-
     p.seq <- floor(3 * p / 4 + (1:10) * p / 40)
     n.seq <- n - (9:0) * floor(n / 20)
     const.seq <- seq(.001, 2, by = .01)
-    IC <- array(0, dim = c(q.max + 1, length(const.seq), 10, 3))
+    IC <- array(0, dim = c(q.max + 1, length(const.seq), 10, 6))
 
 
     for (kk in 1:10) {
@@ -358,7 +359,9 @@ abc.factor.number <-
       for (jj in 1:length(const.seq)) {
         for (pen.op in 1:3) {
           IC[, jj, kk, pen.op] <-
-            tmp + (0:q.max) * const.seq[jj] * pen[pen.op]
+            log(tmp) + (0:q.max) * const.seq[jj] * pen[pen.op]
+          IC[, jj, kk, 3 * 1 + pen.op] <-
+            log(tmp) + (0:q.max) * const.seq[jj] * pen[pen.op]
         }
       }
 
@@ -367,8 +370,8 @@ abc.factor.number <-
 
     q.mat <- apply(IC, c(2, 3, 4), which.min)
     Sc <- apply(q.mat, c(1, 3), var)
-    q.hat <- rep(0, 3)
-    for (ii in 1:3) {
+    q.hat <- rep(0, 6)
+    for (ii in 1:6) {
       ss <- Sc[, ii]
       if (min(ss) > 0) {
         q.hat[ii] <- min(q.mat[max(which(ss == min(ss))), , ii]) - 1
@@ -384,8 +387,8 @@ abc.factor.number <-
     }
 
     if (do.plot) {
-      par(mfrow = c(1, 3))
-      for (ii in 1:3) {
+      par(mfrow = c(2, 3))
+      for (ii in 1:6) {
         plot(
           const.seq,
           q.mat[, 10, ii] - 1,

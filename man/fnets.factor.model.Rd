@@ -9,7 +9,7 @@ fnets.factor.model(
   center = TRUE,
   fm.restricted = FALSE,
   q = c("ic", "er"),
-  pen.op = NULL,
+  ic.op = NULL,
   kern.bw = NULL,
   common.args = list(factor.var.order = NULL, max.var.order = NULL, trunc.lags = 20,
     n.perm = 10)
@@ -29,7 +29,7 @@ fnets.factor.model(
 };
 or the number of unrestricted factors.}
 
-\item{pen.op}{choice of the information criterion penalty, see \link[fnets]{hl.factor.number} or \link[fnets]{abc.factor.number} for further details}
+\item{ic.op}{choice of the information criterion penalty, see \link[fnets]{hl.factor.number} or \link[fnets]{abc.factor.number} for further details}
 
 \item{kern.bw}{kernel bandwidth for dynamic PCA; defaults to \code{4 * floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))}}
 

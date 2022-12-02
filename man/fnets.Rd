@@ -9,7 +9,7 @@ fnets(
   center = TRUE,
   fm.restricted = FALSE,
   q = c("ic", "er"),
-  pen.op = NULL,
+  ic.op = NULL,
   kern.bw = NULL,
   common.args = list(factor.var.order = NULL, max.var.order = NULL, trunc.lags = 20,
     n.perm = 10),
@@ -17,7 +17,7 @@ fnets(
   var.method = c("lasso", "ds"),
   var.args = list(tuning = c("cv", "bic"), n.iter = 100, tol = 0, n.cores =
     min(parallel::detectCores() - 1, 3)),
-  do.threshold = c(FALSE, FALSE, FALSE),
+  do.threshold = FALSE,
   do.lrpc = TRUE,
   lrpc.adaptive = FALSE,
   tuning.args = list(n.folds = 1, penalty = NULL, path.length = 10, do.plot = FALSE)
@@ -37,7 +37,7 @@ fnets(
 };
 see \link[fnets]{factor.number}.}
 
-\item{pen.op}{choice of the information criterion penalty, see \link[fnets]{factor.number} for further details}
+\item{ic.op}{choice of the information criterion penalty, see \link[fnets]{factor.number} for further details}
 
 \item{kern.bw}{kernel bandwidth for dynamic PCA; defaults to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}}
 
@@ -69,8 +69,7 @@ see \link[fnets]{factor.number}.}
    \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{var.method = "ds"}}
 }}
 
-\item{do.threshold}{whether to perform adaptive thresholding of parameter estimators with \link[fnets]{threshold};
-entries correspond to thresholding \code{beta}, \code{Delta}, and \code{Omega} respectively}
+\item{do.threshold}{whether to perform adaptive thresholding of all parameter estimators with \link[fnets]{threshold}}
 
 \item{do.lrpc}{whether to estimate the long-run partial correlation}
 
@@ -126,7 +125,7 @@ common <- sim.unrestricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
 out <- fnets(x,
-  q = NULL, var.order = 1, var.method = "lasso", do.threshold = c(TRUE,FALSE,FALSE),
+  q = NULL, var.order = 1, var.method = "lasso", do.threshold = TRUE,
   do.lrpc = TRUE, tuning.args = list(n.folds = 1, path.length = 10, do.plot = TRUE)
 )
 pre <- predict(out, x, h = 1, common.method = "unrestricted")

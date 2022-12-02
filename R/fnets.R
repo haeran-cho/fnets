@@ -15,7 +15,7 @@
 #'    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013)}
 #' };
 #' see \link[fnets]{factor.number}.
-#' @param pen.op choice of the information criterion penalty, see \link[fnets]{factor.number} for further details
+#' @param ic.op choice of the information criterion penalty, see \link[fnets]{factor.number} for further details
 #' @param kern.bw kernel bandwidth for dynamic PCA; defaults to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}
 #' @param common.args a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
 #' \itemize{
@@ -41,8 +41,7 @@
 #'    \item{\code{tol}}{ numerical tolerance for increases in the loss function; applicable when \code{var.method = "lasso"}}
 #'    \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{var.method = "ds"}}
 #' }
-#' @param do.threshold whether to perform adaptive thresholding of parameter estimators with \link[fnets]{threshold};
-#' entries correspond to thresholding \code{beta}, \code{Delta}, and \code{Omega} respectively
+#' @param do.threshold whether to perform adaptive thresholding of all parameter estimators with \link[fnets]{threshold}
 #' @param do.lrpc whether to estimate the long-run partial correlation
 #' @param lrpc.adaptive whether to use the adaptive estimation procedure
 #' @param tuning.args a list specifying arguments for \code{tuning}
@@ -88,7 +87,7 @@
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
 #' out <- fnets(x,
-#'   q = NULL, var.order = 1, var.method = "lasso", do.threshold = c(TRUE,FALSE,FALSE),
+#'   q = NULL, var.order = 1, var.method = "lasso", do.threshold = TRUE,
 #'   do.lrpc = TRUE, tuning.args = list(n.folds = 1, path.length = 10, do.plot = TRUE)
 #' )
 #' pre <- predict(out, x, h = 1, common.method = "unrestricted")
@@ -103,7 +102,7 @@ fnets <-
            center = TRUE,
            fm.restricted = FALSE,
            q = c("ic", "er"),
-           pen.op = NULL,
+           ic.op = NULL,
            kern.bw = NULL,
            common.args = list(
              factor.var.order = NULL,
@@ -119,7 +118,7 @@ fnets <-
              tol = 0,
              n.cores = min(parallel::detectCores() - 1, 3)
            ),
-           do.threshold = c(FALSE,FALSE,FALSE),
+           do.threshold = FALSE,
            do.lrpc = TRUE,
            lrpc.adaptive = FALSE,
            tuning.args = list(
@@ -156,7 +155,7 @@ fnets <-
           q.max = NULL,
           q = q,
           q.method = q.method,
-          pen.op = pen.op
+          ic.op = ic.op
         )
       q <- spca$q
       loadings <- spca$lam
@@ -169,7 +168,7 @@ fnets <-
         kern.bw <-  floor(4 * (n / log(n)) ^ (1 / 3))
 
       ## dynamic pca
-      dpca <- dyn.pca(xx, q, q.method, pen.op, kern.bw)
+      dpca <- dyn.pca(xx, q, q.method, ic.op, kern.bw)
       q <- dpca$q
       spec <- dpca$spec
       acv <- dpca$acv
@@ -241,7 +240,7 @@ fnets <-
         n.cores = var.args$n.cores
       )
     ive$var.order <- icv$var.order
-    if (do.threshold[1])
+    if (do.threshold)
       ive$beta <-
       threshold(ive$beta, do.plot = tuning.args$do.plot)$thr.mat
 
@@ -272,7 +271,7 @@ fnets <-
           x,
           eta = NULL,
           tuning.args = tuning.args,
-          do.threshold = do.threshold[2:3],
+          do.threshold = do.threshold,
           do.plot = tuning.args$do.plot,
           lrpc.adaptive = lrpc.adaptive
         )
@@ -297,7 +296,7 @@ fnets <-
 #'    \item{\code{"er"}}{ eigenvalue ratio}
 #' };
 #' or the number of unrestricted factors.
-#' @param pen.op choice of the information criterion penalty, see \link[fnets]{hl.factor.number} or \link[fnets]{abc.factor.number} for further details
+#' @param ic.op choice of the information criterion penalty, see \link[fnets]{hl.factor.number} or \link[fnets]{abc.factor.number} for further details
 #' @param kern.bw kernel bandwidth for dynamic PCA; defaults to \code{4 * floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))}
 #' @param common.args a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
 #' \itemize{
@@ -334,7 +333,7 @@ fnets.factor.model <-
            center = TRUE,
            fm.restricted = FALSE,
            q = c("ic", "er"),
-           pen.op = NULL,
+           ic.op = NULL,
            kern.bw = NULL,
            common.args = list(
              factor.var.order = NULL,
@@ -367,8 +366,7 @@ fnets.factor.model <-
           xx,
           q = q,
           q.method = q.method,
-          pen.op = pen.op,
-          kern.bw = kern.bw
+          ic.op = ic.op
         )
       q <- spca$q
       loadings <- spca$lam
@@ -376,7 +374,7 @@ fnets.factor.model <-
       spec <- NULL
       acv <- spca$acv
     } else {
-      dpca <- dyn.pca(xx, q, q.method, pen.op, kern.bw)
+      dpca <- dyn.pca(xx, q, q.method, ic.op, kern.bw)
       q <- dpca$q
       spec <- dpca$spec
       acv <- dpca$acv
@@ -420,9 +418,9 @@ fnets.factor.model <-
 #'    \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE} modifying Bai and Ng (2002)}
 #'    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013)}
 #' }
-#' @param pen.op choice of the information criterion penalty. Currently the three options from Hallin and Liška (2007) (\code{pen.op = 1, 2} or \code{3}) and
-#' their variations with logarithm taken on the cost (\code{pen.op = 4, 5} or \code{6}) are implemented,
-#' with \code{pen.op = 5} recommended as a default choice based on numerical experiments
+#' @param ic.op choice of the information criterion penalty. Currently the three options from Hallin and Liška (2007) (\code{ic.op = 1, 2} or \code{3}) and
+#' their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
+#' with \code{ic.op = 5} recommended as a default choice based on numerical experiments
 #' @param kern.bw kernel bandwidth for dynamic PCA; defaults to \code{floor(4 * (dim(x)[2]/log(dim(x)[2]))^(1/3)))}
 #' @param mm bandwidth; if \code{mm = NULL}, it is chosen using \code{kern.bw}
 #' @return a list containing
@@ -437,17 +435,18 @@ dyn.pca <-
   function(xx,
            q = NULL,
            q.method = c("ic", "er"),
-           pen.op = 5,
+           ic.op = 5,
            kern.bw = NULL,
            mm = NULL) {
     p <- dim(xx)[1]
     n <- dim(xx)[2]
 
     q.method <- match.arg(q.method, c("ic", "er"))
-    if (is.null(pen.op))
-      pen.op <- 5
+    if (is.null(ic.op))
+      ic.op <- 5
     if (is.null(kern.bw))
       kern.bw <-  floor(4 * (n / log(n)) ^ (1 / 3))
+    kern.bw <- as.integer(kern.bw)
     if (is.null(mm))
       mm <-
       min(max(1, kern.bw), floor(n / 4) - 1)
@@ -485,7 +484,7 @@ dyn.pca <-
       q.max <- min(50, floor(sqrt(min(n - 1, p))))
       q.method.out <-
         hl.factor.number(xx, q.max, mm, w, center = FALSE)
-      q <- q.method.out$q.hat[pen.op]
+      q <- q.method.out$q.hat[ic.op]
       Gamma_x <- q.method.out$Gamma_x
       Sigma_x <- q.method.out$Sigma_x
       sv <- q.method.out$sv
@@ -564,6 +563,17 @@ dyn.pca <-
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022)
 #' @seealso \link[fnets]{fnets}, \link[fnets]{common.predict}, \link[fnets]{idio.predict}
+#' @examples
+#' set.seed(123)
+#' n <- 500
+#' p <- 50
+#' common <- sim.restricted(n, p)
+#' idio <- sim.var(n, p)
+#' x <- common$data + idio$data
+#' out <- fnets(x, q = 2, var.order = 1, var.method = "lasso", do.lrpc = FALSE)
+#' cpre.unr <- common.predict(out, x, h = 1, forecast.restricted = FALSE, r = NULL)
+#' cpre.res <- common.predict(out, x, h = 1, forecast.restricted = TRUE, r = NULL)
+#' ipre <- idio.predict(out, x, cpre.res, h = 1)
 #' @export
 predict.fnets <-
   function(object,

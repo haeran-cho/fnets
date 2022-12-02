@@ -2,7 +2,7 @@
 % Please edit documentation in R/factor_number.R
 \name{abc.factor.number}
 \alias{abc.factor.number}
-\title{Factor number estimator of Bai and Ng (2002)}
+\title{Factor number estimator of Alessi, Barigozzi and Capasso (2010)}
 \usage{
 abc.factor.number(x, covx = NULL, q.max = NULL, do.plot = FALSE, center = TRUE)
 }
@@ -23,8 +23,9 @@ a list containing
 \item{sv}{ svd of \code{covx}}
 }
 \description{
-Estimates the number of restricted factors by minimising an information criterion.
-Currently three information criteria proposed in Owens, Cho, and Barigozzi (2022) (\code{pen.op = 1,2,3}) are implemented,
+Estimates the number of factors by minimising an information criterion over sub-samples of the data.
+Currently the three information criteria proposed in Alessi, Barigozzi and Capasso (2010) (\code{pen.op = 1, 2} or \code{3})
+and their variations with logarithm taken on the cost (\code{pen.op = 4, 5} or \code{6}) are implemented,
 with \code{pen.op = 2} recommended as a default choice based on numerical experiments.
 }
 \details{

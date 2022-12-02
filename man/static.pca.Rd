@@ -9,8 +9,7 @@ static.pca(
   q = NULL,
   q.method = c("ic", "er"),
   q.max = NULL,
-  pen.op = 2,
-  kern.bw = NULL,
+  ic.op = 2,
   mm = NULL
 )
 }

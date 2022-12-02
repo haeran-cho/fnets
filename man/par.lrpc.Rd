@@ -12,7 +12,7 @@ par.lrpc(
   lrpc.adaptive = FALSE,
   eta.adaptive = NULL,
   do.correct = TRUE,
-  do.threshold = c(FALSE, FALSE),
+  do.threshold = FALSE,
   do.plot = FALSE,
   n.cores = min(parallel::detectCores() - 1, 3)
 )
@@ -38,8 +38,7 @@ for selecting the tuning parameter involved in long-run partial correlation matr
 
 \item{do.correct}{whether to correct for any negative entries in the diagonals of the inverse of long-run covariance matrix}
 
-\item{do.threshold}{whether to perform adaptive thresholding of parameter estimators with \link[fnets]{threshold};
-entries correspond to thresholding \code{Delta} and \code{Omega} respectively}
+\item{do.threshold}{whether to perform adaptive thresholding of \code{Delta} and \code{Omega} parameter estimators with \link[fnets]{threshold}}
 
 \item{do.plot}{whether to plot thresholding output}
 
@@ -52,7 +51,7 @@ a list containing
 \item{pc}{ estimated innovation partial correlation matrix}
 \item{lrpc}{ estimated long-run partial correlation matrix}
 \item{eta}{ regularisation parameter}
-\item{lrpc.adaptive}{ was the adaptive procedure used}
+\item{lrpc.adaptive}{ input argument }
 }
 \description{
 Returns a parametric estimate of long-run partial correlations of the VAR process

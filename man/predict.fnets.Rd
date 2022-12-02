@@ -35,6 +35,18 @@ a list containing
 Produces forecasts of the data for a given forecasting horizon by
 separately estimating the best linear predictors of common and idiosyncratic components
 }
+\examples{
+set.seed(123)
+n <- 500
+p <- 50
+common <- sim.restricted(n, p)
+idio <- sim.var(n, p)
+x <- common$data + idio$data
+out <- fnets(x, q = 2, var.order = 1, var.method = "lasso", do.lrpc = FALSE)
+cpre.unr <- common.predict(out, x, h = 1, forecast.restricted = FALSE, r = NULL)
+cpre.res <- common.predict(out, x, h = 1, forecast.restricted = TRUE, r = NULL)
+ipre <- idio.predict(out, x, cpre.res, h = 1)
+}
 \references{
 Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 

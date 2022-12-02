@@ -69,28 +69,29 @@ common.predict <-
         if (!forecast.restricted)
           pre <-
             common.unrestricted.predict(xx = xx,
-                                        cve = object$common.irf,
+                                        cve = object,
                                         h = h)
       }
     }
 
     if (attr(object, "factor") == "restricted") {
-      if (forecast.restricted) {
-        pre <-
-          common.restricted.predict(
-            xx = xx,
-            Gamma_x = object$acv$Gamma_x,
-            Gamma_c = object$acv$Gamma_c,
-            q = object$q,
-            r = object$q,
-            r.method = r.method,
-            h = h
+      if (!forecast.restricted)
+        warning(
+          paste0(
+            "forecast.restricted is being set to TRUE, as fnets object is generated with fm.restricted = TRUE"
           )
-      } else {
-        stop(paste0(
-          "forecast.restricted must be TRUE under restricted factor model"
-        ))
-      }
+        )
+      pre <-
+        common.restricted.predict(
+          xx = xx,
+          Gamma_x = object$acv$Gamma_x,
+          Gamma_c = object$acv$Gamma_c,
+          q = object$q,
+          r = object$q,
+          r.method = r.method,
+          h = h
+        )
+
     }
     return(pre)
   }
@@ -133,10 +134,10 @@ common.irf.estimation <-
           perm.index <- 1:p
         else
           perm.index <- sample(p, p)
-        Gamma_c_perm <- Gamma_c[perm.index, perm.index, ]
+        Gamma_c_perm <- Gamma_c[perm.index, perm.index,]
 
         A <- list()
-        z <- xx[perm.index, ]
+        z <- xx[perm.index,]
         z[, 1:max.var.order] <- NA
         for (jj in 1:N) {
           if (jj == N)
@@ -177,10 +178,10 @@ common.irf.estimation <-
           pblock <- perm.index[block]
           invA <- var.to.vma(A[[jj]], trunc.lags + 1)
           for (ll in 1:(trunc.lags + 2)) {
-            tmp.irf[pblock, , ll, ] <- invA[, , ll] %*% R[block, ]
+            tmp.irf[pblock, , ll,] <- invA[, , ll] %*% R[block,]
           }
         }
-        B0 <- tmp.irf[1:q, , 1, ]
+        B0 <- tmp.irf[1:q, , 1,]
         if (all(B0 == 0)) {
           H <- as.matrix(B0)
         } else {
@@ -188,7 +189,7 @@ common.irf.estimation <-
           H <- solve(B0) %*% C0
         }
         for (ll in 1:(trunc.lags + 2))
-          irf.array[, , ll, ii] <- tmp.irf[, , ll, ] %*% H
+          irf.array[, , ll, ii] <- tmp.irf[, , ll,] %*% H
         u.array[, , ii] <- t(H) %*% u
       }
 
@@ -234,7 +235,8 @@ common.restricted.predict <-
         sv <- svd(Gamma_x[, , 1], nu = max.r, nv = 0)
         r <- which.max(sv$d[q:max.r] / sv$d[1 + q:max.r]) + q - 1
       }
-    }
+    } else
+      sv <- svd(Gamma_x[, , 1], nu = max.r, nv = 0)
 
 
 
@@ -250,7 +252,10 @@ common.restricted.predict <-
       fc <- NA
     }
 
-    out <- list(is = is, fc = fc, r = r)
+    out <- list(is = is,
+                fc = fc,
+                r = r,
+                h = h)
     return(out)
   }
 
@@ -258,14 +263,14 @@ common.restricted.predict <-
 common.unrestricted.predict <- function(xx, cve, h = 1) {
   p <- dim(xx)[1]
   n <- dim(xx)[2]
-  trunc.lags <- dim(cve$irf.est)[3]
+  trunc.lags <- dim(cve$loadings)[3]
   if (h >= trunc.lags + 1) {
     warning(paste0("At most ", trunc.lags, "-step ahead forecast is available!"))
     h <- trunc.lags
   }
 
-  irf <- cve$irf.est
-  u <- cve$u.est
+  irf <- cve$loadings
+  u <- cve$factors
   trunc.lags <- dim(irf)[3] - 1
 
   is <- xx * 0

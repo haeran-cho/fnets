@@ -5,26 +5,23 @@ static.pca <-
            q = NULL,
            q.method = c("ic", "er"),
            q.max = NULL,
-           pen.op = 2,
-           kern.bw = NULL,
+           ic.op = 2,
            mm = NULL) {
     p <- dim(xx)[1]
     n <- dim(xx)[2]
     cnt <- min(n, p)
-    if (is.null(kern.bw))
-      kern.bw <- 4 * floor((n / log(n)) ^ (1 / 3))
     if (is.null(mm))
       mm <-
-      min(max(1, kern.bw), floor(n / 4) - 1)
+      min(max(1, 4 * floor((n / log(n)) ^ (1 / 3))), floor(n / 4) - 1)
     else
-      mm <- min(max(mm, 1, kern.bw), floor(n / 4) - 1)
+      mm <- min(max(mm, 1, 4 * floor((n / log(n)) ^ (1 / 3))), floor(n / 4) - 1)
 
 
     if (is.null(q.max))
       q.max <- min(50, floor(sqrt(min(n - 1, p))))
     q.method <- match.arg(q.method, c("ic", "er"))
-    if (is.null(pen.op))
-      pen.op <- 2
+    if (is.null(ic.op))
+      ic.op <- 2
 
     covx <- xx %*% t(xx) / n
     eig <- eigen(covx, symmetric = TRUE)
@@ -48,7 +45,7 @@ static.pca <-
             do.plot = FALSE,
             center = FALSE
           )
-        q <- q.method.out$q.hat[pen.op]
+        q <- q.method.out$q.hat[ic.op]
       }
     }
 
