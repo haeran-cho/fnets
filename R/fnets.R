@@ -16,7 +16,7 @@
 #' };
 #' see \link[fnets]{factor.number}.
 #' @param ic.op choice of the information criterion penalty, see \link[fnets]{factor.number} for further details
-#' @param kern.bw kernel bandwidth for dynamic PCA; defaults to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}
+#' @param kern.bw a positive integer specifying thekernel bandwidth for dynamic PCA; defaults to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}
 #' @param common.args a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
 #' \itemize{
 #'    \item{\code{factor.var.order}}{ order of the blockwise VAR representation of the common component. If \code{factor.var.order = NULL}, it is selected blockwise by Schwarz criterion}
@@ -418,10 +418,17 @@ fnets.factor.model <-
 #'    \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE} modifying Bai and Ng (2002)}
 #'    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013)}
 #' }
+<<<<<<< HEAD
 #' @param ic.op choice of the information criterion penalty. Currently the three options from Hallin and Liška (2007) (\code{ic.op = 1, 2} or \code{3}) and
 #' their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
 #' with \code{ic.op = 5} recommended as a default choice based on numerical experiments
 #' @param kern.bw kernel bandwidth for dynamic PCA; defaults to \code{floor(4 * (dim(x)[2]/log(dim(x)[2]))^(1/3)))}
+=======
+#' @param pen.op choice of the information criterion penalty. Currently the three options from Hallin and Liška (2007) (\code{pen.op = 1, 2} or \code{3}) and
+#' their variations with logarithm taken on the cost (\code{pen.op = 4, 5} or \code{6}) are implemented,
+#' with \code{pen.op = 5} recommended as a default choice based on numerical experiments
+#' @param kern.bw a positive integer specifying the kernel bandwidth for dynamic PCA; defaults to \code{floor(4 * (dim(x)[2]/log(dim(x)[2]))^(1/3)))}
+>>>>>>> 92acd4ff2a79cb6cd7e91daa5be6deeba950e7a2
 #' @param mm bandwidth; if \code{mm = NULL}, it is chosen using \code{kern.bw}
 #' @return a list containing
 #' \item{q}{ number of factors}
@@ -448,8 +455,7 @@ dyn.pca <-
       kern.bw <-  floor(4 * (n / log(n)) ^ (1 / 3))
     kern.bw <- as.integer(kern.bw)
     if (is.null(mm))
-      mm <-
-      min(max(1, kern.bw), floor(n / 4) - 1)
+      mm <- min(max(1, kern.bw), floor(n / 4) - 1)
     else
       mm <- min(max(mm, 1, kern.bw), floor(n / 4) - 1)
     len <- 2 * mm
@@ -494,8 +500,6 @@ dyn.pca <-
       q.method.out <- sv$d[1:q] / sv$d[1 + 1:q]
       q <- which.max(q.method.out)
     }
-
-
 
     Gamma_c <- Gamma_i <- Sigma_c <- Sigma_i <- Sigma_x * 0
     if (q >= 1) {

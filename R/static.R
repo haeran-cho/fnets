@@ -16,9 +16,7 @@ static.pca <-
     else
       mm <- min(max(mm, 1, 4 * floor((n / log(n)) ^ (1 / 3))), floor(n / 4) - 1)
 
-
-    if (is.null(q.max))
-      q.max <- min(50, floor(sqrt(min(n - 1, p))))
+    if (is.null(q.max)) q.max <- min(50, floor(sqrt(min(n - 1, p))))
     q.method <- match.arg(q.method, c("ic", "er"))
     if (is.null(ic.op))
       ic.op <- 2
@@ -26,9 +24,7 @@ static.pca <-
     covx <- xx %*% t(xx) / n
     eig <- eigen(covx, symmetric = TRUE)
     lam <- eig$vectors[, 1:(cnt - 1), drop = FALSE] * sqrt(p)
-    f <-
-      t(xx) %*% (eig$vectors[, 1:(cnt - 1), drop = FALSE]) / sqrt(p)
-
+    f <- t(xx) %*% (eig$vectors[, 1:(cnt - 1), drop = FALSE]) / sqrt(p)
 
     if (is.null(q)) {
       if (q.method == "er") {
@@ -49,8 +45,6 @@ static.pca <-
       }
     }
 
-
-
     # q <- as.integer(q); hl <- NA
     proj <-
       eig$vectors[, 1:q, drop = FALSE] %*% t(eig$vectors[, 1:q, drop = FALSE])
@@ -65,13 +59,12 @@ static.pca <-
       }
     }
 
-
     Gamma_i <- Gamma_x - Gamma_c
     acv <-
       list(
         Gamma_x = Gamma_x,
-        Gamma_c = Re(Gamma_c),
-        Gamma_i = Re(Gamma_i)
+        Gamma_c = Gamma_c,
+        Gamma_i = Gamma_i
       )
     return(list(
       q = q,
