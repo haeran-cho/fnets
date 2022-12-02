@@ -39,7 +39,7 @@ see \link[fnets]{factor.number}.}
 
 \item{ic.op}{choice of the information criterion penalty, see \link[fnets]{factor.number} for further details}
 
-\item{kern.bw}{kernel bandwidth for dynamic PCA; defaults to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}}
+\item{kern.bw}{a positive integer specifying the kernel bandwidth for dynamic PCA; defaults to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}}
 
 \item{common.args}{a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
 \itemize{
