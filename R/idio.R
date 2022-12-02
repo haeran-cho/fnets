@@ -19,9 +19,9 @@
 #'       \item{\code{"cv"}}{ cross validation}
 #'       \item{\code{"bic"}}{ information criterion}
 #'    }
-#'    \item{\code{n.folds}}{ if \code{tuning = "cv"}, number of folds}
+#'    \item{\code{n.folds}}{ if \code{tuning = "cv"}, positive integer number of folds}
 #'    \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, defaults to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}}
-#'    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
+#'    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
 #' @param do.threshold whether to perform adaptive thresholding of VAR parameter estimator with \link[fnets]{threshold}
@@ -48,6 +48,7 @@ fnets.var <- function(x,
                       tuning.args = list(
                         tuning = c("cv", "bic"),
                         n.folds = 1,
+                        penalty = NULL,
                         path.length = 10,
                         do.plot = FALSE
                       ),
@@ -385,7 +386,8 @@ f.func.mat <- function(GG, gg, A) {
 
 #' @title extended Bayesian Information Criterion
 #' @keywords internal
-ebic <- function(object, n, penalty = 1) {
+ebic <- function(object, n, penalty = 0) {
+  penalty <- max( min(1,penalty) , 0)
   beta <- object$idio.var$beta
   p <- ncol(beta)
   d <- nrow(beta) / ncol(beta)

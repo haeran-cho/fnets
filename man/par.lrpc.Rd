@@ -27,8 +27,8 @@ par.lrpc(
 \item{tuning.args}{a list specifying arguments for the cross validation procedure
 for selecting the tuning parameter involved in long-run partial correlation matrix estimation. It contains:
 \itemize{
-   \item{\code{n.folds}}{ number of folds}
-   \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
+   \item{\code{n.folds}}{ positive integer number of folds}
+   \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 }}
 

@@ -47,9 +47,9 @@
 #' @param tuning.args a list specifying arguments for \code{tuning}
 #' for selecting the tuning parameters involved in VAR parameter and (long-run) partial correlation matrix estimation. It contains:
 #' \itemize{
-#'    \item{\code{n.folds}}{ if \code{tuning = "cv"}, number of folds}
+#'    \item{\code{n.folds}}{ if \code{tuning = "cv"}, positive integer number of folds}
 #'    \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, defaults to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}}
-#'    \item{\code{path.length}}{ number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
+#'    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
 #' @return an S3 object of class \code{fnets}, which contains the following fields:
@@ -715,7 +715,8 @@ plot.fnets <-
           vertex.label.color = grp.col,
           vertex.label.cex = 0.6,
           edge.color = "gray40",
-          edge.arrow.size = 0.5
+          edge.arrow.size = 0.5,
+          edge.width = .5 + 3 * igraph::E(g)$weight
         )
       } else if (display == "heatmap") {
         heat.cols <- rev(RColorBrewer::brewer.pal(11, "RdBu"))

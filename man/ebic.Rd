@@ -4,7 +4,7 @@
 \alias{ebic}
 \title{extended Bayesian Information Criterion}
 \usage{
-ebic(object, n, penalty = 1)
+ebic(object, n, penalty = 0)
 }
 \description{
 extended Bayesian Information Criterion
