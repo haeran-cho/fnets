@@ -44,6 +44,7 @@ Produces a plot visualising three networks underlying factor-adjusted VAR proces
 (i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices summed across the lags,
 (ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
 (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
+Edge widths are determined by edge weights.
 }
 \details{
 See Barigozzi, Cho and Owens (2022) for further details.
