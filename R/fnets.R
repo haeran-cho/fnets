@@ -64,7 +64,6 @@
 #' \item{\code{beta}}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
 #' \item{\code{Gamma}}{ estimate of the innovation covariance matrix}
 #' \item{\code{lambda}}{ regularisation parameter}
-#' \item{\code{convergence}}{ returned when \code{var.method = "lasso"}; indicates whether a convergence criterion is met}
 #' \item{\code{var.order}}{ VAR order}
 #' }}
 #' \item{lrpc}{ see the output of \link[fnets]{par.lrpc}}

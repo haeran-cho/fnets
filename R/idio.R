@@ -32,7 +32,6 @@
 #' \item{beta}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
 #' \item{Gamma}{ estimate of the innovation covariance matrix}
 #' \item{lambda}{ regularisation parameter}
-#' \item{convergence}{ returned when \code{method = "lasso"}; indicates whether a convergence criterion is met}
 #' \item{var.order}{ VAR order}
 #' \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
 #' @example R/examples/var_ex.R
@@ -197,8 +196,7 @@ var.lasso <-
       list(
         beta = x.new,
         Gamma = Gamma,
-        lambda = lambda,
-        convergence = (abs(diff.val) <= abs(obj.val[1]) * 1e-5)
+        lambda = lambda
       )
 
     return(out)
