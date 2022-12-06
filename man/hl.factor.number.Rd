@@ -35,9 +35,9 @@ a list containing
 }
 \description{
 Estimates the number of factors by minimising an information criterion over sub-samples of the data.
-Currently the three information criteria proposed in Hallin and Liška (2007) (\code{pen.op = 1, 2} or \code{3})
-and their variations with logarithm taken on the cost (\code{pen.op = 4, 5} or \code{6}) are implemented,
-with \code{pen.op = 5} recommended as a default choice based on numerical experiments.
+Currently the three information criteria proposed in Hallin and Liška (2007) (\code{ic.op = 1, 2} or \code{3})
+and their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
+with \code{ic.op = 5} recommended as a default choice based on numerical experiments.
 }
 \details{
 See Hallin and Liška (2007) for further details.
@@ -53,7 +53,7 @@ idio <- sim.var(n, p)
 x <- common$data * apply(idio$data, 1, sd) / apply(common$data, 1, sd) + idio$data
 
 hl <- factor.number(x, fm.restricted = FALSE, do.plot = TRUE)
-hl$q.hat
+hl
 }
 \references{
 Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.

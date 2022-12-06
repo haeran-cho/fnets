@@ -9,8 +9,6 @@ factor.number(
   fm.restricted = FALSE,
   method = c("ic", "er"),
   q.max = NULL,
-  mm = NULL,
-  w = NULL,
   do.plot = FALSE,
   center = TRUE
 )
@@ -28,33 +26,21 @@ factor.number(
 
 \item{q.max}{maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}}
 
-\item{mm}{bandwidth; defaults to \code{floor(4 * (dim(x)[2]/log(dim(x)[2]))^(1/3)))}}
-
-\item{w}{vector of length \code{2 * mm + 1} containing symmetric weights; if \code{w = NULL}, default weights are generated using the Bartlett kernel and \code{mm}}
-
 \item{do.plot}{whether to plot the information criteria values}
 
 \item{center}{whether to de-mean the input \code{x} row-wise}
 }
 \value{
-if \code{method = "ic"}, a list containing
-\item{q.hat}{ a vector containing minimisers of the six information criteria}
-\item{sv}{ a list containing the singular value decomposition of \code{Sigma_x}}
-and if \code{restricted = FALSE}
-\item{Gamma_x}{ an array containing the estimates of the autocovariance matrices of \code{x} at \code{2 * mm + 1} lags}
-\item{Sigma_x}{ an array containing the estimates of the spectral density matrices of \code{x} at \code{2 * mm + 1} Fourier frequencies}
-otherwise
-\item{q.hat}{ the maximiser of the eigenvalue ratio}
-\item{pca}{ dynamic or static pca output}
+if \code{method = "ic"}, a vector containing minimisers of the six information criteria, otherwise, the maximiser of the eigenvalue ratio
 }
 \description{
 Methods to estimate the number of factor.
 Either maximises the ratio of successive eigenvalues, or minimises an information criterion over sub-samples of the data.
-For \code{restricted = FALSE}, the three information criteria proposed in Hallin and Liška (2007) (\code{pen.op = 1, 2} or \code{3})
-and their variations with logarithm taken on the cost (\code{pen.op = 4, 5} or \code{6}) are implemented,
-with \code{pen.op = 5} recommended as a default choice based on numerical experiments.
-For \code{restricted = TRUE}, the three information criteria in Owens, Cho, and Barigozzi (2022) are implemented,
-with \code{pen.op = 2} recommended by default.
+For \code{fm.restricted = FALSE}, the three information criteria proposed in Hallin and Liška (2007) (\code{ic.op = 1, 2} or \code{3})
+and their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
+with \code{ic.op = 5} recommended as a default choice based on numerical experiments.
+For \code{fm.restricted = TRUE}, the three information criteria in Owens, Cho, and Barigozzi (2022) are implemented,
+with \code{ic.op = 2} recommended by default.
 }
 \details{
 For further details, see references.
@@ -70,7 +56,7 @@ idio <- sim.var(n, p)
 x <- common$data * apply(idio$data, 1, sd) / apply(common$data, 1, sd) + idio$data
 
 hl <- factor.number(x, fm.restricted = FALSE, do.plot = TRUE)
-hl$q.hat
+hl
 library(fnets)
 
 set.seed(123)
@@ -81,10 +67,10 @@ idio <- sim.var(n, p)
 x <- common$data * apply(idio$data, 1, sd) / apply(common$data, 1, sd) + idio$data
 
 abc <- factor.number(x, fm.restricted = TRUE, do.plot = TRUE)
-abc$q.hat
+abc
 
 er <- factor.number(x, method = "er", fm.restricted = TRUE, do.plot = TRUE)
-er$q.hat
+er
 }
 \references{
 Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
@@ -95,5 +81,5 @@ Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor 
 
 Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 
-Owens, D., Cho, H. & Barigozzi, M. (2022)
+Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 }

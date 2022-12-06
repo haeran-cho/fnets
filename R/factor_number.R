@@ -1,11 +1,11 @@
 #' @title Factor number selection methods
 #' @description Methods to estimate the number of factor.
 #' Either maximises the ratio of successive eigenvalues, or minimises an information criterion over sub-samples of the data.
-#' For \code{restricted = FALSE}, the three information criteria proposed in Hallin and Liška (2007) (\code{pen.op = 1, 2} or \code{3})
-#' and their variations with logarithm taken on the cost (\code{pen.op = 4, 5} or \code{6}) are implemented,
-#' with \code{pen.op = 5} recommended as a default choice based on numerical experiments.
-#' For \code{restricted = TRUE}, the three information criteria in Owens, Cho, and Barigozzi (2022) are implemented,
-#' with \code{pen.op = 2} recommended by default.
+#' For \code{fm.restricted = FALSE}, the three information criteria proposed in Hallin and Liška (2007) (\code{ic.op = 1, 2} or \code{3})
+#' and their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
+#' with \code{ic.op = 5} recommended as a default choice based on numerical experiments.
+#' For \code{fm.restricted = TRUE}, the three information criteria in Owens, Cho, and Barigozzi (2022) are implemented,
+#' with \code{ic.op = 2} recommended by default.
 #' @details For further details, see references.
 #' @param x input time series matrix, with each row representing a variable
 #' @param fm.restricted whether to estimate the number of restricted or unrestricted factors
@@ -15,19 +15,9 @@
 #'    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013)}
 #' };
 #' @param q.max maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}
-#' @param mm bandwidth; defaults to \code{floor(4 * (dim(x)[2]/log(dim(x)[2]))^(1/3)))}
-#' @param w vector of length \code{2 * mm + 1} containing symmetric weights; if \code{w = NULL}, default weights are generated using the Bartlett kernel and \code{mm}
 #' @param do.plot whether to plot the information criteria values
 #' @param center whether to de-mean the input \code{x} row-wise
-#' @return if \code{method = "ic"}, a list containing
-#' \item{q.hat}{ a vector containing minimisers of the six information criteria}
-#' \item{sv}{ a list containing the singular value decomposition of \code{Sigma_x}}
-#' and if \code{restricted = FALSE}
-#' \item{Gamma_x}{ an array containing the estimates of the autocovariance matrices of \code{x} at \code{2 * mm + 1} lags}
-#' \item{Sigma_x}{ an array containing the estimates of the spectral density matrices of \code{x} at \code{2 * mm + 1} Fourier frequencies}
-#' otherwise
-#' \item{q.hat}{ the maximiser of the eigenvalue ratio}
-#' \item{pca}{ dynamic or static pca output}
+#' @return if \code{method = "ic"}, a vector containing minimisers of the six information criteria, otherwise, the maximiser of the eigenvalue ratio
 #'
 #' @example R/examples/hl_ex.R
 #' @example R/examples/abc_ex.R
@@ -35,7 +25,7 @@
 #' @references Alessi, L., Barigozzi, M., and Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
 #' @references Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221.
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022)
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @importFrom graphics par abline box axis legend
 #' @importFrom stats var
 #' @export
@@ -44,8 +34,6 @@ factor.number <-
            fm.restricted = FALSE,
            method = c("ic","er"),
            q.max = NULL,
-           mm = NULL,
-           w = NULL,
            do.plot = FALSE,
            center = TRUE) {
     covx <- NULL
@@ -68,7 +56,7 @@ factor.number <-
         plot(pca$q.method.out, xlab = "q", ylab = "Eigenvalue Ratio")
         abline(v = q)
       }
-      out <- list(q.hat = q, pca = pca)
+      out <- q
     }
 
     if(method == "ic"){
@@ -76,11 +64,11 @@ factor.number <-
        out <- hl.factor.number(
           x = x,
           q.max = q.max,
-          mm = mm,
-          w = w,
+          mm = NULL,
+          w = NULL,
           do.plot = do.plot,
           center = center
-        )
+        )$q.hat
 
     } else {
       out <-
@@ -90,7 +78,7 @@ factor.number <-
           q.max = q.max,
           do.plot = do.plot,
           center = center
-        )
+        )$q.hat
     }
     }
     return(out)
@@ -103,9 +91,9 @@ factor.number <-
 
 #' @title Factor number estimator of Hallin and Liška (2007)
 #' @description Estimates the number of factors by minimising an information criterion over sub-samples of the data.
-#' Currently the three information criteria proposed in Hallin and Liška (2007) (\code{pen.op = 1, 2} or \code{3})
-#' and their variations with logarithm taken on the cost (\code{pen.op = 4, 5} or \code{6}) are implemented,
-#' with \code{pen.op = 5} recommended as a default choice based on numerical experiments.
+#' Currently the three information criteria proposed in Hallin and Liška (2007) (\code{ic.op = 1, 2} or \code{3})
+#' and their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
+#' with \code{ic.op = 5} recommended as a default choice based on numerical experiments.
 #' @details See Hallin and Liška (2007) for further details.
 #' @param x input time series matrix, with each row representing a variable
 #' @param q.max maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}
@@ -187,11 +175,11 @@ hl.factor.number <-
           tmp[jj + 1] <- tmp[jj + 1] + dd / pp / (2 * mm + 1)
         }
         for (jj in 1:length(const.seq)) {
-          for (pen.op in 1:3) {
-            IC[, jj, kk, 3 * 0 + pen.op] <-
-              tmp + (0:q.max) * const.seq[jj] * pen[pen.op]
-            IC[, jj, kk, 3 * 1 + pen.op] <-
-              log(tmp) + (0:q.max) * const.seq[jj] * pen[pen.op]
+          for (ic.op in 1:3) {
+            IC[, jj, kk, 3 * 0 + ic.op] <-
+              tmp + (0:q.max) * const.seq[jj] * pen[ic.op]
+            IC[, jj, kk, 3 * 1 + ic.op] <-
+              log(tmp) + (0:q.max) * const.seq[jj] * pen[ic.op]
           }
         }
       }
@@ -289,9 +277,9 @@ hl.factor.number <-
 
 #' @title Factor number estimator of Alessi, Barigozzi and Capasso (2010)
 #' @description Estimates the number of factors by minimising an information criterion over sub-samples of the data.
-#' Currently the three information criteria proposed in Alessi, Barigozzi and Capasso (2010) (\code{pen.op = 1, 2} or \code{3})
-#' and their variations with logarithm taken on the cost (\code{pen.op = 4, 5} or \code{6}) are implemented,
-#' with \code{pen.op = 2} recommended as a default choice based on numerical experiments.
+#' Currently the three information criteria proposed in Alessi, Barigozzi and Capasso (2010) (\code{ic.op = 1, 2} or \code{3})
+#' and their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
+#' with \code{ic.op = 2} recommended as a default choice based on numerical experiments.
 #' @details See Bai and Ng (2002) for further details.
 #' @param x input time series matrix, with each row representing a variable
 #' @param covx covariance of \code{x}
@@ -305,7 +293,7 @@ hl.factor.number <-
 #' @references preprint
 #' @references Alessi, L., Barigozzi, M.,  & Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
 #' @references Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022)
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @importFrom graphics abline
 #' @keywords internal
 abc.factor.number <-
@@ -357,11 +345,11 @@ abc.factor.number <-
         tmp[jj + 1] <- tmp[jj + 1] + dd / pp #/ (2 * mm + 1)
       }
       for (jj in 1:length(const.seq)) {
-        for (pen.op in 1:3) {
-          IC[, jj, kk, pen.op] <-
-            log(tmp) + (0:q.max) * const.seq[jj] * pen[pen.op]
-          IC[, jj, kk, 3 * 1 + pen.op] <-
-            log(tmp) + (0:q.max) * const.seq[jj] * pen[pen.op]
+        for (ic.op in 1:3) {
+          IC[, jj, kk, ic.op] <-
+            log(tmp) + (0:q.max) * const.seq[jj] * pen[ic.op]
+          IC[, jj, kk, 3 * 1 + ic.op] <-
+            log(tmp) + (0:q.max) * const.seq[jj] * pen[ic.op]
         }
       }
 

@@ -4,7 +4,7 @@
 \alias{common.predict}
 \title{Forecasting the factor-driven common component}
 \usage{
-common.predict(object, x, h = 1, forecast.restricted = TRUE, r = c("ic", "er"))
+common.predict(object, x, h = 1, fc.restricted = TRUE, r = c("ic", "er"))
 }
 \arguments{
 \item{object}{\code{fnets} object}
@@ -13,9 +13,9 @@ common.predict(object, x, h = 1, forecast.restricted = TRUE, r = c("ic", "er"))
 
 \item{h}{forecasting horizon}
 
-\item{forecast.restricted}{whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component}
+\item{fc.restricted}{whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component}
 
-\item{r}{number of restricted factors, or a string specifying the factor number selection method when \code{forecast.restricted = TRUE};
+\item{r}{number of restricted factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
  possible values are:
 \itemize{
    \item{\code{"ic"}}{ information criteria of Bai and Ng (2002)}
@@ -53,5 +53,5 @@ Forni, M., Hallin, M., Lippi, M. & Reichlin, L. (2005). The generalized dynamic 
 
 Forni, M., Hallin, M., Lippi, M. & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
 
-Owens, D., Cho, H. & Barigozzi, M. (2022)
+Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 }

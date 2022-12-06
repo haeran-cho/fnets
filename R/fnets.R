@@ -76,7 +76,7 @@
 #' @references Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221.
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022)
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @examples
 #' \dontrun{
 #' set.seed(123)
@@ -316,7 +316,7 @@ fnets <-
 #' @references Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221.
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022)
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @examples
 #' \dontrun{
 #' set.seed(123)
@@ -417,9 +417,9 @@ fnets.factor.model <-
 #'    \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE} modifying Bai and Ng (2002)}
 #'    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013)}
 #' }
-#' @param ic.op choice of the information criterion penalty. Currently the three options from Hallin and Liška (2007) (\code{pen.op = 1, 2} or \code{3}) and
-#' their variations with logarithm taken on the cost (\code{pen.op = 4, 5} or \code{6}) are implemented,
-#' with \code{pen.op = 5} recommended as a default choice based on numerical experiments
+#' @param ic.op choice of the information criterion penalty. Currently the three options from Hallin and Liška (2007) (\code{ic.op = 1, 2} or \code{3}) and
+#' their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
+#' with \code{ic.op = 5} recommended as a default choice based on numerical experiments
 #' @param kern.bw a positive integer specifying the kernel bandwidth for dynamic PCA; defaults to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}
 #' @param mm bandwidth; if \code{mm = NULL}, it is chosen using \code{kern.bw}
 #' @return a list containing
@@ -542,8 +542,8 @@ dyn.pca <-
 #' @param object \code{fnets} object
 #' @param x input time series matrix, with each row representing a variable
 #' @param h forecasting horizon
-#' @param forecast.restricted whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component
-#' @param r number of restricted factors, or a string specifying the factor number selection method when \code{forecast.restricted = TRUE};
+#' @param fc.restricted whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component
+#' @param r number of restricted factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
 #'  possible values are:
 #' \itemize{
 #'    \item{\code{"ic"}}{ information criteria of Bai and Ng (2002)}
@@ -557,7 +557,7 @@ dyn.pca <-
 #' \item{mean.x}{ \code{mean.x} argument from \code{object}}
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022)
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @seealso \link[fnets]{fnets}, \link[fnets]{common.predict}, \link[fnets]{idio.predict}
 #' @examples
 #' set.seed(123)
@@ -567,18 +567,18 @@ dyn.pca <-
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
 #' out <- fnets(x, q = 2, var.order = 1, var.method = "lasso", do.lrpc = FALSE)
-#' cpre.unr <- common.predict(out, x, h = 1, forecast.restricted = FALSE, r = NULL)
-#' cpre.res <- common.predict(out, x, h = 1, forecast.restricted = TRUE, r = NULL)
+#' cpre.unr <- common.predict(out, x, h = 1, fc.restricted = FALSE, r = NULL)
+#' cpre.res <- common.predict(out, x, h = 1, fc.restricted = TRUE, r = NULL)
 #' ipre <- idio.predict(out, x, cpre.res, h = 1)
 #' @export
 predict.fnets <-
   function(object,
            x,
            h = 1,
-           forecast.restricted = TRUE,
+           fc.restricted = TRUE,
            r = c("ic", "er"),
            ...) {
-    cpre <- common.predict(object, x, h, forecast.restricted, r)
+    cpre <- common.predict(object, x, h, fc.restricted, r)
     ipre <- idio.predict(object, x, cpre, h)
 
     out <- list(
@@ -616,7 +616,7 @@ predict.fnets <-
 #' @param threshold if \code{threshold > 0}, hard thresholding is performed on the matrix giving rise to the network of interest
 #' @param ... additional arguments
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022)
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @seealso \link[fnets]{fnets}
 #' @import igraph
 #' @importFrom fields imagePlot

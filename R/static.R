@@ -83,8 +83,8 @@ static.pca <-
 #' @param object \code{fm} object
 #' @param x input time series matrix, with each row representing a variable
 #' @param h forecasting horizon
-#' @param forecast.restricted whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component
-#' @param r number of restricted factors, or a string specifying the factor number selection method when \code{forecast.restricted = TRUE};
+#' @param fc.restricted whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component
+#' @param r number of restricted factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
 #'  possible values are:
 #' \itemize{
 #'    \item{\code{"ic"}}{ information criteria of Alessi, Barigozzi & Capasso (2010)}
@@ -105,7 +105,7 @@ predict.fm <-
   function(object,
            x,
            h = 1,
-           forecast.restricted = TRUE,
+           fc.restricted = TRUE,
            r = c("ic", "er"),
            ...) {
     out <-
@@ -113,7 +113,7 @@ predict.fm <-
         object = object,
         x = x,
         h = h,
-        forecast.restricted = forecast.restricted,
+        fc.restricted = fc.restricted,
         r = r
       )
     return(out)

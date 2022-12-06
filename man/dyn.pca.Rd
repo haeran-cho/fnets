@@ -24,9 +24,9 @@ dyn.pca(
    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013)}
 }}
 
-\item{ic.op}{choice of the information criterion penalty. Currently the three options from Hallin and Liška (2007) (\code{pen.op = 1, 2} or \code{3}) and
-their variations with logarithm taken on the cost (\code{pen.op = 4, 5} or \code{6}) are implemented,
-with \code{pen.op = 5} recommended as a default choice based on numerical experiments}
+\item{ic.op}{choice of the information criterion penalty. Currently the three options from Hallin and Liška (2007) (\code{ic.op = 1, 2} or \code{3}) and
+their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
+with \code{ic.op = 5} recommended as a default choice based on numerical experiments}
 
 \item{kern.bw}{a positive integer specifying the kernel bandwidth for dynamic PCA; defaults to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}}
 

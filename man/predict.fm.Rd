@@ -4,7 +4,7 @@
 \alias{predict.fm}
 \title{Forecasting for factor models}
 \usage{
-\method{predict}{fm}(object, x, h = 1, forecast.restricted = TRUE, r = c("ic", "er"), ...)
+\method{predict}{fm}(object, x, h = 1, fc.restricted = TRUE, r = c("ic", "er"), ...)
 }
 \arguments{
 \item{object}{\code{fm} object}
@@ -13,9 +13,9 @@
 
 \item{h}{forecasting horizon}
 
-\item{forecast.restricted}{whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component}
+\item{fc.restricted}{whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component}
 
-\item{r}{number of restricted factors, or a string specifying the factor number selection method when \code{forecast.restricted = TRUE};
+\item{r}{number of restricted factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
  possible values are:
 \itemize{
    \item{\code{"ic"}}{ information criteria of Alessi, Barigozzi & Capasso (2010)}

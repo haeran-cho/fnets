@@ -4,7 +4,7 @@
 \alias{predict.fnets}
 \title{Forecasting by fnets}
 \usage{
-\method{predict}{fnets}(object, x, h = 1, forecast.restricted = TRUE, r = c("ic", "er"), ...)
+\method{predict}{fnets}(object, x, h = 1, fc.restricted = TRUE, r = c("ic", "er"), ...)
 }
 \arguments{
 \item{object}{\code{fnets} object}
@@ -13,9 +13,9 @@
 
 \item{h}{forecasting horizon}
 
-\item{forecast.restricted}{whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component}
+\item{fc.restricted}{whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component}
 
-\item{r}{number of restricted factors, or a string specifying the factor number selection method when \code{forecast.restricted = TRUE};
+\item{r}{number of restricted factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
  possible values are:
 \itemize{
    \item{\code{"ic"}}{ information criteria of Bai and Ng (2002)}
@@ -43,8 +43,8 @@ common <- sim.restricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
 out <- fnets(x, q = 2, var.order = 1, var.method = "lasso", do.lrpc = FALSE)
-cpre.unr <- common.predict(out, x, h = 1, forecast.restricted = FALSE, r = NULL)
-cpre.res <- common.predict(out, x, h = 1, forecast.restricted = TRUE, r = NULL)
+cpre.unr <- common.predict(out, x, h = 1, fc.restricted = FALSE, r = NULL)
+cpre.res <- common.predict(out, x, h = 1, fc.restricted = TRUE, r = NULL)
 ipre <- idio.predict(out, x, cpre.res, h = 1)
 }
 \references{
@@ -52,7 +52,7 @@ Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of fa
 
 Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 
-Owens, D., Cho, H. & Barigozzi, M. (2022)
+Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 }
 \seealso{
 \link[fnets]{fnets}, \link[fnets]{common.predict}, \link[fnets]{idio.predict}

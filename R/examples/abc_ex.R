@@ -8,7 +8,7 @@ idio <- sim.var(n, p)
 x <- common$data * apply(idio$data, 1, sd) / apply(common$data, 1, sd) + idio$data
 
 abc <- factor.number(x, fm.restricted = TRUE, do.plot = TRUE)
-abc$q.hat
+abc
 
 er <- factor.number(x, method = "er", fm.restricted = TRUE, do.plot = TRUE)
-er$q.hat
+er

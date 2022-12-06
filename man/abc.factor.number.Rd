@@ -24,9 +24,9 @@ a list containing
 }
 \description{
 Estimates the number of factors by minimising an information criterion over sub-samples of the data.
-Currently the three information criteria proposed in Alessi, Barigozzi and Capasso (2010) (\code{pen.op = 1, 2} or \code{3})
-and their variations with logarithm taken on the cost (\code{pen.op = 4, 5} or \code{6}) are implemented,
-with \code{pen.op = 2} recommended as a default choice based on numerical experiments.
+Currently the three information criteria proposed in Alessi, Barigozzi and Capasso (2010) (\code{ic.op = 1, 2} or \code{3})
+and their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
+with \code{ic.op = 2} recommended as a default choice based on numerical experiments.
 }
 \details{
 See Bai and Ng (2002) for further details.
@@ -42,10 +42,10 @@ idio <- sim.var(n, p)
 x <- common$data * apply(idio$data, 1, sd) / apply(common$data, 1, sd) + idio$data
 
 abc <- factor.number(x, fm.restricted = TRUE, do.plot = TRUE)
-abc$q.hat
+abc
 
 er <- factor.number(x, method = "er", fm.restricted = TRUE, do.plot = TRUE)
-er$q.hat
+er
 }
 \references{
 preprint
@@ -54,6 +54,6 @@ Alessi, L., Barigozzi, M.,  & Capasso, M. (2010) Improved penalization for deter
 
 Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221.
 
-Owens, D., Cho, H. & Barigozzi, M. (2022)
+Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 }
 \keyword{internal}

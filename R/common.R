@@ -4,8 +4,8 @@
 #' @param object \code{fnets} object
 #' @param x input time series matrix, with each row representing a variable
 #' @param h forecasting horizon
-#' @param forecast.restricted whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component
-#' @param r number of restricted factors, or a string specifying the factor number selection method when \code{forecast.restricted = TRUE};
+#' @param fc.restricted whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component
+#' @param r number of restricted factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
 #'  possible values are:
 #' \itemize{
 #'    \item{\code{"ic"}}{ information criteria of Bai and Ng (2002)}
@@ -20,7 +20,7 @@
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Forni, M., Hallin, M., Lippi, M. & Reichlin, L. (2005). The generalized dynamic factor model: one-sided estimation and forecasting. Journal of the American Statistical Association, 100(471), 830--840.
 #' @references Forni, M., Hallin, M., Lippi, M. & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022)
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @examples
 #' set.seed(123)
 #' n <- 500
@@ -36,7 +36,7 @@ common.predict <-
   function(object,
            x,
            h = 1,
-           forecast.restricted = TRUE,
+           fc.restricted = TRUE,
            r = c("ic", "er")) {
     xx <- x - object$mean.x
     p <- dim(x)[1]
@@ -55,7 +55,7 @@ common.predict <-
         ))
       }
       if (object$q >= 1) {
-        if (forecast.restricted)
+        if (fc.restricted)
           pre <-
             common.restricted.predict(
               xx = xx,
@@ -66,7 +66,7 @@ common.predict <-
               r.method = r.method,
               h = h
             )
-        if (!forecast.restricted)
+        if (!fc.restricted)
           pre <-
             common.unrestricted.predict(xx = xx,
                                         cve = object,
@@ -75,10 +75,10 @@ common.predict <-
     }
 
     if (attr(object, "factor") == "restricted") {
-      if (!forecast.restricted)
+      if (!fc.restricted)
         warning(
           paste0(
-            "forecast.restricted is being set to TRUE, as fnets object is generated with fm.restricted = TRUE"
+            "fc.restricted is being set to TRUE, as fnets object is generated with fm.restricted = TRUE"
           )
         )
       pre <-
@@ -99,7 +99,7 @@ common.predict <-
 #' @title Blockwise VAR estimation under GDFM
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Forni, M., Hallin, M., Lippi, M. & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022)
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @keywords internal
 common.irf.estimation <-
   function(xx,
