@@ -488,8 +488,11 @@ dyn.pca <-
       sv <- q.method.out$sv
     }
     if (flag) {
-      # q.method=="er"
-      q.method.out <- sv$d[1:q] / sv$d[1 + 1:q]
+      eigs <- rep(0,q+1)
+      for (ii in 1:(mm + 1)){
+        eigs <- eigs + sv[[ii]]$d[0:q+1]
+      }
+      q.method.out <- eigs[1:q] / eigs[1 + 1:q]
       q <- which.max(q.method.out)
     }
 
