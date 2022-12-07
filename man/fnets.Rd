@@ -59,11 +59,6 @@ see \link[fnets]{factor.number}.}
 
 \item{var.args}{a list specifying the tuning parameters required for estimating the idiosyncratic VAR process. It contains:
 \itemize{
-   \item{\code{tuning}} a string specifying the selection procedure for \code{var.order} and \code{lambda}; possible values are:
-   \itemize{
-      \item{\code{"cv"}}{ cross validation}
-      \item{\code{"bic"}}{ information criterion}
-   }
    \item{\code{n.iter}}{ maximum number of descent steps; applicable when \code{var.method = "lasso"}}
    \item{\code{tol}}{ numerical tolerance for increases in the loss function; applicable when \code{var.method = "lasso"}}
    \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{var.method = "ds"}}
@@ -78,6 +73,11 @@ see \link[fnets]{factor.number}.}
 \item{tuning.args}{a list specifying arguments for \code{tuning}
 for selecting the tuning parameters involved in VAR parameter and (long-run) partial correlation matrix estimation. It contains:
 \itemize{
+   \item{\code{tuning}} a string specifying the selection procedure for \code{var.order} and \code{lambda}; possible values are:
+   \itemize{
+      \item{\code{"cv"}}{ cross validation}
+      \item{\code{"bic"}}{ information criterion}
+   }
    \item{\code{n.folds}}{ if \code{tuning = "cv"}, positive integer number of folds}
    \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, defaults to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}}
    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
@@ -125,7 +125,7 @@ idio <- sim.var(n, p)
 x <- common$data + idio$data
 out <- fnets(x,
   q = NULL, var.order = 1, var.method = "lasso", do.threshold = TRUE,
-  do.lrpc = TRUE, tuning.args = list(n.folds = 1, path.length = 10, do.plot = TRUE)
+  do.lrpc = TRUE, tuning.args = list(tuning = "cv", n.folds = 1, path.length = 10, do.plot = TRUE)
 )
 pre <- predict(out, x, h = 1, common.method = "unrestricted")
 plot(out, type = "granger", display = "network")

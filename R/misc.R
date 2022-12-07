@@ -45,7 +45,6 @@ check.list.arg <- function(arg) {
   if (arg.name == "var.args")
     default <-
       list(
-        tuning = c("cv", "bic"),
         n.iter = 100,
         tol = 0,
         n.cores = min(parallel::detectCores() - 1, 3)
