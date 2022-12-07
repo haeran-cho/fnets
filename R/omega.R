@@ -10,13 +10,12 @@
 #' \itemize{
 #'    \item{\code{n.folds}}{ positive integer number of folds}
 #'    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
-#'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
+#'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step, and if \code{do.threshold = TRUE}, plot the thresholding output}
 #' }
 #' @param lrpc.adaptive whether to use the adaptive estimation procedure
 #' @param eta.adaptive regularisation parameter for Step 1 of the adaptive estimation procedure; if \code{eta.adaptive = NULL}, defaults to \code{2 * sqrt(log(dim(x)[1])/dim(x)[2])}
 #' @param do.correct whether to correct for any negative entries in the diagonals of the inverse of long-run covariance matrix
 #' @param do.threshold whether to perform adaptive thresholding of \code{Delta} and \code{Omega} parameter estimators with \link[fnets]{threshold}
-#' @param do.plot whether to plot thresholding output
 #' @param n.cores number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}
 #' @return a list containing
 #' \item{Delta}{ estimated inverse of the innovation covariance matrix}
@@ -55,7 +54,6 @@ par.lrpc <- function(object,
                      eta.adaptive = NULL,
                      do.correct = TRUE,
                      do.threshold = FALSE,
-                     do.plot = FALSE,
                      n.cores = min(parallel::detectCores() - 1, 3)) {
   xx <- x - object$mean.x
   p <- dim(x)[1]
@@ -111,12 +109,12 @@ par.lrpc <- function(object,
     )$DD
   }
   if(do.threshold)
-    Delta <- threshold(Delta, do.plot = do.plot)$thr.mat
+    Delta <- threshold(Delta, do.plot = tuning.args$do.plot)$thr.mat
   Omega <- 2 * pi * t(A1) %*% Delta %*% A1
   if (do.correct)
     Omega <- correct.diag(Re(object$spec$Sigma_i[, , 1]), Omega)
   if(do.threshold)
-    Omega <- threshold(Omega, do.plot = do.plot)$thr.mat
+    Omega <- threshold(Omega, do.plot = tuning.args$do.plot)$thr.mat
   pc <- -t(t(Delta) / sqrt(diag(Delta))) / sqrt(diag(Delta))
   lrpc <- -t(t(Omega) / sqrt(diag(Omega))) / sqrt(diag(Omega))
   out <-

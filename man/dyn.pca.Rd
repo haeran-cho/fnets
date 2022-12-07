@@ -43,4 +43,15 @@ a list containing
 \description{
 Performs principal components analysis in frequency domain for identifying common and idiosyncratic components.
 }
+\examples{
+{
+set.seed(123)
+n <- 500
+p <- 50
+common <- sim.unrestricted(n, p)
+idio <- sim.var(n, p)
+x <- common$data + idio$data
+fnets:::dyn.pca(x)
+}
+}
 \keyword{internal}

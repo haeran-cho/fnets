@@ -271,7 +271,6 @@ fnets <-
           eta = NULL,
           tuning.args = tuning.args,
           do.threshold = do.threshold,
-          do.plot = tuning.args$do.plot,
           lrpc.adaptive = lrpc.adaptive
         )
     } else {
@@ -358,7 +357,7 @@ fnets.factor.model <-
     common.args <- check.list.arg(common.args)
     if (is.null(kern.bw))
       kern.bw <- 4 * floor((n / log(n)) ^ (1 / 3))
-    q.method <- match.arg(q.method, c("ic", "er"))
+    if(!is.null(q.method)) q.method <- match.arg(q.method, c("ic", "er"))
     if (fm.restricted) {
       spca <-
         static.pca(
@@ -428,6 +427,16 @@ fnets.factor.model <-
 #' \item{spec}{ a list containing the estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
 #' \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
 #' \item{kern.bw}{ input parameter}
+#' @examples
+#' {
+#' set.seed(123)
+#' n <- 500
+#' p <- 50
+#' common <- sim.unrestricted(n, p)
+#' idio <- sim.var(n, p)
+#' x <- common$data + idio$data
+#' fnets:::dyn.pca(x)
+#' }
 #' @importFrom stats fft
 #' @keywords internal
 dyn.pca <-
@@ -652,7 +661,7 @@ plot.fnets <-
       }
 
       if (type == "pc") {
-        if (!x$do.lrpc) {
+        if (!x$do.lrpc & is.null(x$lrpc$pc) ){
           stop(paste0("Partial correlation matrix is undetected"))
         } else {
           A <- x$lrpc$pc
@@ -661,7 +670,7 @@ plot.fnets <-
       }
 
       if (type == "lrpc") {
-        if (!x$do.lrpc) {
+        if (!x$do.lrpc & is.null(x$lrpc$lrpc)) {
           stop(paste0("Long-run partial correlation matrix is undetected"))
         } else {
           A <- x$lrpc$lrpc

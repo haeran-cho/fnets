@@ -13,7 +13,6 @@ par.lrpc(
   eta.adaptive = NULL,
   do.correct = TRUE,
   do.threshold = FALSE,
-  do.plot = FALSE,
   n.cores = min(parallel::detectCores() - 1, 3)
 )
 }
@@ -29,7 +28,7 @@ for selecting the tuning parameter involved in long-run partial correlation matr
 \itemize{
    \item{\code{n.folds}}{ positive integer number of folds}
    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
-   \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
+   \item{\code{do.plot}}{ whether to plot the output of the cross validation step, and if \code{do.threshold = TRUE}, plot the thresholding output}
 }}
 
 \item{lrpc.adaptive}{whether to use the adaptive estimation procedure}
@@ -39,8 +38,6 @@ for selecting the tuning parameter involved in long-run partial correlation matr
 \item{do.correct}{whether to correct for any negative entries in the diagonals of the inverse of long-run covariance matrix}
 
 \item{do.threshold}{whether to perform adaptive thresholding of \code{Delta} and \code{Omega} parameter estimators with \link[fnets]{threshold}}
-
-\item{do.plot}{whether to plot thresholding output}
 
 \item{n.cores}{number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}}
 }

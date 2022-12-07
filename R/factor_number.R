@@ -53,6 +53,7 @@ factor.number <-
         q <- pca$q
       }
       if(do.plot){
+        par(xpd=FALSE)
         plot(pca$q.method.out, xlab = "q", ylab = "Eigenvalue Ratio")
         abline(v = q)
       }

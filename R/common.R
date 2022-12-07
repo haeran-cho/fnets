@@ -75,6 +75,11 @@ common.predict <-
     }
 
     if (attr(object, "factor") == "restricted") {
+      if (object$q < 1) {
+        warning(paste0(
+          "There should be at least one factor for common component estimation!"
+        ))
+      } else if (object$q >= 1) {
       if (!fc.restricted)
         warning(
           paste0(
@@ -92,6 +97,7 @@ common.predict <-
           h = h
         )
 
+      }
     }
     return(pre)
   }

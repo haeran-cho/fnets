@@ -329,6 +329,7 @@ yw.cv <- function(xx,
     min(var.order[apply(cv.err.mat, 2, min) == min(apply(cv.err.mat, 2, min))])
 
   if (do.plot) {
+    par(xpd=FALSE)
     matplot(
       lambda.path,
       cv.err.mat,
@@ -447,7 +448,7 @@ yw.ic <- function(xx,
         beta <- var.dantzig(GG, gg, lambda = lambda.path[ii])$beta
       if (method == "lasso")
         beta <- var.lasso(GG, gg, lambda = lambda.path[ii])$beta
-      beta <- threshold(beta, do.plot = do.plot)$thr.mat
+      beta <- threshold(beta, do.plot = FALSE)$thr.mat
       sparsity <- sum(beta[, 1] != 0)
       if (sparsity == 0) {
         pen <- 0
@@ -468,6 +469,7 @@ yw.ic <- function(xx,
     min(var.order[apply(ic.err.mat, 2, min) == min(apply(ic.err.mat, 2, min))])
 
   if (do.plot) {
+    par(xpd=FALSE)
     matplot(
       lambda.path,
       ic.err.mat,
