@@ -6,18 +6,18 @@ Bartlett.weights <- function(x)
 #' @keywords internal
 make.symmetric <- function(DD, symmetric) {
   symmetric <- match.arg(symmetric, c("min", "max", "avg", "none"))
-  if (symmetric != "none") {
-    if (symmetric == "min") {
+  if(symmetric != "none") {
+    if(symmetric == "min") {
       DD[abs(DD) > t(abs(DD))] <- 0
       DD <- DD + t(DD)
       diag(DD) <- diag(DD) / 2
     }
-    if (symmetric == "max") {
+    if(symmetric == "max") {
       DD[abs(DD) < t(abs(DD))] <- 0
       DD <- DD + t(DD)
       diag(DD) <- diag(DD) / 2
     }
-    if (symmetric == "avg")
+    if(symmetric == "avg")
       DD <- (DD + t(DD)) / 2
   }
   DD
@@ -42,14 +42,14 @@ var.to.vma <- function(A, trunc.lags) {
 #' @keywords internal
 check.list.arg <- function(arg) {
   arg.name <- deparse(substitute(arg))
-  if (arg.name == "var.args")
+  if(arg.name == "var.args")
     default <-
       list(
         n.iter = 100,
         tol = 0,
         n.cores = min(parallel::detectCores() - 1, 3)
       )
-  if (arg.name == "tuning.args")
+  if(arg.name == "tuning.args")
     default <-
       list(
         tuning = c("cv", "bic"),
@@ -58,7 +58,7 @@ check.list.arg <- function(arg) {
         path.length = 10,
         do.plot = FALSE
       )
-  if (arg.name == "common.args")
+  if(arg.name == "common.args")
     default <-
       list(
         var.order = NULL,
@@ -73,7 +73,7 @@ check.list.arg <- function(arg) {
 #' @keywords internal
 check.list.match <- function(arg, default) {
   for (ii in names(default)) {
-    if (is.null(arg[[ii]]))
+    if(is.null(arg[[ii]]))
       arg[[ii]] <- default[[ii]]
   }
   return(arg)

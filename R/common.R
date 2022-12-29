@@ -41,21 +41,21 @@ common.predict <-
     xx <- x - object$mean.x
     p <- dim(x)[1]
 
-    if (!is.numeric(r)) {
+    if(!is.numeric(r)) {
       r.method <- match.arg(r, c("ic", "er"))
       r <- NULL
     } else
       r.method <- NULL
 
     pre <- list(is = 0 * x, fc = matrix(0, nrow = p, ncol = h))
-    if (attr(object, "factor") == "unrestricted") {
-      if (object$q < 1) {
+    if(attr(object, "factor") == "unrestricted") {
+      if(object$q < 1) {
         warning(paste0(
           "There should be at least one factor for common component estimation!"
         ))
       }
-      if (object$q >= 1) {
-        if (fc.restricted)
+      if(object$q >= 1) {
+        if(fc.restricted)
           pre <-
             common.restricted.predict(
               xx = xx,
@@ -66,7 +66,7 @@ common.predict <-
               r.method = r.method,
               h = h
             )
-        if (!fc.restricted)
+        if(!fc.restricted)
           pre <-
             common.unrestricted.predict(xx = xx,
                                         cve = object,
@@ -74,13 +74,13 @@ common.predict <-
       }
     }
 
-    if (attr(object, "factor") == "restricted") {
-      if (object$q < 1) {
+    if(attr(object, "factor") == "restricted") {
+      if(object$q < 1) {
         warning(paste0(
           "There should be at least one factor for common component estimation!"
         ))
-      } else if (object$q >= 1) {
-      if (!fc.restricted)
+      } else if(object$q >= 1) {
+      if(!fc.restricted)
         warning(
           paste0(
             "fc.restricted is being set to TRUE, as fnets object is generated with fm.restricted = TRUE"
@@ -119,24 +119,24 @@ common.irf.estimation <-
     p <- dim(xx)[1]
     mm <- (dim(Gamma_c)[3] - 1) / 2
     N <- p %/% (q + 1)
-    if (!is.null(factor.var.order))
+    if(!is.null(factor.var.order))
       max.var.order <- factor.var.order
-    if (is.null(max.var.order))
+    if(is.null(max.var.order))
       max.var.order <-
       min(factor.var.order, max(1, ceiling(10 * log(n, 10) / (q + 1) ^ 2)), 10)
 
-    if (q < 1)
+    if(q < 1)
       warning(paste0(
         "There should be at least one factor for common component estimation!"
       ))
 
-    if (q >= 1) {
+    if(q >= 1) {
       # for each permutation, obtain IRF and u (with cholesky identification), average the output, what FHLZ 2017 do
       irf.array <- array(0, dim = c(p, q, trunc.lags + 2, n.perm))
       u.array <- array(0, dim = c(q, n, n.perm))
 
       for (ii in 1:n.perm) {
-        if (ii == 1)
+        if(ii == 1)
           perm.index <- 1:p
         else
           perm.index <- sample(p, p)
@@ -146,7 +146,7 @@ common.irf.estimation <-
         z <- xx[perm.index,]
         z[, 1:max.var.order] <- NA
         for (jj in 1:N) {
-          if (jj == N)
+          if(jj == N)
             block <-
               ((jj - 1) * (q + 1) + 1):p
           else
@@ -154,7 +154,7 @@ common.irf.estimation <-
           pblock <- perm.index[block]
           nblock <- length(block)
 
-          if (is.null(factor.var.order)) {
+          if(is.null(factor.var.order)) {
             bic <- common.bic(Gamma_c_perm, block, n, max.var.order)
             s <- which.min(bic[-1])
           } else {
@@ -176,7 +176,7 @@ common.irf.estimation <-
 
         tmp.irf <- irf.array[, , , 1, drop = FALSE] * 0
         for (jj in 1:N) {
-          if (jj == N)
+          if(jj == N)
             block <-
               ((jj - 1) * (q + 1) + 1):p
           else
@@ -188,7 +188,7 @@ common.irf.estimation <-
           }
         }
         B0 <- tmp.irf[1:q, , 1,]
-        if (all(B0 == 0)) {
+        if(all(B0 == 0)) {
           H <- as.matrix(B0)
         } else {
           C0 <- t(chol(B0 %*% t(B0))) # cholesky identification
@@ -219,36 +219,32 @@ common.restricted.predict <-
            max.r = NULL,
            r.method = NULL,
            h = 1) {
+
     p <- dim(xx)[1]
     n <- dim(xx)[2]
-    if (is.null(max.r))
-      max.r <- max(q, min(50, round(sqrt(min(
-        n, p
-      )))))
-    if (h >= dim(Gamma_c)[3]) {
+    if(is.null(max.r))
+      max.r <- max(q, min(50, round(sqrt(min(n, p)))))
+    if(h >= dim(Gamma_c)[3]) {
       warning(paste0("At most ", (dim(Gamma_c)[3] - 1) / 2, "-step ahead forecast is available!"))
       h <- (dim(Gamma_c)[3] - 1) / 2
     }
 
-
-    if (is.null(r)) {
-      if (r.method == "ic") {
-        abc <- abc.factor.number(xx, covx = Gamma_x[, , 1], q.max = max.r)
-        r  <- abc$q.hat[2]
+    if(is.null(r)) {
+      if(r.method == "ic") {
+        abc <- abc.factor.number(xx, covx = Gamma_x[,, 1], q.max = max.r)
+        r  <- max(q, abc$q.hat[5])
         sv <- abc$sv
       }
-      if (r.method == "er") {
+      if(r.method == "er") {
         sv <- svd(Gamma_x[, , 1], nu = max.r, nv = 0)
         r <- which.max(sv$d[q:max.r] / sv$d[1 + q:max.r]) + q - 1
       }
     } else
       sv <- svd(Gamma_x[, , 1], nu = max.r, nv = 0)
 
-
-
     is <-
       sv$u[, 1:r, drop = FALSE] %*% t(sv$u[, 1:r, drop = FALSE]) %*% xx
-    if (h >= 1) {
+    if(h >= 1) {
       fc <- matrix(0, nrow = p, ncol = h)
       proj.x <-
         t(t(sv$u[, 1:r, drop = FALSE]) / sv$d[1:r]) %*% t(sv$u[, 1:r, drop = FALSE]) %*% xx[, n]
@@ -270,7 +266,7 @@ common.unrestricted.predict <- function(xx, cve, h = 1) {
   p <- dim(xx)[1]
   n <- dim(xx)[2]
   trunc.lags <- dim(cve$loadings)[3]
-  if (h >= trunc.lags + 1) {
+  if(h >= trunc.lags + 1) {
     warning(paste0("At most ", trunc.lags, "-step ahead forecast is available!"))
     h <- trunc.lags
   }
@@ -285,7 +281,7 @@ common.unrestricted.predict <- function(xx, cve, h = 1) {
     is[, (trunc.lags + 1):n] <-
     is[, (trunc.lags + 1):n] + as.matrix(irf[, , ll]) %*% u[, (trunc.lags + 1):n - ll + 1, drop = FALSE]
 
-  if (h >= 1) {
+  if(h >= 1) {
     fc <- matrix(0, nrow = p, ncol = h)
     for (hh in 1:h)
       for (ll in 1:(trunc.lags + 1 - hh))
@@ -308,7 +304,7 @@ common.yw.est <- function(Gcp, block, var.order) {
   for (ll in 1:var.order) {
     B[, nblock * (ll - 1) + 1:nblock] <- t(Gcp[block, block, 1 + ll])
     for (lll in 1:var.order) {
-      if (ll >= lll) {
+      if(ll >= lll) {
         C[nblock * (ll - 1) + 1:nblock, nblock * (lll - 1) + 1:nblock] <-
           Gcp[block, block, 1 + ll - lll]
       } else {

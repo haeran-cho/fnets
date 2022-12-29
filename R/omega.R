@@ -13,7 +13,7 @@
 #'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step, and if \code{do.threshold = TRUE}, plot the thresholding output}
 #' }
 #' @param lrpc.adaptive whether to use the adaptive estimation procedure
-#' @param eta.adaptive regularisation parameter for Step 1 of the adaptive estimation procedure; if \code{eta.adaptive = NULL}, defaults to \code{2 * sqrt(log(dim(x)[1])/dim(x)[2])}
+#' @param eta.adaptive regularisation parameter for Step 1 of the adaptive estimation procedure; if \code{eta.adaptive = NULL}, it is set to \code{2 * sqrt(log(dim(x)[1])/dim(x)[2])} by default
 #' @param do.correct whether to correct for any negative entries in the diagonals of the inverse of long-run covariance matrix
 #' @param do.threshold whether to perform adaptive thresholding of \code{Delta} and \code{Omega} parameter estimators with \link[fnets]{threshold}
 #' @param n.cores number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}
@@ -69,7 +69,7 @@ par.lrpc <- function(object,
   for (ll in 1:d)
     A1 <- A1 - A[, (ll - 1) * p + 1:p]
 
-  if (is.null(eta)) {
+  if(is.null(eta)) {
     dcv <- direct.cv(
       object,
       xx,
@@ -86,8 +86,8 @@ par.lrpc <- function(object,
     )
     eta <- dcv$eta
   }
-  if (lrpc.adaptive) {
-    if (is.null(eta.adaptive)) {
+  if(lrpc.adaptive) {
+    if(is.null(eta.adaptive)) {
       eta.adaptive <- 2 * sqrt(log(p) / n)
     }
     Delta <- adaptive.direct.inv.est(
@@ -111,7 +111,7 @@ par.lrpc <- function(object,
   if(do.threshold)
     Delta <- threshold(Delta, do.plot = tuning.args$do.plot)$thr.mat
   Omega <- 2 * pi * t(A1) %*% Delta %*% A1
-  if (do.correct)
+  if(do.correct)
     Omega <- correct.diag(Re(object$spec$Sigma_i[, , 1]), Omega)
   if(do.threshold)
     Omega <- threshold(Omega, do.plot = tuning.args$do.plot)$thr.mat
@@ -149,10 +149,10 @@ direct.cv <-
     n <- ncol(xx)
     p <- nrow(xx)
 
-    if (is.null(kern.bw))
-      kern.bw <- 4 * floor((n / log(n)) ^ (1 / 3))
+    if(is.null(kern.bw))
+      kern.bw <- 4 * floor((n / log(n))^(1 / 3))
     target <- match.arg(target, c("spec", "acv"))
-    if (target == "spec") {
+    if(target == "spec") {
       GG <- Re(object$spec$Sigma_i[, , 1])
       eta.max <- max(abs(GG))
       eta.path <-
@@ -160,12 +160,12 @@ direct.cv <-
           log(eta.max), log(eta.max * .01), length.out = path.length
         )), digits = 10)
     }
-    if (target == "acv") {
+    if(target == "acv") {
       A <- t(object$idio.var$beta)
       d <- dim(A)[2] / p
       GG <- object$idio.var$Gamma
       eta.max <- max(abs(GG))
-      if (lrpc.adaptive)
+      if(lrpc.adaptive)
         eta.max.2 <- 2 * sqrt(log(p) / n)
       else
         eta.max.2 <- eta.max
@@ -181,13 +181,13 @@ direct.cv <-
       train.ind <- 1:ceiling(length(ind.list[[fold]]) * .5)
       train.x <- xx[, ind.list[[fold]][train.ind]]
       test.x <- xx[, ind.list[[fold]][-train.ind]]
-      if (target == "spec") {
+      if(target == "spec") {
         train.GG <-
           Re(dyn.pca(train.x, q = q, kern.bw = kern.bw)$spec$Sigma_i[, , 1])
         test.GG <-
           Re(dyn.pca(test.x, q = q, kern.bw = kern.bw)$spec$Sigma_i[, , 1])
       }
-      if (target == "acv") {
+      if(target == "acv") {
         train.G0 <-
           dyn.pca(train.x,
                   q = q,
@@ -209,7 +209,7 @@ direct.cv <-
       }
 
       for (ii in 1:path.length) {
-        if (lrpc.adaptive) {
+        if(lrpc.adaptive) {
           DD <-
             adaptive.direct.inv.est(
               train.GG,
@@ -236,7 +236,7 @@ direct.cv <-
 
     eta.min <- eta.path[which.min(cv.err)]
 
-    if (do.plot) {
+    if(do.plot) {
       plot(
         eta.path,
         cv.err,
@@ -296,7 +296,7 @@ direct.inv.est <-
     parallel::stopCluster(cl)
 
     DD <- make.symmetric(DD, symmetric)
-    if (do.correct)
+    if(do.correct)
       DD <- correct.diag(GG, DD)
 
     out <- list(DD = DD,
@@ -329,7 +329,7 @@ adaptive.direct.inv.est <-
     ## Step 1 //
     cl <- parallel::makePSOCKcluster(n.cores)
     doParallel::registerDoParallel(cl)
-    if (is.null(eta.adaptive))
+    if(is.null(eta.adaptive))
       eta.adaptive <- 2 * sqrt(log(p) / n)
     ii <- 1
     step1.index <- which(dGG <= sqrt(n / log(p)))
@@ -360,7 +360,7 @@ adaptive.direct.inv.est <-
     dDD.1 <- diag(DD.1)
     dDD.1[!step1.index] <- sqrt(log(p) / n)
     ## Step 2 //
-    if (is.null(eta)) {
+    if(is.null(eta)) {
       eta <- 2 * sqrt(log(p) / n)
     }
     ii <- 1
@@ -382,7 +382,7 @@ adaptive.direct.inv.est <-
       }
     parallel::stopCluster(cl)
     DD.2 <- make.symmetric(DD.2, symmetric)
-    if (do.correct) {
+    if(do.correct) {
       tmp <- gen.inverse(GG)
       ind <- which(diag(DD.2) == 0)
       diag(DD.2)[ind] <- tmp[ind]

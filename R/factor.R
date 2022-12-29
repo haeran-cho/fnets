@@ -1,5 +1,5 @@
 #' @title Factor model estimation
-#' @description Unrestricted and restricted factor model estimation
+#' @description Performs factor modelling under either restricted (static) or unrestricted (dynamic) factor models
 #' @details See Barigozzi, Cho and Owens (2022) for further details.
 #'
 #' @param x input time series matrix, with each row representing a variable
@@ -12,7 +12,7 @@
 #' };
 #' or the number of unrestricted factors.
 #' @param ic.op choice of the information criterion penalty, see \link[fnets]{hl.factor.number} or \link[fnets]{abc.factor.number} for further details
-#' @param kern.bw kernel bandwidth for dynamic PCA; defaults to \code{4 * floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))}
+#' @param kern.bw kernel bandwidth for dynamic PCA; by default, it is set to \code{4 * floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))}. When \code{fm.restricted = TRUE}, it is used to compute the number of lags for which autocovariance matrices are estimated
 #' @param common.args a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
 #' \itemize{
 #'    \item{\code{factor.var.order}}{ order of the blockwise VAR representation of the common component. If \code{factor.var.order = NULL}, it is selected blockwise by Schwarz criterion}
@@ -59,29 +59,32 @@ fnets.factor.model <-
     p <- dim(x)[1]
     n <- dim(x)[2]
 
-    if (center)
+    if(center)
       mean.x <- apply(x, 1, mean)
     else
       mean.x <- rep(0, p)
     xx <- x - mean.x
 
-    if (!is.numeric(q)) {
+    if(!is.numeric(q)) {
       q.method <- match.arg(q, c("ic", "er"))
       q <- NULL
     } else
       q.method <- NULL
 
     common.args <- check.list.arg(common.args)
-    if (is.null(kern.bw))
-      kern.bw <- 4 * floor((n / log(n))^(1 / 3))
+    if(is.null(kern.bw))
+      kern.bw <- 4 * floor((n / log(n))^(1/3))
+    mm <- min(max(1, kern.bw), floor(n / 4) - 1)
+
     if(!is.null(q.method)) q.method <- match.arg(q.method, c("ic", "er"))
-    if (fm.restricted) {
+    if(fm.restricted) {
       spca <-
         static.pca(
           xx,
           q = q,
           q.method = q.method,
-          ic.op = ic.op
+          ic.op = ic.op,
+          mm = mm
         )
       q <- spca$q
       loadings <- spca$lam
@@ -89,7 +92,7 @@ fnets.factor.model <-
       spec <- NULL
       acv <- spca$acv
     } else {
-      dpca <- dyn.pca(xx, q, q.method, ic.op, kern.bw)
+      dpca <- dyn.pca(xx, q, q.method, ic.op, kern.bw, mm)
       q <- dpca$q
       spec <- dpca$spec
       acv <- dpca$acv
@@ -114,7 +117,7 @@ fnets.factor.model <-
       acv = acv,
       mean.x = mean.x
     )
-    if (fm.restricted)
+    if(fm.restricted)
       attr(out, "factor") <-
       "restricted"
     else
@@ -136,8 +139,8 @@ fnets.factor.model <-
 #' @param ic.op choice of the information criterion penalty. Currently the three options from Hallin and Liška (2007) (\code{ic.op = 1, 2} or \code{3}) and
 #' their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
 #' with \code{ic.op = 5} recommended as a default choice based on numerical experiments
-#' @param kern.bw a positive integer specifying the kernel bandwidth for dynamic PCA; defaults to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}
-#' @param mm bandwidth; if \code{mm = NULL}, it is chosen using \code{kern.bw}
+#' @param kern.bw a positive integer specifying the kernel bandwidth for dynamic PCA; by default, it is set to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}
+#' @param mm bandwidth
 #' @return a list containing
 #' \item{q}{ number of factors}
 #' \item{q.method.out}{ if \code{q = NULL}, the output from the chosen \code{q.method}, either a vector of eigenvalue ratios or \link[fnets]{hl.factor.number}}
@@ -167,30 +170,27 @@ dyn.pca <-
     n <- dim(xx)[2]
 
     q.method <- match.arg(q.method, c("ic", "er"))
-    if (is.null(ic.op))
+    if(is.null(ic.op))
       ic.op <- 5
-    if (is.null(kern.bw))
-      kern.bw <-  floor(4 * (n / log(n))^(1 / 3))
-    kern.bw <- as.integer(kern.bw)
-    if (is.null(mm))
-      mm <- min(max(1, kern.bw), floor(n / 4) - 1)
-    else
-      mm <- min(max(mm, 1, kern.bw), floor(n / 4) - 1)
+    if(is.null(kern.bw)) kern.bw <-  floor(4 * (n / log(n))^(1/3))
+    mm <- min(max(1, kern.bw), floor(n / 4) - 1)
+
     len <- 2 * mm
     w <- Bartlett.weights(((-mm):mm) / mm)
 
     ## dynamic pca
-    if (!is.null(q) | (is.null(q) & q.method == "er")) {
-      if (is.null(q) & q.method == "er") {
+    if(!is.null(q) | (is.null(q) & q.method == "er")) {
+      if(is.null(q)) {
         q <- min(50, floor(sqrt(min(n - 1, p))))
         flag <- TRUE
-      }
+      } else flag <- FALSE
+
       q <- as.integer(q)
       Gamma_x <- Gamma_xw <- array(0, dim = c(p, p, 2 * mm + 1))
       for (h in 0:(mm - 1)) {
         Gamma_x[, , h + 1] <- xx[, 1:(n - h)] %*% t(xx[, 1:(n - h) + h]) / n
         Gamma_xw[, , h + 1] <- Gamma_x[, , h + 1] * w[h + mm + 1]
-        if (h != 0) {
+        if(h != 0) {
           Gamma_x[, , 2 * mm + 1 - h + 1] <- t(Gamma_x[, , h + 1])
           Gamma_xw[, , 2 * mm + 1 - h + 1] <- t(Gamma_xw[, , h + 1])
         }
@@ -198,11 +198,11 @@ dyn.pca <-
       Sigma_x <-
         aperm(apply(Gamma_xw, c(1, 2), fft), c(2, 3, 1)) / (2 * pi)
       sv <- list(1:(mm + 1))
-      if (q > 0)
+      if(q > 0)
         for (ii in 1:(mm + 1))
           sv[[ii]] <- svd(Sigma_x[, , ii], nu = q, nv = 0)
 
-      if (flag) {
+      if(flag) {
         eigs <- rep(0, q + 1)
         for (ii in 1:(mm + 1)){
           eigs <- eigs + sv[[ii]]$d[0:q + 1]
@@ -210,7 +210,7 @@ dyn.pca <-
         q.method.out <- eigs[1:q] / eigs[1 + 1:q]
         q <- which.max(q.method.out)
       }
-    } else if (q.method == "ic") {
+    } else if(q.method == "ic") {
       q.max <- min(50, floor(sqrt(min(n - 1, p))))
       q.method.out <-
         hl.factor.number(xx, q.max, mm, w, center = FALSE)
@@ -221,11 +221,11 @@ dyn.pca <-
     }
 
     Gamma_c <- Gamma_i <- Sigma_c <- Sigma_i <- Sigma_x * 0
-    if (q >= 1) {
+    if(q >= 1) {
       for (ii in 1:(mm + 1)) {
         Sigma_c[, , ii] <-
           sv[[ii]]$u[, 1:q, drop = FALSE] %*% diag(sv[[ii]]$d[1:q], q) %*% Conj(t(sv[[ii]]$u[, 1:q, drop = FALSE]))
-        if (ii > 1) {
+        if(ii > 1) {
           Sigma_c[, , 2 * mm + 1 - (ii - 1) + 1] <- Conj(Sigma_c[, , ii])
         }
       }
@@ -275,28 +275,30 @@ static.pca <-
            q = NULL,
            q.method = c("ic", "er"),
            q.max = NULL,
-           ic.op = 2) {
+           ic.op = 2,
+           mm = NULL){
 
     p <- dim(xx)[1]
     n <- dim(xx)[2]
-    cnt <- min(n, p)
 
-    if (is.null(q.max)) q.max <- min(50, floor(sqrt(min(n - 1, p))))
+    if(is.null(q.max)) q.max <- min(50, floor(sqrt(min(n - 1, p))))
     q.method <- match.arg(q.method, c("ic", "er"))
 
-    if (is.null(ic.op))
-      ic.op <- 2
+    if(is.null(ic.op))
+      ic.op <- 5
+
+    if(is.null(mm)) mm <- floor(min(n, p) / log(max(n, p)))
 
     covx <- xx %*% t(xx) / n
     eig <- eigen(covx, symmetric = TRUE)
 
-    if (is.null(q)) {
-      if (q.method == "er") {
+    if(is.null(q)) {
+      if(q.method == "er") {
         q.method.out <- eig$values[1:q.max] / eig$values[1 + 1:q.max]
         q <- which.max(q.method.out)
       }
 
-      if (q.method == "ic") {
+      if(q.method == "ic") {
         q.method.out <-
           abc.factor.number(
             xx,
@@ -319,7 +321,7 @@ static.pca <-
       Gamma_x[, , h + 1] <-
         xx[, 1:(mm - h)] %*% t(xx[, 1:(mm - h) + h]) / n
       Gamma_c[, , h + 1] <- proj %*% Gamma_x[, , h + 1] %*% proj
-      if (h != 0) {
+      if(h != 0) {
         Gamma_x[, , 2 * mm + 1 - h + 1] <- t(Gamma_x[, , h + 1])
         Gamma_c[, , 2 * mm + 1 - h + 1] <- t(Gamma_c[, , h + 1])
       }

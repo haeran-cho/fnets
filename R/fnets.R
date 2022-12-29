@@ -16,7 +16,7 @@
 #' };
 #' see \link[fnets]{factor.number}.
 #' @param ic.op choice of the information criterion penalty, see \link[fnets]{factor.number} for further details
-#' @param kern.bw a positive integer specifying the kernel bandwidth for dynamic PCA; defaults to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}
+#' @param kern.bw a positive integer specifying the kernel bandwidth for dynamic PCA; by default, it is set to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}.  When \code{fm.restricted = TRUE}, it is used to compute the number of lags for which autocovariance matrices are estimated
 #' @param common.args a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
 #' \itemize{
 #'    \item{\code{factor.var.order}}{ order of the blockwise VAR representation of the common component. If \code{factor.var.order = NULL}, it is selected blockwise by Schwarz criterion}
@@ -48,7 +48,7 @@
 #'       \item{\code{"bic"}}{ information criterion}
 #'    }
 #'    \item{\code{n.folds}}{ if \code{tuning = "cv"}, positive integer number of folds}
-#'    \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, defaults to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}}
+#'    \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, it is set to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}} by default
 #'    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
@@ -133,7 +133,7 @@ fnets <-
     common.args <- check.list.arg(common.args)
     tuning.args <- check.list.arg(tuning.args)
 
-    if (!is.numeric(q)) {
+    if(!is.numeric(q)) {
       q.method <- match.arg(q, c("ic", "er"))
       q <- NULL
     } else
@@ -141,13 +141,13 @@ fnets <-
 
     var.method <- match.arg(var.method, c("lasso", "ds"))
     tuning <- match.arg(tuning.args$tuning, c("cv", "bic"))
-    if (center)
+    if(center)
       mean.x <- apply(x, 1, mean)
     else
       mean.x <- rep(0, p)
     xx <- x - mean.x
 
-    if (fm.restricted) {
+    if(fm.restricted) {
       spca <-
         static.pca(
           xx,
@@ -163,8 +163,8 @@ fnets <-
       acv <- spca$acv
       kern.bw <- NA
     } else {
-      if (is.null(kern.bw))
-        kern.bw <-  floor(4 * (n / log(n)) ^ (1 / 3))
+      if(is.null(kern.bw))
+        kern.bw <-  floor(4 * (n / log(n))^(1/3))
 
       ## dynamic pca
       dpca <- dyn.pca(xx, q, q.method, ic.op, kern.bw)
@@ -187,9 +187,9 @@ fnets <-
     }
 
     ## idio estimation
-    if (tuning.args$do.plot)
+    if(tuning.args$do.plot)
       par(mfrow = c(1, 1 + do.lrpc))
-    if (tuning == "cv") {
+    if(tuning == "cv") {
       icv <- yw.cv(
         xx,
         method = var.method,
@@ -203,7 +203,7 @@ fnets <-
       )
     }
 
-    if (tuning == "bic") {
+    if(tuning == "bic") {
       icv <- yw.ic(
         xx,
         method = var.method,
@@ -220,7 +220,7 @@ fnets <-
     mg <- make.gg(acv$Gamma_i, icv$var.order)
     gg <- mg$gg
     GG <- mg$GG
-    if (var.method == "lasso")
+    if(var.method == "lasso")
       ive <-
       var.lasso(
         GG,
@@ -230,7 +230,7 @@ fnets <-
         n.iter = var.args$n.iter,
         tol = var.args$tol
       )
-    if (var.method == "ds")
+    if(var.method == "ds")
       ive <-
       var.dantzig(
         GG,
@@ -240,7 +240,7 @@ fnets <-
         n.cores = var.args$n.cores
       )
     ive$var.order <- icv$var.order
-    if (do.threshold)
+    if(do.threshold)
       ive$beta <-
       threshold(ive$beta, do.plot = tuning.args$do.plot)$thr.mat
 
@@ -257,14 +257,14 @@ fnets <-
       kern.bw = kern.bw
     )
 
-    if (fm.restricted)
+    if(fm.restricted)
       attr(out, "factor") <-
       "restricted"
     else
       attr(out, "factor") <- "unrestricted"
 
     ## lrpc estimation
-    if (do.lrpc) {
+    if(do.lrpc) {
       out$lrpc <-
         par.lrpc(
           out,
@@ -330,18 +330,18 @@ plot.fnets <-
     p <- dim(x$acv$Gamma_x)[1]
     A <- matrix(0, nrow = p, ncol = p)
 
-    if (is.null(x$idio.var)) {
+    if(is.null(x$idio.var)) {
       warning(paste0("object contains no idiosyncratic component"))
     } else {
-      if (type == "granger") {
+      if(type == "granger") {
         d <- dim(x$idio.var$beta)[1] / p
         for (ll in 1:d)
           A <- A + t(x$idio.var$beta)[, (ll - 1) * p + 1:p]
         nm <- "Granger causal"
       }
 
-      if (type == "pc") {
-        if (!x$do.lrpc & is.null(x$lrpc$pc) ){
+      if(type == "pc") {
+        if(!x$do.lrpc & is.null(x$lrpc$pc) ){
           stop(paste0("Partial correlation matrix is undetected"))
         } else {
           A <- x$lrpc$pc
@@ -349,8 +349,8 @@ plot.fnets <-
         }
       }
 
-      if (type == "lrpc") {
-        if (!x$do.lrpc & is.null(x$lrpc$lrpc)) {
+      if(type == "lrpc") {
+        if(!x$do.lrpc & is.null(x$lrpc$lrpc)) {
           stop(paste0("Long-run partial correlation matrix is undetected"))
         } else {
           A <- x$lrpc$lrpc
@@ -361,7 +361,7 @@ plot.fnets <-
 
       A[abs(A) < threshold] <- 0
 
-      if (!is.na(groups[1])) {
+      if(!is.na(groups[1])) {
         grps <- perm <- c()
         K <- length(unique(groups))
         for (ii in 1:K) {
@@ -376,19 +376,19 @@ plot.fnets <-
       }
       grp.col <- rep(rainbow(K, alpha = 1), table(grps))
       A <- A[perm, perm]
-      if (!is.na(names[1]))
+      if(!is.na(names[1]))
         names <- names[perm]
 
-      if (display == "network") {
+      if(display == "network") {
         v.col <- rep(rainbow(K, alpha = .2), table(grps))
-        if (type == "granger")
+        if(type == "granger")
           g <-
             igraph::graph_from_adjacency_matrix(A,
                                                 mode = "directed",
                                                 weighted = TRUE,
                                                 diag = FALSE,
                                                 ...)
-        if (type %in% c("pc", "lrpc"))
+        if(type %in% c("pc", "lrpc"))
           g <-
             igraph::graph_from_adjacency_matrix(A,
                                                 mode = "undirected",
@@ -410,11 +410,11 @@ plot.fnets <-
           edge.arrow.size = 0.5,
           edge.width = .5 + 3 * igraph::E(g)$weight
         )
-      } else if (display == "heatmap") {
+      } else if(display == "heatmap") {
         heat.cols <- rev(RColorBrewer::brewer.pal(11, "RdBu"))
-        if (type == "granger")
+        if(type == "granger")
           mv <- max(1e-3, abs(A))
-        if (type %in% c("pc", "lrpc")) {
+        if(type %in% c("pc", "lrpc")) {
           A[abs(A) > 1] <- sign(A[abs(A) > 1])
           diag(A) <- 0
           mv <- 1.01
@@ -429,8 +429,8 @@ plot.fnets <-
           main = nm,
           ...
         )
-        if (!is.na(names[1]) || !is.na(groups[1])) {
-          if (is.na(names[1]))
+        if(!is.na(names[1]) || !is.na(groups[1])) {
+          if(is.na(names[1]))
             names <- groups[perm]
           for (ii in 1:p)
             mtext(

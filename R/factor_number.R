@@ -37,12 +37,12 @@ factor.number <-
     p <- dim(x)[1]
     method <- match.arg(method, c("ic", "er"))
     if(method == "er"){
-      if (center)
+      if(center)
         mean.x <- apply(x, 1, mean)
       else
         mean.x <- rep(0, p)
       xx <- x - mean.x
-      if (!fm.restricted){
+      if(!fm.restricted){
         pca <- dyn.pca(xx, q.method = "er")
         q <- pca$q
       } else {
@@ -50,7 +50,7 @@ factor.number <-
         q <- pca$q
       }
       if(do.plot){
-        par(xpd=FALSE)
+        par(xpd = FALSE)
         plot(pca$q.method.out, xlab = "q", ylab = "Eigenvalue Ratio")
         abline(v = q)
       }
@@ -58,7 +58,7 @@ factor.number <-
     }
 
     if(method == "ic"){
-    if (!fm.restricted) {
+      if(!fm.restricted) {
        out <- hl.factor.number(
           x = x,
           q.max = q.max,
@@ -66,17 +66,15 @@ factor.number <-
           do.plot = do.plot,
           center = center
         )$q.hat
-
-    } else {
-      out <-
-        abc.factor.number(
+      } else {
+        out <- abc.factor.number(
           x = x,
           covx = covx,
           q.max = q.max,
           do.plot = do.plot,
           center = center
         )$q.hat
-    }
+      }
     }
     return(out)
   }
@@ -108,16 +106,16 @@ hl.factor.number <-
            center = TRUE) {
     p <- dim(x)[1]
     n <- dim(x)[2]
-    if (is.null(q.max))
+    if(is.null(q.max))
       q.max <- min(50, floor(sqrt(min(n - 1, p))))
 
-    if (center)
+    if(center)
       mean.x <- apply(x, 1, mean)
     else
       mean.x <- rep(0, p)
     xx <- x - mean.x
 
-    if (is.null(mm))
+    if(is.null(mm))
       mm <-  floor(4 * (n / log(n))^(1 / 3))
     w <- Bartlett.weights(((-mm):mm) / mm)
 
@@ -137,14 +135,14 @@ hl.factor.number <-
       for (h in 0:(mm - 1)) {
         Gamma_x[, , h + 1] <-
           xx[1:pp, 1:(nn - h)] %*% t(xx[1:pp, 1:(nn - h) + h]) / nn * w[h + mm + 1]
-        if (h != 0) Gamma_x[, , 2 * mm + 1 - h + 1] <- t(Gamma_x[, , h + 1])
+        if(h != 0) Gamma_x[, , 2 * mm + 1 - h + 1] <- t(Gamma_x[, , h + 1])
       }
       Sigma_x <-
         aperm(apply(Gamma_x, c(1, 2), fft), c(2, 3, 1)) / (2 * pi)
 
       tmp <- rep(0, q.max + 1)
       for (ii in 1:(mm + 1)) {
-        if (kk == length(n.seq))
+        if(kk == length(n.seq))
           nu <- q.max
         else
           nu <- 0
@@ -171,10 +169,10 @@ hl.factor.number <-
     q.hat <- rep(0, 6)
     for (ii in 1:6) {
       ss <- Sc[, ii]
-      if (min(ss) > 0) {
+      if(min(ss) > 0) {
         q.hat[ii] <- min(q.mat[max(which(ss == min(ss))), , ii]) - 1
       } else {
-        if (sum(ss[-length(const.seq)] != 0 & ss[-1] == 0)) {
+        if(sum(ss[-length(const.seq)] != 0 & ss[-1] == 0)) {
           q.hat[ii] <-
             q.mat[which(ss[-length(const.seq)] != 0 &
                           ss[-1] == 0)[1] + 1, 10, ii] - 1
@@ -184,7 +182,7 @@ hl.factor.number <-
       }
     }
 
-    if (do.plot) {
+    if(do.plot) {
       par(mfrow = c(2, 3))
       for (ii in 1:6) {
         plot(
@@ -273,16 +271,16 @@ abc.factor.number <-
            center = TRUE) {
     p <- dim(x)[1]
     n <- dim(x)[2]
-    if (center)
+    if(center)
       mean.x <- apply(x, 1, mean)
     else
       mean.x <- rep(0, p)
     xx <- x - mean.x
 
-    if (is.null(q.max))
+    if(is.null(q.max))
       q.max <- min(50, floor(sqrt(min(n - 1, p))))
 
-    if (is.null(covx))
+    if(is.null(covx))
       covx <- xx %*% t(xx) / n
 
     p.seq <- floor(3 * p / 4 + (1:10) * p / 40)
@@ -298,7 +296,7 @@ abc.factor.number <-
                log(min(nn, pp)) / min(nn, pp))
 
       tmp <- rep(0, q.max + 1)
-      if (kk == length(n.seq))
+      if(kk == length(n.seq))
         nu <- q.max
       else
         nu <- 0
@@ -324,10 +322,10 @@ abc.factor.number <-
     q.hat <- rep(0, 6)
     for (ii in 1:6) {
       ss <- Sc[, ii]
-      if (min(ss) > 0) {
+      if(min(ss) > 0) {
         q.hat[ii] <- min(q.mat[max(which(ss == min(ss))), , ii]) - 1
       } else {
-        if (sum(ss[-length(const.seq)] != 0 & ss[-1] == 0)) {
+        if(sum(ss[-length(const.seq)] != 0 & ss[-1] == 0)) {
           q.hat[ii] <-
             q.mat[which(ss[-length(const.seq)] != 0 &
                           ss[-1] == 0)[1] + 1, 10, ii] - 1
@@ -337,7 +335,7 @@ abc.factor.number <-
       }
     }
 
-    if (do.plot) {
+    if(do.plot) {
       par(mfrow = c(2, 3))
       for (ii in 1:6) {
         plot(
@@ -390,5 +388,5 @@ abc.factor.number <-
         )
       }
     }
-    return(list(q.hat = q.hat))
+    return(list(q.hat = q.hat, sv = sv))
   }
