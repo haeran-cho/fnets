@@ -127,6 +127,7 @@ fnets.var <- function(x,
   if (do.threshold)
     ive$beta <- threshold(ive$beta, do.plot = tuning.args$do.plot)
 
+  attr(ive, "class") <- "fnets"
   return(ive)
 }
 
@@ -330,12 +331,18 @@ yw.cv <- function(xx,
 
   if (do.plot) {
     par(xpd=FALSE)
+    cv.err.mat.plot <- cv.err.mat
+    if(any(is.infinite(cv.err.mat.plot))) {
+      cv.err.mat.plot[which(is.infinite(cv.err.mat.plot))] <- NA
+      keep <- colSums(!is.na(cv.err.mat.plot)) > 0
+      cv.err.mat.plot <- cv.err.mat.plot[,keep]
+    } else keep <- rep(1, length(var.order))
     matplot(
       lambda.path,
-      cv.err.mat,
+      cv.err.mat.plot,
       type = "b",
-      col = 2:(max(var.order) + 1),
-      pch = 2:(max(var.order) + 1),
+      col = (2:(max(var.order) + 1))[keep],
+      pch = (2:(max(var.order) + 1))[keep],
       log = "x",
       xlab = "lambda (log scale)",
       ylab = "CV error",
@@ -344,9 +351,9 @@ yw.cv <- function(xx,
     abline(v = lambda.min)
     legend(
       "topleft",
-      legend = var.order,
-      col = 2:(max(var.order) + 1),
-      pch = 2:(max(var.order) + 1),
+      legend = var.order[keep],
+      col = (2:(max(var.order) + 1))[keep],
+      pch = (2:(max(var.order) + 1))[keep],
       lty = 1
     )
   }
@@ -461,7 +468,7 @@ yw.ic <- function(xx,
     }
   }
 
-  ic.err.mat[ic.err.mat < 0] <- Inf
+  #ic.err.mat[ic.err.mat < 0] <- Inf
   ic.err.mat[is.nan(ic.err.mat)] <- Inf
   lambda.min <-
     min(lambda.path[apply(ic.err.mat, 1, min) == min(apply(ic.err.mat, 1, min))])
@@ -470,12 +477,18 @@ yw.ic <- function(xx,
 
   if (do.plot) {
     par(xpd=FALSE)
+    ic.err.mat.plot <- ic.err.mat
+    if(any(is.infinite(ic.err.mat.plot))) {
+      ic.err.mat.plot[which(is.infinite(ic.err.mat.plot))] <- NA
+      keep <- colSums(!is.na(ic.err.mat.plot)) > 0
+      ic.err.mat.plot <- ic.err.mat.plot[,keep]
+    } else keep <- rep(1, length(var.order))
     matplot(
       lambda.path,
-      ic.err.mat,
+      ic.err.mat.plot,
       type = "b",
-      col = 2:(max(var.order) + 1),
-      pch = 2:(max(var.order) + 1),
+      col = (2:(max(var.order) + 1))[keep],
+      pch = (2:(max(var.order) + 1))[keep],
       log = "x",
       xlab = "lambda (log scale)",
       ylab = "IC",
@@ -484,9 +497,9 @@ yw.ic <- function(xx,
     abline(v = lambda.min)
     legend(
       "topleft",
-      legend = var.order,
-      col = 2:(max(var.order) + 1),
-      pch = 2:(max(var.order) + 1),
+      legend = var.order[keep],
+      col = (2:(max(var.order) + 1))[keep],
+      pch = (2:(max(var.order) + 1))[keep],
       lty = 1
     )
   }
