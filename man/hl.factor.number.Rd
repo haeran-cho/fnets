@@ -4,14 +4,7 @@
 \alias{hl.factor.number}
 \title{Factor number estimator of Hallin and Liška (2007)}
 \usage{
-hl.factor.number(
-  x,
-  q.max = NULL,
-  mm = NULL,
-  w = NULL,
-  do.plot = FALSE,
-  center = TRUE
-)
+hl.factor.number(x, q.max = NULL, mm = NULL, do.plot = FALSE, center = TRUE)
 }
 \arguments{
 \item{x}{input time series matrix, with each row representing a variable}
@@ -20,18 +13,15 @@ hl.factor.number(
 
 \item{mm}{bandwidth; defaults to \code{floor(4 * (dim(x)[2]/log(dim(x)[2]))^(1/3)))}}
 
-\item{w}{vector of length \code{2 * mm + 1} containing symmetric weights; if \code{w = NULL}, default weights are generated using the Bartlett kernel and \code{mm}}
-
 \item{do.plot}{whether to plot the values of six information criteria}
 
 \item{center}{whether to de-mean the input \code{x} row-wise}
+
+\item{w}{vector of length \code{2 * mm + 1} containing symmetric weights; if \code{w = NULL}, default weights are generated using the Bartlett kernel and \code{mm}}
 }
 \value{
 a list containing
 \item{q.hat}{ a vector containing minimisers of the six information criteria}
-\item{Gamma_x}{ an array containing the estimates of the autocovariance matrices of \code{x} at \code{2 * mm + 1} lags}
-\item{Sigma_x}{ an array containing the estimates of the spectral density matrices of \code{x} at \code{2 * mm + 1} Fourier frequencies}
-\item{sv}{ a list containing the singular value decomposition of \code{Sigma_x}}
 }
 \description{
 Estimates the number of factors by minimising an information criterion over sub-samples of the data.

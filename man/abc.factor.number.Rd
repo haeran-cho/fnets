@@ -20,13 +20,12 @@ abc.factor.number(x, covx = NULL, q.max = NULL, do.plot = FALSE, center = TRUE)
 \value{
 a list containing
 \item{q.hat}{ the mimimiser of the chosen information criteria}
-\item{sv}{ svd of \code{covx}}
 }
 \description{
 Estimates the number of factors by minimising an information criterion over sub-samples of the data.
-Currently the three information criteria proposed in Alessi, Barigozzi and Capasso (2010) (\code{ic.op = 1, 2} or \code{3})
-and their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
-with \code{ic.op = 2} recommended as a default choice based on numerical experiments.
+Currently the three information criteria proposed in Alessi, Barigozzi and Capasso (2010) (\code{ic.op = 1, 2, 3})
+and their variations with logarithm taken on the cost (\code{ic.op = 4, 5, 6}) are implemented,
+with \code{ic.op = 5} recommended as a default choice based on numerical experiments.
 }
 \details{
 See Bai and Ng (2002) for further details.

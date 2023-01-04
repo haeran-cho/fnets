@@ -20,7 +20,7 @@ factor.number(
 
 \item{method}{A string specifying the factor number selection method; possible values are:
 \itemize{
-   \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE} modifying Bai and Ng (2002)}
+   \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE}}
    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013)}
 };}
 
@@ -35,12 +35,9 @@ if \code{method = "ic"}, a vector containing minimisers of the six information c
 }
 \description{
 Methods to estimate the number of factor.
-Either maximises the ratio of successive eigenvalues, or minimises an information criterion over sub-samples of the data.
-For \code{fm.restricted = FALSE}, the three information criteria proposed in Hallin and Liška (2007) (\code{ic.op = 1, 2} or \code{3})
-and their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
-with \code{ic.op = 5} recommended as a default choice based on numerical experiments.
-For \code{fm.restricted = TRUE}, the three information criteria in Owens, Cho, and Barigozzi (2022) are implemented,
-with \code{ic.op = 2} recommended by default.
+When \code{method = 'er'}, the factor number is estimated by maximising the ration of successive eigenvalues.
+When \code{method = 'ic'}, the information criterion-methods discussed in Hallin and Liška (2007) (when \code{fm.restricted = FALSE})
+and Alessi, Barigozzi and Capasso (2010) (when \code{fm.restricted = TRUE}) are implemented, with the information criterion called by \code{ic.op = 5} recommended by default.
 }
 \details{
 For further details, see references.

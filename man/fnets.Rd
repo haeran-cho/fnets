@@ -39,7 +39,7 @@ see \link[fnets]{factor.number}.}
 
 \item{ic.op}{choice of the information criterion penalty, see \link[fnets]{factor.number} for further details}
 
-\item{kern.bw}{a positive integer specifying the kernel bandwidth for dynamic PCA; defaults to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}}
+\item{kern.bw}{a positive integer specifying the kernel bandwidth for dynamic PCA; by default, it is set to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}.  When \code{fm.restricted = TRUE}, it is used to compute the number of lags for which autocovariance matrices are estimated}
 
 \item{common.args}{a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
 \itemize{
@@ -79,7 +79,7 @@ for selecting the tuning parameters involved in VAR parameter and (long-run) par
       \item{\code{"bic"}}{ information criterion}
    }
    \item{\code{n.folds}}{ if \code{tuning = "cv"}, positive integer number of folds}
-   \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, defaults to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}}
+   \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, it is set to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}} by default
    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 }}

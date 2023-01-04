@@ -179,46 +179,42 @@ dyn.pca <-
     w <- Bartlett.weights(((-mm):mm) / mm)
 
     ## dynamic pca
-    if(!is.null(q) | (is.null(q) & q.method == "er")) {
-      if(is.null(q)) {
-        q <- min(50, floor(sqrt(min(n - 1, p))))
-        flag <- TRUE
-      } else flag <- FALSE
-
-      q <- as.integer(q)
-      Gamma_x <- Gamma_xw <- array(0, dim = c(p, p, 2 * mm + 1))
-      for (h in 0:(mm - 1)) {
-        Gamma_x[, , h + 1] <- xx[, 1:(n - h)] %*% t(xx[, 1:(n - h) + h]) / n
-        Gamma_xw[, , h + 1] <- Gamma_x[, , h + 1] * w[h + mm + 1]
-        if(h != 0) {
-          Gamma_x[, , 2 * mm + 1 - h + 1] <- t(Gamma_x[, , h + 1])
-          Gamma_xw[, , 2 * mm + 1 - h + 1] <- t(Gamma_xw[, , h + 1])
-        }
+    if(is.null(q)) {
+      q <- min(50, floor(sqrt(min(n - 1, p))))
+      flag <- TRUE
+    } else flag <- FALSE
+    q <- as.integer(q)
+    Gamma_x <- Gamma_xw <- array(0, dim = c(p, p, 2 * mm + 1))
+    for (h in 0:(mm - 1)) {
+      Gamma_x[, , h + 1] <- xx[, 1:(n - h)] %*% t(xx[, 1:(n - h) + h]) / n
+      Gamma_xw[, , h + 1] <- Gamma_x[, , h + 1] * w[h + mm + 1]
+      if(h != 0) {
+        Gamma_x[, , 2 * mm + 1 - h + 1] <- t(Gamma_x[, , h + 1])
+        Gamma_xw[, , 2 * mm + 1 - h + 1] <- t(Gamma_xw[, , h + 1])
       }
-      Sigma_x <-
-        aperm(apply(Gamma_xw, c(1, 2), fft), c(2, 3, 1)) / (2 * pi)
-      sv <- list(1:(mm + 1))
-      if(q > 0)
-        for (ii in 1:(mm + 1))
-          sv[[ii]] <- svd(Sigma_x[, , ii], nu = q, nv = 0)
+    }
+    Sigma_x <-
+      aperm(apply(Gamma_xw, c(1, 2), fft), c(2, 3, 1)) / (2 * pi)
+    sv <- list(1:(mm + 1))
+    if(q > 0)
+      for (ii in 1:(mm + 1))
+        sv[[ii]] <- svd(Sigma_x[, , ii], nu = q, nv = 0)
 
-      if(flag) {
+
+    if(flag){
+      if(q.method == "er") {
         eigs <- rep(0, q + 1)
         for (ii in 1:(mm + 1)){
           eigs <- eigs + sv[[ii]]$d[0:q + 1]
         }
-        q.method.out <- eigs[1:q] / eigs[1 + 1:q]
-        q <- which.max(q.method.out)
+      } else if(q.method == "ic") {
+        q.max <- min(50, floor(sqrt(min(n - 1, p))))
+        q.method.out <-
+          hl.factor.number(xx, q.max, mm, center = FALSE)
+        q <- q.method.out$q.hat[ic.op]
       }
-    } else if(q.method == "ic") {
-      q.max <- min(50, floor(sqrt(min(n - 1, p))))
-      q.method.out <-
-        hl.factor.number(xx, q.max, mm, w, center = FALSE)
-      q <- q.method.out$q.hat[ic.op]
-      Gamma_x <- q.method.out$Gamma_x
-      Sigma_x <- q.method.out$Sigma_x
-      sv <- q.method.out$sv
     }
+
 
     Gamma_c <- Gamma_i <- Sigma_c <- Sigma_i <- Sigma_x * 0
     if(q >= 1) {
@@ -339,8 +335,8 @@ static.pca <-
       q = q,
       lam = lam,
       f = f,
-      acv = acv
-      # q.method.out = q.method.out
+      acv = acv,
+      q.method.out = q.method.out
     ))
   }
 

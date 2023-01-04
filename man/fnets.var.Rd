@@ -42,7 +42,7 @@ for selecting the regularisation parameter (and VAR order). It contains:
       \item{\code{"bic"}}{ information criterion}
    }
    \item{\code{n.folds}}{ if \code{tuning = "cv"}, positive integer number of folds}
-   \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, defaults to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}}
+   \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, it is set to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}} by default
    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 }}
