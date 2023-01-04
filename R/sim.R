@@ -17,7 +17,7 @@
 sim.unrestricted <- function(n, p, q = 2, heavy = FALSE) {
   trunc.lags <- min(20, round(n / log(n)))
   chi <- matrix(0, p, n)
-  if (!heavy) {
+  if(!heavy) {
     uu <- matrix(rnorm((n + trunc.lags) * q), ncol = q)
   } else {
     uu <-
@@ -58,12 +58,12 @@ sim.restricted <- function(n, p, q = 2, heavy = FALSE) {
   lags <- 1
   r <- q * (lags + 1)
   burnin <- 100
-  if (!heavy) {
+  if(!heavy) {
     uu <- matrix(rnorm((n + burnin) * q), nrow = q)
   } else {
     uu <- matrix(rt((n + burnin) * q, df = 5), nrow = q) * sqrt(3 / 5)
   }
-  D0 <- matrix(runif(q ^ 2, 0, .3), nrow = q)
+  D0 <- matrix(runif(q^2, 0, .3), nrow = q)
   diag(D0) <- runif(q, .5, .8)
   D <- 0.7 * D0 / norm(D0, type = "2")
 
@@ -104,8 +104,8 @@ sim.var <- function(n,
   burnin <- 100
   prob <- 1 / p
 
-  if (!heavy) {
-    if (identical(Gamma, diag(1, p))) {
+  if(!heavy) {
+    if(identical(Gamma, diag(1, p))) {
       xi <- matrix(rnorm((n + burnin) * p), nrow = p)
     } else {
       xi <- t(MASS::mvrnorm(n + burnin, mu = rep(0, p), Sigma = Gamma))
@@ -115,7 +115,7 @@ sim.var <- function(n,
   }
 
   A <- matrix(0, p, p)
-  index <- sample(c(0, 1), p ^ 2, TRUE, prob = c(1 - prob, prob))
+  index <- sample(c(0, 1), p^2, TRUE, prob = c(1 - prob, prob))
   A[which(index == 1)] <- .275
   A <- A / norm(A, "2")
 

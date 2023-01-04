@@ -20,7 +20,7 @@
 #'       \item{\code{"bic"}}{ information criterion}
 #'    }
 #'    \item{\code{n.folds}}{ if \code{tuning = "cv"}, positive integer number of folds}
-#'    \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, defaults to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}}
+#'    \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, it is set to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}} by default
 #'    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
@@ -62,7 +62,7 @@ fnets.var <- function(x,
 
   method <- match.arg(method, c("lasso", "ds"))
   tuning <- match.arg(tuning.args$tuning, c("cv", "bic"))
-  if (center)
+  if(center)
     mean.x <- apply(x, 1, mean)
   else
     mean.x <- rep(0, p)
@@ -71,7 +71,7 @@ fnets.var <- function(x,
   acv <- dpca$acv
 
 
-  if (tuning == "cv") {
+  if(tuning == "cv") {
     icv <- yw.cv(
       xx,
       method = method,
@@ -85,7 +85,7 @@ fnets.var <- function(x,
     )
   }
 
-  if (tuning == "bic") {
+  if(tuning == "bic") {
     icv <- yw.ic(
       xx,
       method = method,
@@ -103,7 +103,7 @@ fnets.var <- function(x,
   gg <- mg$gg
   GG <- mg$GG
 
-  if (method == "lasso")
+  if(method == "lasso")
     ive <-
     var.lasso(
       GG,
@@ -113,7 +113,7 @@ fnets.var <- function(x,
       n.iter = n.iter,
       tol = tol
     )
-  if (method == "ds")
+  if(method == "ds")
     ive <-
     var.dantzig(
       GG,
@@ -124,7 +124,7 @@ fnets.var <- function(x,
     )
   ive$var.order <- icv$var.order
   ive$mean.x <- mean.x
-  if (do.threshold)
+  if(do.threshold)
     ive$beta <- threshold(ive$beta, do.plot = tuning.args$do.plot)
 
   attr(ive, "class") <- "fnets"
@@ -150,7 +150,7 @@ var.lasso <-
     x.new <- y <- x
     diff.val <- tol - 1
 
-    if (backtracking) {
+    if(backtracking) {
       L <- norm(GG, "F") / 5
       gamma <- 2
     } else {
@@ -160,12 +160,12 @@ var.lasso <-
     obj.val <- rel.err <- c()
     while (ii < n.iter & diff.val < tol) {
       ii <- ii + 1
-      if (backtracking) {
+      if(backtracking) {
         L.bar <- L
         found <- FALSE
         while (!found) {
           prox <- prox.func(y, lambda, L = 2 * L.bar, GG, gg)
-          if (f.func(GG, gg, prox) <= Q.func(prox, y, L.bar, GG, gg)) {
+          if(f.func(GG, gg, prox) <= Q.func(prox, y, L.bar, GG, gg)) {
             found <- TRUE
           } else {
             L.bar <- L.bar * gamma
@@ -179,12 +179,12 @@ var.lasso <-
       x <- x.new
       x.new <- prox
       t <- t.new
-      t.new <- (1 + sqrt(1 + 4 * t ^ 2)) / 2
+      t.new <- (1 + sqrt(1 + 4 * t^2)) / 2
       y <- x.new + (t - 1) / t.new * (x.new - y)
 
       obj.val <-
         c(obj.val, f.func(GG, gg, x.new) + lambda * sum(abs(x.new)))
-      if (ii > 1)
+      if(ii > 1)
         diff.val <- obj.val[ii] - obj.val[ii - 1]
     }
     A <- t(x.new)
@@ -271,9 +271,9 @@ yw.cv <- function(xx,
   n <- ncol(xx)
   p <- nrow(xx)
 
-  if (is.null(kern.bw))
-    kern.bw <- 4 * floor((n / log(n)) ^ (1 / 3))
-  if (is.null(lambda.max))
+  if(is.null(kern.bw))
+    kern.bw <- 4 * floor((n / log(n))^(1 / 3))
+  if(is.null(lambda.max))
     lambda.max <- max(abs(xx %*% t(xx) / n)) * 1
   lambda.path <-
     round(exp(seq(
@@ -309,10 +309,10 @@ yw.cv <- function(xx,
       test.gg <- mg$gg
       test.GG <- mg$GG
       for (ii in 1:path.length) {
-        if (method == "ds")
+        if(method == "ds")
           train.beta <-
             var.dantzig(GG, gg, lambda = lambda.path[ii])$beta
-        if (method == "lasso")
+        if(method == "lasso")
           train.beta <-
             var.lasso(GG, gg, lambda = lambda.path[ii])$beta
         beta.gg <- t(train.beta) %*% test.gg
@@ -329,7 +329,7 @@ yw.cv <- function(xx,
   order.min <-
     min(var.order[apply(cv.err.mat, 2, min) == min(apply(cv.err.mat, 2, min))])
 
-  if (do.plot) {
+  if(do.plot) {
     par(xpd=FALSE)
     cv.err.mat.plot <- cv.err.mat
     if(any(is.infinite(cv.err.mat.plot))) {
@@ -402,7 +402,7 @@ ebic <- function(object, n, penalty = 0) {
   gg <- mg$gg
   GG <- mg$GG
   n / 2 * log(2 * f.func.full(GG, gg, beta)) + sparsity * log(n) +
-    2 * penalty * (log.factorial(p ^ 2 * d) - log.factorial(sparsity) - log.factorial(p ^
+    2 * penalty * (log.factorial(p^2 * d) - log.factorial(sparsity) - log.factorial(p ^
                                                                                         2 * d - sparsity))
 }
 
@@ -421,11 +421,11 @@ yw.ic <- function(xx,
                   do.plot = FALSE) {
   n <- ncol(xx)
   p <- nrow(xx)
-  if (is.null(kern.bw))
-    kern.bw <- 4 * floor((n / log(n)) ^ (1 / 3))
-  if (is.null(penalty))
+  if(is.null(kern.bw))
+    kern.bw <- 4 * floor((n / log(n))^(1 / 3))
+  if(is.null(penalty))
     penalty <- 1 / (1 + exp(5 - p / n))
-  if (is.null(lambda.max))
+  if(is.null(lambda.max))
     lambda.max <- max(abs(xx %*% t(xx) / n)) * 1
   lambda.path <-
     round(exp(seq(
@@ -451,13 +451,13 @@ yw.ic <- function(xx,
     test.gg <- mg$gg
     test.GG <- mg$GG
     for (ii in 1:path.length) {
-      if (method == "ds")
+      if(method == "ds")
         beta <- var.dantzig(GG, gg, lambda = lambda.path[ii])$beta
-      if (method == "lasso")
+      if(method == "lasso")
         beta <- var.lasso(GG, gg, lambda = lambda.path[ii])$beta
       beta <- threshold(beta, do.plot = FALSE)$thr.mat
       sparsity <- sum(beta[, 1] != 0)
-      if (sparsity == 0) {
+      if(sparsity == 0) {
         pen <- 0
       } else {
         pen <-
@@ -475,7 +475,7 @@ yw.ic <- function(xx,
   order.min <-
     min(var.order[apply(ic.err.mat, 2, min) == min(apply(ic.err.mat, 2, min))])
 
-  if (do.plot) {
+  if(do.plot) {
     par(xpd=FALSE)
     ic.err.mat.plot <- ic.err.mat
     if(any(is.infinite(ic.err.mat.plot))) {
@@ -553,7 +553,7 @@ idio.predict <- function(object, x, cpre, h = 1) {
   A <- t(beta)
 
   is <- xx - cpre$is
-  if (h >= 1) {
+  if(h >= 1) {
     fc <- matrix(0, nrow = p, ncol = h)
     for (ii in 1:h) {
       for (ll in 1:d)
@@ -668,7 +668,7 @@ threshold <- function(mat,
 
     thr <- rseq[which.max(abs(cusum))]
 
-    if (do.plot) {
+    if(do.plot) {
       par(mfrow = c(1, 2))
       plot(rseq, ratio, type = "l", xlab = "threshold")
       abline(v = thr)
