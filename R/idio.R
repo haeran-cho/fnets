@@ -52,7 +52,7 @@ fnets.var <- function(x,
                         do.plot = FALSE
                       ),
                       do.threshold = FALSE,
-                      n.iter = 100,
+                      n.iter = NULL,
                       tol = 0,
                       n.cores = min(parallel::detectCores() - 1, 3)) {
   p <- dim(x)[1]
@@ -103,7 +103,8 @@ fnets.var <- function(x,
   gg <- mg$gg
   GG <- mg$GG
 
-  if(method == "lasso")
+  if(method == "lasso"){
+    if(is.null(n.iter)) n.iter <- var.order*100
     ive <-
     var.lasso(
       GG,
@@ -113,6 +114,7 @@ fnets.var <- function(x,
       n.iter = n.iter,
       tol = tol
     )
+  }
   if(method == "ds")
     ive <-
     var.dantzig(

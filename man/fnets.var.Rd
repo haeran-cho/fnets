@@ -13,7 +13,7 @@ fnets.var(
   tuning.args = list(tuning = c("cv", "bic"), n.folds = 1, penalty = NULL, path.length
     = 10, do.plot = FALSE),
   do.threshold = FALSE,
-  n.iter = 100,
+  n.iter = NULL,
   tol = 0,
   n.cores = min(parallel::detectCores() - 1, 3)
 )
