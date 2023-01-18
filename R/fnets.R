@@ -13,7 +13,7 @@
 #' \itemize{
 #'    \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE} modifying Bai and Ng (2002)}
 #'    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013)}
-#' };
+#' }
 #' see \link[fnets]{factor.number}.
 #' @param ic.op choice of the information criterion penalty, see \link[fnets]{factor.number} for further details
 #' @param kern.bw a positive integer specifying the kernel bandwidth for dynamic PCA; by default, it is set to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}.  When \code{fm.restricted = TRUE}, it is used to compute the number of lags for which autocovariance matrices are estimated
@@ -112,7 +112,6 @@ fnets <-
            var.order = 1,
            var.method = c("lasso", "ds"),
            var.args = list(
-             tuning = c("cv", "bic"),
              n.iter = NULL,
              tol = 0,
              n.cores = min(parallel::detectCores() - 1, 3)
@@ -121,6 +120,7 @@ fnets <-
            do.lrpc = TRUE,
            lrpc.adaptive = FALSE,
            tuning.args = list(
+             tuning = c("cv", "bic"),
              n.folds = 1,
              penalty = NULL,
              path.length = 10,

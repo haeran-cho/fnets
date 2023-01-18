@@ -10,7 +10,7 @@
 #' \itemize{
 #'    \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE}}
 #'    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013)}
-#' };
+#' }
 #' @param q.max maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}
 #' @param do.plot whether to plot the information criteria values
 #' @param center whether to de-mean the input \code{x} row-wise

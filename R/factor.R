@@ -9,10 +9,11 @@
 #' \itemize{
 #'    \item{\code{"ic"}}{ information criteria of Hallin and Liška (2007) or Bai and Ng (2002), see \link[fnets]{factor.number}}
 #'    \item{\code{"er"}}{ eigenvalue ratio}
-#' };
+#' }
 #' or the number of unrestricted factors.
 #' @param ic.op choice of the information criterion penalty, see \link[fnets]{hl.factor.number} or \link[fnets]{abc.factor.number} for further details
-#' @param kern.bw kernel bandwidth for dynamic PCA; by default, it is set to \code{4 * floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))}. When \code{fm.restricted = TRUE}, it is used to compute the number of lags for which autocovariance matrices are estimated
+#' @param kern.bw kernel bandwidth for dynamic PCA; by default, it is set to
+#' \code{4 * floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))}. When \code{fm.restricted = TRUE}, it is used to compute the number of lags for which autocovariance matrices are estimated
 #' @param common.args a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
 #' \itemize{
 #'    \item{\code{factor.var.order}}{ order of the blockwise VAR representation of the common component. If \code{factor.var.order = NULL}, it is selected blockwise by Schwarz criterion}
@@ -362,7 +363,7 @@ static.pca <-
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 #' @references Alessi, L., Barigozzi, M.,  & Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022)
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @seealso \link[fnets]{fnets.factor.model}, \link[fnets]{common.predict}
 #' @export
 predict.fm <-

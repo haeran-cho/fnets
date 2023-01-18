@@ -25,7 +25,7 @@
 #'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
 #' @param do.threshold whether to perform adaptive thresholding of VAR parameter estimator with \link[fnets]{threshold}
-#' @param n.iter maximum number of descent steps; applicable when \code{method = "lasso"}
+#' @param n.iter maximum number of descent steps, by default depends on \code{var.order}; applicable when \code{method = "lasso"}
 #' @param tol numerical tolerance for increases in the loss function; applicable when \code{method = "lasso"}
 #' @param n.cores number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{method = "ds"}
 #' @return a list which contains the following fields:

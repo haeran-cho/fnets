@@ -26,12 +26,13 @@ fnets.factor.model(
 \itemize{
    \item{\code{"ic"}}{ information criteria of Hallin and Liška (2007) or Bai and Ng (2002), see \link[fnets]{factor.number}}
    \item{\code{"er"}}{ eigenvalue ratio}
-};
+}
 or the number of unrestricted factors.}
 
 \item{ic.op}{choice of the information criterion penalty, see \link[fnets]{hl.factor.number} or \link[fnets]{abc.factor.number} for further details}
 
-\item{kern.bw}{kernel bandwidth for dynamic PCA; by default, it is set to \code{4 * floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))}. When \code{fm.restricted = TRUE}, it is used to compute the number of lags for which autocovariance matrices are estimated}
+\item{kern.bw}{kernel bandwidth for dynamic PCA; by default, it is set to
+\code{4 * floor((dim(x)[2]/log(dim(x)[2]))^(1/3)))}. When \code{fm.restricted = TRUE}, it is used to compute the number of lags for which autocovariance matrices are estimated}
 
 \item{common.args}{a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
 \itemize{

@@ -49,7 +49,7 @@ for selecting the regularisation parameter (and VAR order). It contains:
 
 \item{do.threshold}{whether to perform adaptive thresholding of VAR parameter estimator with \link[fnets]{threshold}}
 
-\item{n.iter}{maximum number of descent steps; applicable when \code{method = "lasso"}}
+\item{n.iter}{maximum number of descent steps, by default depends on \code{var.order}; applicable when \code{method = "lasso"}}
 
 \item{tol}{numerical tolerance for increases in the loss function; applicable when \code{method = "lasso"}}
 

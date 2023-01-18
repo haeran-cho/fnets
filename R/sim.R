@@ -49,7 +49,7 @@ sim.unrestricted <- function(n, p, q = 2, heavy = FALSE) {
 #' \item{q}{ number of factors}
 #' \item{r}{ number of restricted factors}
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022)
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @examples
 #' common <- sim.restricted(500, 50)
 #' @importFrom stats rnorm runif rt
@@ -91,7 +91,7 @@ sim.restricted <- function(n, p, q = 2, heavy = FALSE) {
 #' \item{A}{ transition matrix}
 #' \item{Gamma}{ innovation covariance matrix}
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022)
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @examples
 #' idio <- sim.var(500, 50)
 #' @importFrom MASS mvrnorm
