@@ -15,8 +15,7 @@ fnets(
     n.perm = 10),
   var.order = 1,
   var.method = c("lasso", "ds"),
-  var.args = list(n.iter = NULL, tol = 0, n.cores = min(parallel::detectCores() - 1,
-    3)),
+  var.args = list(n.iter = NULL, n.cores = min(parallel::detectCores() - 1, 3)),
   do.threshold = FALSE,
   do.lrpc = TRUE,
   lrpc.adaptive = FALSE,
@@ -61,7 +60,6 @@ see \link[fnets]{factor.number}.}
 \item{var.args}{a list specifying the tuning parameters required for estimating the idiosyncratic VAR process. It contains:
 \itemize{
    \item{\code{n.iter}}{ maximum number of descent steps, by default depends on \code{var.order}; applicable when \code{var.method = "lasso"}}
-   \item{\code{tol}}{ numerical tolerance for increases in the loss function; applicable when \code{var.method = "lasso"}}
    \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{var.method = "ds"}}
 }}
 
