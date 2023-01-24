@@ -35,7 +35,7 @@
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(123)
 #' n <- 500
 #' p <- 50
@@ -148,16 +148,6 @@ fnets.factor.model <-
 #' \item{spec}{ a list containing the estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
 #' \item{acv}{ a list containing estimates of the autocovariance matrices for \code{x}, common and idiosyncratic components}
 #' \item{kern.bw}{ input parameter}
-#' @examples
-#' {
-#' set.seed(123)
-#' n <- 500
-#' p <- 50
-#' common <- sim.unrestricted(n, p)
-#' idio <- sim.var(n, p)
-#' x <- common$data + idio$data
-#' fnets:::dyn.pca(x)
-#' }
 #' @importFrom stats fft
 #' @keywords internal
 dyn.pca <-
@@ -256,16 +246,6 @@ dyn.pca <-
   }
 
 #' @title Static PCA
-#' @examples
-#' {
-#' set.seed(123)
-#' n <- 500
-#' p <- 50
-#' common <- sim.restricted(n, p)
-#' idio <- sim.var(n, p)
-#' x <- common$data + idio$data
-#' fnets:::static.pca(x)
-#' }
 #' @keywords internal
 static.pca <-
   function(xx,

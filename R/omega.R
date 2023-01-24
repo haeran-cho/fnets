@@ -28,15 +28,16 @@
 #' @references Cai, T. T., Liu, W., & Zhou, H. H. (2016) Estimating sparse precision matrix: Optimal rates of convergence and adaptive estimation. The Annals of Statistics, 44(2), 455-488.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(123)
 #' n <- 500
 #' p <- 50
 #' common <- sim.unrestricted(n, p)
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
-#' out <- fnets(x, q = NULL, var.method = "lasso", do.lrpc = FALSE)
-#' plrpc <- par.lrpc(out, x, tuning.args = list(n.folds = 1, path.length = 10, do.plot = TRUE))
+#' out <- fnets(x, q = NULL, var.method = "lasso", do.lrpc = FALSE, var.args = list(n.cores = 2))
+#' plrpc <- par.lrpc(out, x,
+#' tuning.args = list(n.folds = 1, path.length = 10, do.plot = TRUE),  n.cores = 2)
 #' out$lrpc <- plrpc
 #' out$do.lrpc <- TRUE
 #' plot(out, type = "pc", display = "network", threshold = .05)

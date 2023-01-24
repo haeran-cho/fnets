@@ -81,7 +81,8 @@ fnets.var <- function(x,
       path.length = tuning.args$path.length,
       q = 0,
       kern.bw = NULL,
-      do.plot = tuning.args$do.plot
+      do.plot = tuning.args$do.plot,
+      n.cores = n.cores
     )
   }
 
@@ -269,7 +270,8 @@ yw.cv <- function(xx,
                   path.length = 10,
                   q = 0,
                   kern.bw = NULL,
-                  do.plot = FALSE) {
+                  do.plot = FALSE,
+                  n.cores = min(parallel::detectCores() - 1, 3)) {
   n <- ncol(xx)
   p <- nrow(xx)
 
@@ -313,7 +315,7 @@ yw.cv <- function(xx,
       for (ii in 1:path.length) {
         if(method == "ds")
           train.beta <-
-            var.dantzig(GG, gg, lambda = lambda.path[ii])$beta
+            var.dantzig(GG, gg, lambda = lambda.path[ii], n.cores = n.cores)$beta
         if(method == "lasso")
           train.beta <-
             var.lasso(GG, gg, lambda = lambda.path[ii])$beta
@@ -540,7 +542,8 @@ yw.ic <- function(xx,
 #' common <- sim.unrestricted(n, p)
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
-#' out <- fnets(x, q = NULL, var.order = 1, var.method = "lasso", do.lrpc = FALSE)
+#' out <- fnets(x, q = NULL, var.order = 1, var.method = "lasso",
+#' do.lrpc = FALSE, var.args = list(n.cores = 2))
 #' cpre <- common.predict(out, x, h = 1, r = NULL)
 #' ipre <- idio.predict(out, x, cpre, h = 1)
 #' @export
@@ -633,7 +636,7 @@ prox.func <- function(B, lambda, L, GG, gg) {
 #' \item{threshold}{ data-driven threshold}
 #' \item{thr.mat}{ thresholded input matrix}
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(123)
 #' A <- diag(.7, 50) + rnorm(50^2, 0, .1)
 #' threshold.A <- threshold(A)
@@ -671,6 +674,8 @@ threshold <- function(mat,
     thr <- rseq[which.max(abs(cusum))]
 
     if(do.plot) {
+      oldpar <- par(no.readonly = TRUE)
+      on.exit(par(oldpar))
       par(mfrow = c(1, 2))
       plot(rseq, ratio, type = "l", xlab = "threshold")
       abline(v = thr)

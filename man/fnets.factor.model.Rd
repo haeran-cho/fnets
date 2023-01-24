@@ -59,7 +59,7 @@ Performs factor modelling under either restricted (static) or unrestricted (dyna
 See Barigozzi, Cho and Owens (2022) for further details.
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(123)
 n <- 500
 p <- 50

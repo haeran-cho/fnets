@@ -183,6 +183,8 @@ hl.factor.number <-
     }
 
     if(do.plot) {
+      oldpar <- par(no.readonly = TRUE)
+      on.exit(par(oldpar))
       par(mfrow = c(2, 3))
       for (ii in 1:6) {
         plot(

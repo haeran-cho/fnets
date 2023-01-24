@@ -28,7 +28,8 @@
 #' common <- sim.unrestricted(n, p)
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
-#' out <- fnets(x, q = NULL, var.order = 1, var.method = "lasso", do.lrpc = FALSE)
+#' out <- fnets(x, q = NULL, var.order = 1, var.method = "lasso",
+#' do.lrpc = FALSE, var.args = list(n.cores = 2))
 #' cpre <- common.predict(out, x, h = 1, r = NULL)
 #' ipre <- idio.predict(out, x, cpre, h = 1)
 #' @export

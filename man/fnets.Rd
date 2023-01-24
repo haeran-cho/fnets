@@ -115,7 +115,7 @@ See Barigozzi, Cho and Owens (2022) and Owens, Cho and Barigozzi (2022) for furt
 List arguments do not need to be specified with all list components; any missing entries will be filled in with the default argument.
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(123)
 n <- 500
 p <- 50
@@ -124,7 +124,8 @@ idio <- sim.var(n, p)
 x <- common$data + idio$data
 out <- fnets(x,
   q = NULL, var.order = 1, var.method = "lasso", do.threshold = TRUE,
-  do.lrpc = TRUE, tuning.args = list(tuning = "cv", n.folds = 1, path.length = 10, do.plot = TRUE)
+  do.lrpc = TRUE, tuning.args = list(tuning = "cv", n.folds = 1, path.length = 10, do.plot = TRUE),
+  var.args = list(n.cores = 2)
 )
 pre <- predict(out, x, h = 1, common.method = "unrestricted")
 plot(out, type = "granger", display = "network")

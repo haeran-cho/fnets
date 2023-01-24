@@ -42,7 +42,8 @@ p <- 50
 common <- sim.restricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
-out <- fnets(x, q = 2, var.order = 1, var.method = "lasso", do.lrpc = FALSE)
+out <- fnets(x, q = 2, var.order = 1, var.method = "lasso",
+do.lrpc = FALSE, var.args = list(n.cores = 2))
 cpre.unr <- common.predict(out, x, h = 1, fc.restricted = FALSE, r = NULL)
 cpre.res <- common.predict(out, x, h = 1, fc.restricted = TRUE, r = NULL)
 ipre <- idio.predict(out, x, cpre.res, h = 1)

@@ -13,7 +13,8 @@ yw.cv(
   path.length = 10,
   q = 0,
   kern.bw = NULL,
-  do.plot = FALSE
+  do.plot = FALSE,
+  n.cores = min(parallel::detectCores() - 1, 3)
 )
 }
 \description{

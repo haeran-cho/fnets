@@ -25,7 +25,7 @@ Threshold the entries of the input matrix at a data-driven level to perform edge
 See Liu, Zhang, and Liu (2021) for more information on the threshold selection process
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(123)
 A <- diag(.7, 50) + rnorm(50^2, 0, .1)
 threshold.A <- threshold(A)

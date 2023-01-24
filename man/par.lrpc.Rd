@@ -58,15 +58,16 @@ from the VAR parameter estimates and the inverse of innovation covariance matrix
 See Barigozzi, Cho and Owens (2022) for further details, and Cai, Liu and Zhou (2016) for further details on the adaptive estimation procedure.
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(123)
 n <- 500
 p <- 50
 common <- sim.unrestricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
-out <- fnets(x, q = NULL, var.method = "lasso", do.lrpc = FALSE)
-plrpc <- par.lrpc(out, x, tuning.args = list(n.folds = 1, path.length = 10, do.plot = TRUE))
+out <- fnets(x, q = NULL, var.method = "lasso", do.lrpc = FALSE, var.args = list(n.cores = 2))
+plrpc <- par.lrpc(out, x,
+tuning.args = list(n.folds = 1, path.length = 10, do.plot = TRUE),  n.cores = 2)
 out$lrpc <- plrpc
 out$do.lrpc <- TRUE
 plot(out, type = "pc", display = "network", threshold = .05)

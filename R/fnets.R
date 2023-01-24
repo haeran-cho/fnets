@@ -77,7 +77,7 @@
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(123)
 #' n <- 500
 #' p <- 50
@@ -86,7 +86,8 @@
 #' x <- common$data + idio$data
 #' out <- fnets(x,
 #'   q = NULL, var.order = 1, var.method = "lasso", do.threshold = TRUE,
-#'   do.lrpc = TRUE, tuning.args = list(tuning = "cv", n.folds = 1, path.length = 10, do.plot = TRUE)
+#'   do.lrpc = TRUE, tuning.args = list(tuning = "cv", n.folds = 1, path.length = 10, do.plot = TRUE),
+#'   var.args = list(n.cores = 2)
 #' )
 #' pre <- predict(out, x, h = 1, common.method = "unrestricted")
 #' plot(out, type = "granger", display = "network")
@@ -185,8 +186,11 @@ fnets <-
     }
 
     ## idio estimation
-    if(tuning.args$do.plot)
+    if(tuning.args$do.plot){
+      oldpar <- par(no.readonly = TRUE)
+      on.exit(par(oldpar))
       par(mfrow = c(1, 1 + do.lrpc))
+    }
     if(tuning == "cv") {
       icv <- yw.cv(
         xx,
@@ -271,7 +275,8 @@ fnets <-
           eta = NULL,
           tuning.args = tuning.args,
           do.threshold = do.threshold,
-          lrpc.adaptive = lrpc.adaptive
+          lrpc.adaptive = lrpc.adaptive,
+          n.cores = var.args$n.cores
         )
     } else {
       out$lrpc <- NA
@@ -306,6 +311,7 @@ fnets <-
 #' @param groups an integer vector denoting any group structure of the vertices
 #' @param threshold if \code{threshold > 0}, hard thresholding is performed on the matrix giving rise to the network of interest
 #' @param ... additional arguments
+#' @return NULL
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @seealso \link[fnets]{fnets}
@@ -485,7 +491,8 @@ plot.fnets <-
 #' common <- sim.restricted(n, p)
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
-#' out <- fnets(x, q = 2, var.order = 1, var.method = "lasso", do.lrpc = FALSE)
+#' out <- fnets(x, q = 2, var.order = 1, var.method = "lasso",
+#' do.lrpc = FALSE, var.args = list(n.cores = 2))
 #' cpre.unr <- common.predict(out, x, h = 1, fc.restricted = FALSE, r = NULL)
 #' cpre.res <- common.predict(out, x, h = 1, fc.restricted = TRUE, r = NULL)
 #' ipre <- idio.predict(out, x, cpre.res, h = 1)

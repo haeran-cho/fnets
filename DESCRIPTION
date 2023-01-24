@@ -1,13 +1,16 @@
 Package: fnets
 Type: Package
-Title: Factor-adjusted Network Estimation and Forecasting for High-dimensional Time Series
+Title: Factor-Adjusted Network Estimation and Forecasting for High-Dimensional Time Series
 Version: 0.1.1
 Authors@R: c(
     person("Matteo", "Barigozzi", email = "matteo.barigozzi@unibo.it", role = "aut"),
     person("Haeran", "Cho", email = "haeran.cho@bristol.ac.uk", role = c("cre", "aut")),
     person("Dom", "Owens", email = "dom.owens@bristol.ac.uk", role = "aut"))
 Maintainer: Haeran Cho <haeran.cho@bristol.ac.uk>
-Description: Implements methods for network estimation and forecasting of high-dimensional time series exhibiting strong serial and cross-sectional correlations under a factor-adjusted vector autoregressive model.
+Description: Implements methods for network estimation and forecasting of high-dimensional time series 
+    exhibiting strong serial and cross-sectional correlations under a factor-adjusted vector autoregressive model.
+    See Barigozzi, Cho and Owens (2022) <arXiv:2201.06110> for further descriptions of FNETS methodology and 
+    Owens, Cho and Barigozzi (2023) <https://drive.google.com/file/d/1Rw-xgpijF8ZIBUzjIU9emr-ucAvAhKL4/view?usp=sharing> accompanying the R package.
 Depends: R (>= 4.1.0)
 Imports: 
     lpSolve,
@@ -20,7 +23,7 @@ Imports:
     RColorBrewer
 License: GPL (>= 3)
 Encoding: UTF-8
-LazyData: true
+LazyData: false
 RoxygenNote: 7.1.2
 Suggests: 
     testthat (>= 3.0.0)
