@@ -38,6 +38,9 @@
 
 \item{...}{additional arguments}
 }
+\value{
+A network plot produced as per the input arguments
+}
 \description{
 Plotting method for S3 objects of class \code{fnets}.
 Produces a plot visualising three networks underlying factor-adjusted VAR processes:

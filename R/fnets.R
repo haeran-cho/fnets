@@ -311,7 +311,7 @@ fnets <-
 #' @param groups an integer vector denoting any group structure of the vertices
 #' @param threshold if \code{threshold > 0}, hard thresholding is performed on the matrix giving rise to the network of interest
 #' @param ... additional arguments
-#' @return NULL
+#' @return A network plot produced as per the input arguments
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @seealso \link[fnets]{fnets}
