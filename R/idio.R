@@ -341,6 +341,7 @@ yw.cv <- function(xx,
       keep <- colSums(!is.na(cv.err.mat.plot)) > 0
       cv.err.mat.plot <- cv.err.mat.plot[,keep]
     } else keep <- rep(1, length(var.order))
+    keep <- as.logical(keep)
     matplot(
       lambda.path,
       cv.err.mat.plot,

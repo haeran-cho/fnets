@@ -40,7 +40,7 @@
 #' n <- 500
 #' p <- 50
 #' common <- sim.restricted(n, p)
-#' x <- common$data
+#' x <- common$data + rnorm(n*p)
 #' out <- fnets.factor.model(x, fm.restricted = TRUE)
 #' }
 #' @export
@@ -77,7 +77,7 @@ fnets.factor.model <-
       kern.bw <- 4 * floor((n / log(n))^(1/3))
     mm <- min(max(1, kern.bw), floor(n / 4) - 1)
 
-    if(!is.null(q.method)) q.method <- match.arg(q.method, c("ic", "er"))
+    #if(!is.null(q.method)) q.method <- match.arg(q.method, c("ic", "er"))
     if(fm.restricted) {
       spca <-
         static.pca(
