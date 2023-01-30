@@ -64,7 +64,7 @@ set.seed(123)
 n <- 500
 p <- 50
 common <- sim.restricted(n, p)
-x <- common$data
+x <- common$data + rnorm(n*p)
 out <- fnets.factor.model(x, fm.restricted = TRUE)
 }
 }
@@ -77,5 +77,5 @@ Barigozzi, M., Cho, H. & Owens, D. (2022) Factor-adjusted network estimation and
 
 Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 
-Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
+Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 }
