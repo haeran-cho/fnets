@@ -34,6 +34,7 @@
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+#' @seealso \link[fnets]{print.fm}, \link[fnets]{predict.fm}
 #' @examples
 #' \donttest{
 #' set.seed(123)
@@ -350,7 +351,7 @@ static.pca <-
 #' @references Alessi, L., Barigozzi, M.,  & Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
-#' @seealso \link[fnets]{fnets.factor.model}, \link[fnets]{common.predict}
+#' @seealso \link[fnets]{fnets.factor.model}
 #' @examples
 #' set.seed(123)
 #' n <- 500
@@ -389,7 +390,7 @@ predict.fm <-
 #' @return NULL, printed to console
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
-#' @seealso \link[fnets]{fnets}
+#' @seealso \link[fnets]{fnets.factor.model}
 #' @examples
 #' set.seed(123)
 #' n <- 500
