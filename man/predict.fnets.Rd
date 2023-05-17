@@ -4,12 +4,12 @@
 \alias{predict.fnets}
 \title{Forecasting by fnets}
 \usage{
-\method{predict}{fnets}(object, x, h = 1, fc.restricted = TRUE, r = c("ic", "er"), ...)
+\method{predict}{fnets}(object, x = NULL, h = 1, fc.restricted = TRUE, r = c("ic", "er"), ...)
 }
 \arguments{
 \item{object}{\code{fnets} object}
 
-\item{x}{input time series matrix, with each row representing a variable}
+\item{x}{input time series matrix, with each row representing a variable; by default, uses input to \code{object}}
 
 \item{h}{forecasting horizon}
 
@@ -42,11 +42,10 @@ p <- 50
 common <- sim.restricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
-out <- fnets(x, q = 2, var.order = 1, var.method = "lasso",
+out <- fnets(x, q = 2,
 do.lrpc = FALSE, var.args = list(n.cores = 2))
-cpre.unr <- common.predict(out, x, h = 1, fc.restricted = FALSE, r = NULL)
-cpre.res <- common.predict(out, x, h = 1, fc.restricted = TRUE, r = NULL)
-ipre <- idio.predict(out, x, cpre.res, h = 1)
+pre.unr <- predict(out, fc.restricted = FALSE)
+pre.res <- predict(out, fc.restricted = TRUE)
 }
 \references{
 Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
@@ -56,5 +55,5 @@ Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimat
 Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 }
 \seealso{
-\link[fnets]{fnets}, \link[fnets]{common.predict}, \link[fnets]{idio.predict}
+\link[fnets]{fnets}
 }

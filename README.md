@@ -9,7 +9,14 @@ by Matteo Barigozzi, Haeran Cho and Dom Owens [arXiv:2201.06110](https://arxiv.o
 
 ## Installation
 
-To install `fnets` from GitHub:
+To install `fnets` from CRAN:
+
+```
+install.packages("fnets")
+```
+
+
+To install from GitHub:
 
 ```
 devtools::install_github("https://github.com/Dom-Owens-UoB/fnets")
@@ -51,7 +58,7 @@ out <- fnets(x, q = 2, idio.var.order = 1, idio.method = "lasso", lrpc.method = 
 
 Perform h-step ahead forecasting
 ```
-pr <- predict(out, x, h = 1, common.method = "restricted")
+pr <- predict(out, h = 1, common.method = "restricted")
 pr$forecast
 ```
 

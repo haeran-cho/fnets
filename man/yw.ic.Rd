@@ -12,8 +12,7 @@ yw.ic(
   penalty = NULL,
   path.length = 10,
   q = 0,
-  kern.bw = NULL,
-  do.plot = FALSE
+  kern.bw = NULL
 )
 }
 \description{

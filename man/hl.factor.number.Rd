@@ -4,7 +4,7 @@
 \alias{hl.factor.number}
 \title{Factor number estimator of Hallin and Liška (2007)}
 \usage{
-hl.factor.number(x, q.max = NULL, mm = NULL, do.plot = FALSE, center = TRUE)
+hl.factor.number(x, q.max = NULL, mm = NULL, center = TRUE)
 }
 \arguments{
 \item{x}{input time series matrix, with each row representing a variable}
@@ -12,8 +12,6 @@ hl.factor.number(x, q.max = NULL, mm = NULL, do.plot = FALSE, center = TRUE)
 \item{q.max}{maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}}
 
 \item{mm}{bandwidth; defaults to \code{floor(4 * (dim(x)[2]/log(dim(x)[2]))^(1/3)))}}
-
-\item{do.plot}{whether to plot the values of six information criteria}
 
 \item{center}{whether to de-mean the input \code{x} row-wise}
 
@@ -31,19 +29,6 @@ with \code{ic.op = 5} recommended as a default choice based on numerical experim
 }
 \details{
 See Hallin and Liška (2007) for further details.
-}
-\examples{
-library(fnets)
-
-set.seed(123)
-n <- 500
-p <- 50
-common <- sim.unrestricted(n, p)
-idio <- sim.var(n, p)
-x <- common$data * apply(idio$data, 1, sd) / apply(common$data, 1, sd) + idio$data
-
-hl <- factor.number(x, fm.restricted = FALSE, do.plot = TRUE)
-hl
 }
 \references{
 Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.

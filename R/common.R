@@ -22,6 +22,7 @@
 #' @references Forni, M., Hallin, M., Lippi, M. & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 #' @examples
+#' \dontrun{
 #' set.seed(123)
 #' n <- 500
 #' p <- 50
@@ -30,9 +31,10 @@
 #' x <- common$data + idio$data
 #' out <- fnets(x, q = NULL, var.order = 1, var.method = "lasso",
 #' do.lrpc = FALSE, var.args = list(n.cores = 2))
-#' cpre <- common.predict(out, x, h = 1, r = NULL)
-#' ipre <- idio.predict(out, x, cpre, h = 1)
-#' @export
+#' cpre <- common.predict(out)
+#' ipre <- idio.predict(out, cpre)
+#' }
+#' @keywords internal
 common.predict <-
   function(object,
            x,
@@ -54,8 +56,7 @@ common.predict <-
         warning(paste0(
           "There should be at least one factor for common component estimation!"
         ))
-      }
-      if(object$q >= 1) {
+      } else {
         if(fc.restricted)
           pre <-
             common.restricted.predict(
@@ -77,16 +78,10 @@ common.predict <-
 
     if(attr(object, "factor") == "restricted") {
       if(object$q < 1) {
-        warning(paste0(
-          "There should be at least one factor for common component estimation!"
-        ))
+        warning("There should be at least one factor for common component estimation!")
       } else if(object$q >= 1) {
       if(!fc.restricted)
-        warning(
-          paste0(
-            "fc.restricted is being set to TRUE, as fnets object is generated with fm.restricted = TRUE"
-          )
-        )
+        warning("fc.restricted is being set to TRUE, as fnets object is generated with fm.restricted = TRUE")
       pre <-
         common.restricted.predict(
           xx = xx,
@@ -126,32 +121,23 @@ common.irf.estimation <-
       max.var.order <-
       min(factor.var.order, max(1, ceiling(10 * log(n, 10) / (q + 1) ^ 2)), 10)
 
-    if(q < 1)
-      warning(paste0(
-        "There should be at least one factor for common component estimation!"
-      ))
-
-    if(q >= 1) {
+    if(q < 1){
+      warning("There should be at least one factor for common component estimation!")
+    } else {
       # for each permutation, obtain IRF and u (with cholesky identification), average the output, what FHLZ 2017 do
       irf.array <- array(0, dim = c(p, q, trunc.lags + 2, n.perm))
       u.array <- array(0, dim = c(q, n, n.perm))
 
       for (ii in 1:n.perm) {
-        if(ii == 1)
-          perm.index <- 1:p
-        else
-          perm.index <- sample(p, p)
+        ifelse(ii == 1, perm.index <- 1:p, perm.index <- sample(p, p))
         Gamma_c_perm <- Gamma_c[perm.index, perm.index,]
 
         A <- list()
         z <- xx[perm.index,]
         z[, 1:max.var.order] <- NA
         for (jj in 1:N) {
-          if(jj == N)
-            block <-
-              ((jj - 1) * (q + 1) + 1):p
-          else
-            block <- ((jj - 1) * (q + 1) + 1):(jj * (q + 1))
+          ifelse(jj == N, block <- ((jj - 1) * (q + 1) + 1):p,
+                 block <- ((jj - 1) * (q + 1) + 1):(jj * (q + 1)))
           pblock <- perm.index[block]
           nblock <- length(block)
 
@@ -177,11 +163,7 @@ common.irf.estimation <-
 
         tmp.irf <- irf.array[, , , 1, drop = FALSE] * 0
         for (jj in 1:N) {
-          if(jj == N)
-            block <-
-              ((jj - 1) * (q + 1) + 1):p
-          else
-            block <- ((jj - 1) * (q + 1) + 1):(jj * (q + 1))
+          ifelse(jj == N, block <- ((jj - 1) * (q + 1) + 1):p, block <- ((jj - 1) * (q + 1) + 1):(jj * (q + 1)))
           pblock <- perm.index[block]
           invA <- var.to.vma(A[[jj]], trunc.lags + 1)
           for (ll in 1:(trunc.lags + 2)) {

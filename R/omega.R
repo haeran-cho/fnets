@@ -10,7 +10,6 @@
 #' \itemize{
 #'    \item{\code{n.folds}}{ positive integer number of folds}
 #'    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
-#'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step, and if \code{do.threshold = TRUE}, plot the thresholding output}
 #' }
 #' @param lrpc.adaptive whether to use the adaptive estimation procedure
 #' @param eta.adaptive regularisation parameter for Step 1 of the adaptive estimation procedure; if \code{eta.adaptive = NULL}, defaults to \code{2 * sqrt(log(dim(x)[1])/dim(x)[2])}
@@ -35,9 +34,8 @@
 #' common <- sim.unrestricted(n, p)
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
-#' out <- fnets(x, q = NULL, var.method = "lasso", do.lrpc = FALSE, var.args = list(n.cores = 2))
-#' plrpc <- par.lrpc(out, x,
-#' tuning.args = list(n.folds = 1, path.length = 10, do.plot = TRUE),  n.cores = 2)
+#' out <- fnets(x, do.lrpc = FALSE, var.args = list(n.cores = 2))
+#' plrpc <- par.lrpc(out, x, n.cores = 2)
 #' out$lrpc <- plrpc
 #' out$do.lrpc <- TRUE
 #' plot(out, type = "pc", display = "network", threshold = .05)
@@ -49,18 +47,19 @@ par.lrpc <- function(object,
                      x,
                      eta = NULL,
                      tuning.args = list(n.folds = 1,
-                                        path.length = 10,
-                                        do.plot = FALSE),
+                                        path.length = 10),
                      lrpc.adaptive = FALSE,
                      eta.adaptive = NULL,
                      do.correct = TRUE,
                      do.threshold = FALSE,
                      n.cores = min(parallel::detectCores() - 1, 3)) {
+  x <- as.matrix(x)
   xx <- x - object$mean.x
   p <- dim(x)[1]
   n <- dim(x)[2]
 
   tuning.args <- check.list.arg(tuning.args)
+  n.cores <- posint(n.cores)
 
   GG <- object$idio.var$Gamma
   A <- t(object$idio.var$beta)
@@ -82,11 +81,10 @@ par.lrpc <- function(object,
       kern.bw = object$kern.bw,
       n.cores = n.cores,
       lrpc.adaptive = lrpc.adaptive,
-      eta.adaptive = eta.adaptive,
-      do.plot = tuning.args$do.plot
+      eta.adaptive = eta.adaptive
     )
     eta <- dcv$eta
-  }
+  } else eta <- max(0, eta)
   if (lrpc.adaptive) {
     if (is.null(eta.adaptive)) {
       eta.adaptive <- 2 * sqrt(log(p) / n)
@@ -110,12 +108,12 @@ par.lrpc <- function(object,
     )$DD
   }
   if(do.threshold)
-    Delta <- threshold(Delta, do.plot = tuning.args$do.plot)$thr.mat
+    Delta <- threshold(Delta)$thr.mat
   Omega <- 2 * pi * t(A1) %*% Delta %*% A1
   if (do.correct)
     Omega <- correct.diag(Re(object$spec$Sigma_i[, , 1]), Omega)
   if(do.threshold)
-    Omega <- threshold(Omega, do.plot = tuning.args$do.plot)$thr.mat
+    Omega <- threshold(Omega)$thr.mat
   pc <- -t(t(Delta) / sqrt(diag(Delta))) / sqrt(diag(Delta))
   lrpc <- -t(t(Omega) / sqrt(diag(Omega))) / sqrt(diag(Omega))
   out <-
@@ -127,7 +125,7 @@ par.lrpc <- function(object,
       eta = eta,
       lrpc.adaptive = lrpc.adaptive
     )
-
+  attr(out, "data") <- dcv
   return(out)
 }
 
@@ -145,8 +143,7 @@ direct.cv <-
            kern.bw = NULL,
            n.cores = min(parallel::detectCores() - 1, 3),
            lrpc.adaptive = FALSE,
-           eta.adaptive = NULL,
-           do.plot = FALSE) {
+           eta.adaptive = NULL) {
     n <- ncol(xx)
     p <- nrow(xx)
 
@@ -166,10 +163,7 @@ direct.cv <-
       d <- dim(A)[2] / p
       GG <- object$idio.var$Gamma
       eta.max <- max(abs(GG))
-      if (lrpc.adaptive)
-        eta.max.2 <- 2 * sqrt(log(p) / n)
-      else
-        eta.max.2 <- eta.max
+      ifelse(lrpc.adaptive, eta.max.2 <- 2 * sqrt(log(p) / n), eta.max.2 <- eta.max)
       eta.path <-
         round(exp(seq(
           log(eta.max.2), log(eta.max * .01), length.out = path.length
@@ -236,21 +230,6 @@ direct.cv <-
     }
 
     eta.min <- eta.path[which.min(cv.err)]
-
-    if (do.plot) {
-      plot(
-        eta.path,
-        cv.err,
-        type = "b",
-        col = 2,
-        pch = 2,
-        log = "x",
-        xlab = "eta (log scale)",
-        ylab = "CV error",
-        main = "CV for (LR)PC matrix estimation"
-      )
-      abline(v = eta.min)
-    }
 
     out <- list(eta = eta.min,
                 cv.error = cv.err,

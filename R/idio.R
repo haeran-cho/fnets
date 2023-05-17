@@ -22,7 +22,6 @@
 #'    \item{\code{n.folds}}{ if \code{tuning = "cv"}, positive integer number of folds}
 #'    \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, it is set to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}} by default
 #'    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
-#'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 #' }
 #' @param do.threshold whether to perform adaptive thresholding of VAR parameter estimator with \link[fnets]{threshold}
 #' @param n.iter maximum number of descent steps, by default depends on \code{var.order}; applicable when \code{method = "lasso"}
@@ -48,28 +47,69 @@ fnets.var <- function(x,
                         tuning = c("cv", "bic"),
                         n.folds = 1,
                         penalty = NULL,
-                        path.length = 10,
-                        do.plot = FALSE
+                        path.length = 10
                       ),
                       do.threshold = FALSE,
                       n.iter = NULL,
                       tol = 0,
                       n.cores = min(parallel::detectCores() - 1, 3)) {
+  x <- as.matrix(x)
   p <- dim(x)[1]
   n <- dim(x)[2]
 
+  if(!is.null(lambda)) lambda <- max(0, tol)
+  var.order <- posint(var.order)
+  if(!is.null(n.iter)) n.iter <- posint(n.iter)
+  tol <- max(0, tol)
+  n.cores <- posint(n.cores)
   tuning.args <- check.list.arg(tuning.args)
 
   method <- match.arg(method, c("lasso", "ds"))
   tuning <- match.arg(tuning.args$tuning, c("cv", "bic"))
-  if(center)
-    mean.x <- apply(x, 1, mean)
-  else
-    mean.x <- rep(0, p)
+
+  args <- as.list(environment())
+
+  ifelse(center,mean.x <- apply(x, 1, mean), mean.x <- rep(0, p))
   xx <- x - mean.x
   dpca <- dyn.pca(xx, q = 0)
   acv <- dpca$acv
 
+  ive <- fnets.var.internal(xx, acv, method = c("lasso", "ds"),
+                            lambda = lambda,
+                            var.order = var.order,
+                            tuning.args = tuning.args,
+                            do.threshold = do.threshold,
+                            n.iter = n.iter,
+                            tol = tol,
+                            n.cores = n.cores)
+  ive$mean.x <- mean.x
+
+  attr(ive, "class") <- "fnets"
+  attr(ive, "factor") <- "none"
+  attr(ive, "args") <- args
+  return(ive)
+}
+
+#' @title internal function for \code{fnets.var}
+#' @keywords internal
+fnets.var.internal <- function(xx,
+                               acv,
+                               method = c("lasso", "ds"),
+                               lambda = NULL,
+                               var.order = 1,
+                               tuning.args = list(
+                                 tuning = c("cv", "bic"),
+                                 n.folds = 1,
+                                 penalty = NULL,
+                                 path.length = 10
+                               ),
+                               do.threshold = FALSE,
+                               n.iter = NULL,
+                               tol = 0,
+                               n.cores = min(parallel::detectCores() - 1, 3)){
+
+  method <- match.arg(method, c("lasso", "ds"))
+  tuning <- match.arg(tuning.args$tuning, c("cv", "bic"))
 
   if(tuning == "cv") {
     icv <- yw.cv(
@@ -81,7 +121,6 @@ fnets.var <- function(x,
       path.length = tuning.args$path.length,
       q = 0,
       kern.bw = NULL,
-      do.plot = tuning.args$do.plot,
       n.cores = n.cores
     )
   }
@@ -95,26 +134,25 @@ fnets.var <- function(x,
       penalty = tuning.args$penalty,
       path.length = tuning.args$path.length,
       q = 0,
-      kern.bw = NULL,
-      do.plot = tuning.args$do.plot
+      kern.bw = NULL
     )
   }
 
-  mg <- make.gg(acv$Gamma_i, icv$var.order)
+  mg <- make.gg(acv$Gamma_i, icv$order.min)
   gg <- mg$gg
   GG <- mg$GG
 
   if(method == "lasso"){
     if(is.null(n.iter)) n.iter <- var.order*100
     ive <-
-    var.lasso(
-      GG,
-      gg,
-      lambda = icv$lambda,
-      symmetric = "min",
-      n.iter = n.iter,
-      tol = tol
-    )
+      var.lasso(
+        GG,
+        gg,
+        lambda = icv$lambda,
+        symmetric = "min",
+        n.iter = n.iter,
+        tol = tol
+      )
   }
   if(method == "ds")
     ive <-
@@ -125,12 +163,10 @@ fnets.var <- function(x,
       symmetric = "min",
       n.cores = n.cores
     )
-  ive$var.order <- icv$var.order
-  ive$mean.x <- mean.x
+  ive$var.order <- icv$order.min
   if(do.threshold)
-    ive$beta <- threshold(ive$beta, do.plot = tuning.args$do.plot)
-
-  attr(ive, "class") <- "fnets"
+    ive$beta <- threshold(ive$beta)$thr.mat
+  attr(ive, "data") <- icv
   return(ive)
 }
 
@@ -168,11 +204,10 @@ var.lasso <-
         found <- FALSE
         while (!found) {
           prox <- prox.func(y, lambda, L = 2 * L.bar, GG, gg)
-          if(f.func(GG, gg, prox) <= Q.func(prox, y, L.bar, GG, gg)) {
-            found <- TRUE
-          } else {
-            L.bar <- L.bar * gamma
-          }
+          ifelse(f.func(GG, gg, prox) <= Q.func(prox, y, L.bar, GG, gg),
+                 found <- TRUE,
+                 L.bar <- L.bar * gamma
+                 )
         }
         L <- L.bar
       } else {
@@ -260,7 +295,6 @@ var.dantzig <-
   }
 
 #' @title Cross validation for factor-adjusted VAR estimation
-#' @importFrom graphics abline legend matplot
 #' @keywords internal
 yw.cv <- function(xx,
                   method = c("lasso", "ds"),
@@ -270,7 +304,6 @@ yw.cv <- function(xx,
                   path.length = 10,
                   q = 0,
                   kern.bw = NULL,
-                  do.plot = FALSE,
                   n.cores = min(parallel::detectCores() - 1, 3)) {
   n <- ncol(xx)
   p <- nrow(xx)
@@ -333,42 +366,15 @@ yw.cv <- function(xx,
   order.min <-
     min(var.order[apply(cv.err.mat, 2, min) == min(apply(cv.err.mat, 2, min))])
 
-  if(do.plot) {
-    par(xpd=FALSE)
-    cv.err.mat.plot <- cv.err.mat
-    if(any(is.infinite(cv.err.mat.plot))) {
-      cv.err.mat.plot[which(is.infinite(cv.err.mat.plot))] <- NA
-      keep <- colSums(!is.na(cv.err.mat.plot)) > 0
-      cv.err.mat.plot <- cv.err.mat.plot[,keep]
-    } else keep <- rep(1, length(var.order))
-    keep <- as.logical(keep)
-    matplot(
-      lambda.path,
-      cv.err.mat.plot,
-      type = "b",
-      col = (2:(max(var.order) + 1))[keep],
-      pch = (2:(max(var.order) + 1))[keep],
-      log = "x",
-      xlab = "lambda (log scale)",
-      ylab = "CV error",
-      main = "CV for VAR parameter estimation"
-    )
-    abline(v = lambda.min)
-    legend(
-      "topleft",
-      legend = var.order[keep],
-      col = (2:(max(var.order) + 1))[keep],
-      pch = (2:(max(var.order) + 1))[keep],
-      lty = 1
-    )
-  }
+
 
   out <-
     list(
       lambda = lambda.min,
-      var.order = order.min,
-      cv.error = cv.err.mat,
-      lambda.path = lambda.path
+      order.min = order.min,
+      error = cv.err.mat,
+      lambda.path = lambda.path,
+      var.order = var.order
     )
   return(out)
 }
@@ -413,7 +419,6 @@ ebic <- function(object, n, penalty = 0) {
 
 
 #' @title Information criterion for factor-adjusted VAR estimation
-#' @importFrom graphics abline legend matplot
 #' @keywords internal
 yw.ic <- function(xx,
                   method = c("lasso", "ds"),
@@ -422,8 +427,7 @@ yw.ic <- function(xx,
                   penalty = NULL,
                   path.length = 10,
                   q = 0,
-                  kern.bw = NULL,
-                  do.plot = FALSE) {
+                  kern.bw = NULL) {
   n <- ncol(xx)
   p <- nrow(xx)
   if(is.null(kern.bw))
@@ -460,14 +464,11 @@ yw.ic <- function(xx,
         beta <- var.dantzig(GG, gg, lambda = lambda.path[ii])$beta
       if(method == "lasso")
         beta <- var.lasso(GG, gg, lambda = lambda.path[ii])$beta
-      beta <- threshold(beta, do.plot = FALSE)$thr.mat
+      beta <- threshold(beta)$thr.mat
       sparsity <- sum(beta[, 1] != 0)
-      if(sparsity == 0) {
-        pen <- 0
-      } else {
-        pen <-
-          2 * penalty * (log.factorial(var.order[jj] * p) - log(sparsity) - log(var.order[jj] * p - sparsity))
-      }
+      ifelse(sparsity == 0,pen <- 0,
+             pen <-2 * penalty * (log.factorial(var.order[jj] * p) - log(sparsity) - log(var.order[jj] * p - sparsity)))
+
       ic.err.mat[ii, jj] <-
         ic.err.mat[ii, jj] + n / 2 * log(2 * f.func.mat(GG, gg, beta)[1]) + sparsity * log(n) + pen
     }
@@ -480,24 +481,71 @@ yw.ic <- function(xx,
   order.min <-
     min(var.order[apply(ic.err.mat, 2, min) == min(apply(ic.err.mat, 2, min))])
 
-  if(do.plot) {
+
+  out <-
+    list(
+      lambda = lambda.min,
+      order.min = order.min,
+      error = ic.err.mat,
+      lambda.path = lambda.path,
+      var.order = var.order
+    )
+  return(out)
+}
+
+
+
+
+#' @title Plotting output for tuning parameter selection in fnets
+#' @description Tuning plots for S3 objects of class \code{fnets}.
+#' Produces up to two plots visualising CV and IC procedures for selecting tuning parameters and the VAR order.
+#' @details See Barigozzi, Cho and Owens (2022) for further details.
+#' @param x \code{fnets} object
+#' @param ... additional arguments
+#' @return CV/IC plot for the VAR component, and CV plot for the lrpc component (when \code{x$do.lrpc = TRUE}).
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+#' @seealso \link[fnets]{fnets}
+#' @importFrom graphics par abline box axis legend matplot
+#' @keywords internal
+tuning_plot <- function(x, ...){
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar))
+
+  data <- attr(x, "data")
+  lambda.min <- data$lambda
+  order.min <- data$order.min
+  error <- data$error
+  lambda.path <- data$lambda.path
+  var.order <- data$var.order
+  args <- attr(x, "args")
+  par(mfrow = c(1,1+args$do.lrpc)) ## check
+
+  if(args$tuning == "ic") {
+    ylab = "IC"
+    main = "IC for VAR parameter estimation"
+  } else if(args$tuning == "cv") {
+    ylab = "CV"
+    main = "CV for VAR parameter estimation"
+  }
+
     par(xpd=FALSE)
-    ic.err.mat.plot <- ic.err.mat
-    if(any(is.infinite(ic.err.mat.plot))) {
-      ic.err.mat.plot[which(is.infinite(ic.err.mat.plot))] <- NA
-      keep <- colSums(!is.na(ic.err.mat.plot)) > 0
-      ic.err.mat.plot <- ic.err.mat.plot[,keep]
-    } else keep <- rep(1, length(var.order))
+    error.plot <- error
+    if(any(is.infinite(error.plot))) {
+      error.plot[which(is.infinite(error.plot))] <- NA
+      keep <- colSums(!is.na(error.plot)) > 0
+      error.plot <- error.plot[,keep]
+    } else keep <- rep(TRUE, length(var.order))
     matplot(
       lambda.path,
-      ic.err.mat.plot,
+      error.plot,
       type = "b",
       col = (2:(max(var.order) + 1))[keep],
       pch = (2:(max(var.order) + 1))[keep],
       log = "x",
       xlab = "lambda (log scale)",
-      ylab = "IC",
-      main = "IC for VAR parameter estimation"
+      ylab = ylab,
+      main = main
     )
     abline(v = lambda.min)
     legend(
@@ -507,20 +555,24 @@ yw.ic <- function(xx,
       pch = (2:(max(var.order) + 1))[keep],
       lty = 1
     )
+
+  if (args$do.lrpc) {
+    data <- attr(x$lrpc, "data")
+    plot(
+      data$eta.path,
+      data$cv.err,
+      type = "b",
+      col = 2,
+      pch = 2,
+      log = "x",
+      xlab = "eta (log scale)",
+      ylab = "CV error",
+      main = "CV for (LR)PC matrix estimation"
+    )
+    abline(v = data$eta)
   }
 
-  out <-
-    list(
-      lambda = lambda.min,
-      var.order = order.min,
-      ic.error = ic.err.mat,
-      lambda.path = lambda.path
-    )
-  return(out)
 }
-
-
-
 
 
 #' @title Forecasting idiosyncratic VAR process
@@ -537,17 +589,19 @@ yw.ic <- function(xx,
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 #' @examples
+#' \dontrun{
 #' set.seed(123)
 #' n <- 500
 #' p <- 50
 #' common <- sim.unrestricted(n, p)
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
-#' out <- fnets(x, q = NULL, var.order = 1, var.method = "lasso",
+#' out <- fnets(x,
 #' do.lrpc = FALSE, var.args = list(n.cores = 2))
-#' cpre <- common.predict(out, x, h = 1, r = NULL)
-#' ipre <- idio.predict(out, x, cpre, h = 1)
-#' @export
+#' cpre <- common.predict(out)
+#' ipre <- idio.predict(out, cpre)
+#' }
+#' @keywords internal
 idio.predict <- function(object, x, cpre, h = 1) {
   p <- dim(x)[1]
   n <- dim(x)[2]
@@ -632,10 +686,10 @@ prox.func <- function(B, lambda, L, GG, gg) {
 #' @details See Liu, Zhang, and Liu (2021) for more information on the threshold selection process
 #' @param mat input parameter matrix
 #' @param path.length number of candidate thresholds
-#' @param do.plot whether to plot thresholding output
 #' @return a list which contains the following fields:
 #' \item{threshold}{ data-driven threshold}
 #' \item{thr.mat}{ thresholded input matrix}
+#' @seealso \link[fnets]{plot.threshold}, \link[fnets]{print.threshold}
 #' @examples
 #' \donttest{
 #' set.seed(123)
@@ -648,8 +702,8 @@ prox.func <- function(B, lambda, L, GG, gg) {
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 #' @export
 threshold <- function(mat,
-                      path.length = 500,
-                      do.plot = FALSE) {
+                      path.length = 500) {
+  path.length <- posint(path.length)
   if(!is.null(attr(mat, "thresholded"))) {
     warning("This matrix has already been thresholded. Returning input.")
     A <- mat
@@ -674,18 +728,6 @@ threshold <- function(mat,
 
     thr <- rseq[which.max(abs(cusum))]
 
-    if(do.plot) {
-      oldpar <- par(no.readonly = TRUE)
-      on.exit(par(oldpar))
-      par(mfrow = c(1, 2))
-      plot(rseq, ratio, type = "l", xlab = "threshold")
-      abline(v = thr)
-      # plot(rseq[-1], dif, type = "l", xlab = "threshold")
-      # abline(v = thr)
-      plot(rseq, abs(cusum), type = "l", xlab = "threshold")
-      abline(v = thr)
-    }
-
     A <- mat
     A[abs(A) < thr] <- 0
 
@@ -693,5 +735,80 @@ threshold <- function(mat,
   }
 
   out <- list(threshold = thr, thr.mat = A)
+  attr(out, "seqs") <- list(rseq = rseq, ratio = ratio, dif = dif, cusum = cusum)
+  attr(out, "class") <- "threshold"
   return(out)
+}
+
+
+
+
+#' @title Plotting the thresholding procedure
+#' @method plot threshold
+#' @description Plotting method for S3 objects of class \code{threshold}.
+#' Produces a plot visualising three diagnostics for the thresholding procedure, with threshold values t_k (x axis) against
+#' (i) Ratio_k
+#' (ii) Diff_k
+#' (iii) |CUSUM_k|
+#' @details See Owens, Cho and Barigozzi (2022) for further details.
+#' @param x \code{fnets} object
+#' @param plots logical vector, which plots to use (Ratio, Diff, CUSUM respectively)
+#' @param ... additional arguments
+#' @return A network plot produced as per the input arguments
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+#' @seealso \link[fnets]{threshold}
+#' @examples
+#' set.seed(123)
+#' A <- diag(.7, 50) + rnorm(50^2, 0, .1)
+#' threshold.A <- threshold(A)
+#' plot(threshold.A)
+#' @export
+plot.threshold <- function(x, plots = c(TRUE, TRUE, TRUE), ...){
+  seqs <- attr(x, "seqs")
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar))
+  if(sum(plots) == 0 | length(plots) != 3){
+    warning("setting all plots to TRUE")
+    plots <- c(TRUE, TRUE, TRUE)
+  }
+  par(mfrow = c(1, sum(plots)))
+  if(plots[1]){
+    plot(seqs$rseq, seqs$ratio, type = "l", xlab = "Threshold", ylab = "Ratio")
+    abline(v = x$threshold)
+  }
+  if(plots[2]){
+    plot(seqs$rseq[-1], seqs$dif, type = "l", xlab = "Threshold", ylab = "Diff")
+    abline(v = x$threshold)
+  }
+  if(plots[3]){
+    plot(seqs$rseq, abs(seqs$cusum), type = "l", xlab = "Threshold", ylab = "|Cusum|")
+    abline(v = x$threshold)
+  }
+
+}
+
+
+
+
+#' @title Print threshold
+#' @method print threshold
+#' @description Prints a summary of a \code{threshold} object
+#' @param x \code{threshold} object
+#' @param ... not used
+#' @return NULL, printed to console
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
+#' @seealso \link[fnets]{threshold}
+#' @examples
+#' set.seed(123)
+#' A <- diag(.7, 50) + rnorm(50^2, 0, .1)
+#' threshold.A <- threshold(A)
+#' print(threshold.A)
+#' @export
+print.threshold <- function(x,
+                        ...){
+  cat(paste("Thresholded matrix \n"))
+  cat(paste("Threshold: ", x$threshold, "\n", sep = ""))
+  cat(paste("Non-zero entries: ", sum(x$thr.mat != 0), "/", prod(dim(x$thr.mat)), "\n", sep = ""))
 }

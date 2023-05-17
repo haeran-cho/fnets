@@ -49,7 +49,7 @@
 #'    \item{\code{n.folds}}{ if \code{tuning = "cv"}, positive integer number of folds}
 #'    \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, it is set to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}} by default
 #'    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
-#'    \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
+
 #' }
 #' @return an S3 object of class \code{fnets}, which contains the following fields:
 #' \item{q}{ number of factors}
@@ -85,15 +85,14 @@
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
 #' out <- fnets(x,
-#'   q = NULL, var.order = 1, var.method = "lasso", do.threshold = TRUE,
-#'   do.lrpc = TRUE, tuning.args = list(tuning = "cv", n.folds = 1, path.length = 10, do.plot = TRUE),
+#'   do.threshold = TRUE,
 #'   var.args = list(n.cores = 2)
 #' )
-#' pre <- predict(out, x, h = 1, common.method = "unrestricted")
+#' pre <- predict(out, common.method = "unrestricted")
 #' plot(out, type = "granger", display = "network")
 #' plot(out, type = "lrpc", display = "heatmap")
 #' }
-#' @seealso \link[fnets]{predict.fnets}, \link[fnets]{plot.fnets}
+#' @seealso \link[fnets]{predict.fnets}, \link[fnets]{plot.fnets}, \link[fnets]{print.fnets}
 #' @importFrom graphics par
 #' @export
 fnets <-
@@ -122,11 +121,12 @@ fnets <-
              tuning = c("cv", "bic"),
              n.folds = 1,
              penalty = NULL,
-             path.length = 10,
-             do.plot = FALSE
+             path.length = 10
            )) {
+    x <- as.matrix(x)
     p <- dim(x)[1]
     n <- dim(x)[2]
+
 
     var.args <- check.list.arg(var.args)
     common.args <- check.list.arg(common.args)
@@ -135,117 +135,52 @@ fnets <-
     if(!is.numeric(q)) {
       q.method <- match.arg(q, c("ic", "er"))
       q <- NULL
-    } else
+    } else {
+      q <- posint(q, 0)
       q.method <- NULL
+    }
 
     var.method <- match.arg(var.method, c("lasso", "ds"))
     tuning <- match.arg(tuning.args$tuning, c("cv", "bic"))
-    if(center)
-      mean.x <- apply(x, 1, mean)
-    else
-      mean.x <- rep(0, p)
+
+    args <- as.list(environment())
+
+    ifelse(center, mean.x <- apply(x, 1, mean), mean.x <- rep(0, p))
     xx <- x - mean.x
 
+
+    if(!fm.restricted & is.null(kern.bw))
+      kern.bw <-  floor(4 * (n / log(n))^(1/3))
+
+    fm <- fnets.factor.model(xx,
+                       center = FALSE,
+                       fm.restricted = fm.restricted,
+                       q = q,
+                       ic.op = ic.op,
+                       kern.bw = kern.bw,
+                       common.args = common.args)
+
     if(fm.restricted) {
-      spca <-
-        static.pca(
-          xx,
-          q.max = NULL,
-          q = q,
-          q.method = q.method,
-          ic.op = ic.op
-        )
-      q <- spca$q
-      loadings <- spca$lam
-      factors <- spca$f
       spec <- NA
-      acv <- spca$acv
       kern.bw <- NA
     } else {
-      if(is.null(kern.bw))
-        kern.bw <-  floor(4 * (n / log(n))^(1/3))
-
-      ## dynamic pca
-      dpca <- dyn.pca(xx, q, q.method, ic.op, kern.bw)
-      q <- dpca$q
-      spec <- dpca$spec
-      acv <- dpca$acv
-
-      ## common VAR estimation
-      cve <- common.irf.estimation(
-        xx,
-        Gamma_c = acv$Gamma_c,
-        q = q,
-        factor.var.order = common.args$factor.var.order,
-        max.var.order = common.args$max.var.order,
-        trunc.lags = common.args$trunc.lags,
-        n.perm = common.args$n.perm
-      )
-      loadings <- cve$irf.est
-      factors <- cve$u.est
+      spec <- fm$spec
     }
+    q <- fm$q
+    loadings <- fm$loadings
+    factors <- fm$factors
+    acv <- fm$acv
 
     ## idio estimation
-    if(tuning.args$do.plot){
-      oldpar <- par(no.readonly = TRUE)
-      on.exit(par(oldpar))
-      par(mfrow = c(1, 1 + do.lrpc))
-    }
-    if(tuning == "cv") {
-      icv <- yw.cv(
-        xx,
-        method = var.method,
-        lambda.max = NULL,
-        var.order = var.order,
-        n.folds = tuning.args$n.folds,
-        path.length = tuning.args$path.length,
-        q = q,
-        kern.bw = kern.bw,
-        do.plot = tuning.args$do.plot
-      )
-    }
-
-    if(tuning == "bic") {
-      icv <- yw.ic(
-        xx,
-        method = var.method,
-        lambda.max = NULL,
-        var.order = var.order,
-        penalty = tuning.args$penalty,
-        path.length = tuning.args$path.length,
-        q = q,
-        kern.bw = kern.bw,
-        do.plot = tuning.args$do.plot
-      )
-    }
-
-    mg <- make.gg(acv$Gamma_i, icv$var.order)
-    gg <- mg$gg
-    GG <- mg$GG
-    if(var.method == "lasso"){
-      if(is.null(var.args$n.iter)) var.args$n.iter <- var.order*100
-      ive <-
-      var.lasso(
-        GG,
-        gg,
-        lambda = icv$lambda,
-        symmetric = "min",
-        n.iter = var.args$n.iter
-      )
-    }
-    if(var.method == "ds")
-      ive <-
-      var.dantzig(
-        GG,
-        gg,
-        lambda = icv$lambda,
-        symmetric = "min",
-        n.cores = var.args$n.cores
-      )
-    ive$var.order <- icv$var.order
-    if(do.threshold)
-      ive$beta <-
-      threshold(ive$beta, do.plot = tuning.args$do.plot)$thr.mat
+    ive <- fnets.var.internal(xx, acv, method = c("lasso", "ds"),
+                              lambda = NULL,
+                              var.order = var.order,
+                              tuning.args = tuning.args,
+                              do.threshold = do.threshold,
+                              n.iter = var.args$n.iter,
+                              tol = var.args$tol,
+                              n.cores = var.args$n.cores)
+    ive$mean.x <- mean.x
 
     out <- list(
       q = q,
@@ -260,14 +195,10 @@ fnets <-
       kern.bw = kern.bw
     )
 
-    if(fm.restricted)
-      attr(out, "factor") <-
-      "restricted"
-    else
-      attr(out, "factor") <- "unrestricted"
+    attr(out, "factor") <- ifelse(fm.restricted, "restricted", "unrestricted")
 
     ## lrpc estimation
-    if(do.lrpc) {
+    ifelse(do.lrpc,
       out$lrpc <-
         par.lrpc(
           out,
@@ -277,129 +208,268 @@ fnets <-
           do.threshold = do.threshold,
           lrpc.adaptive = lrpc.adaptive,
           n.cores = var.args$n.cores
-        )
-    } else {
-      out$lrpc <- NA
-    }
+        ),
+      out$lrpc <- NA)
+
 
     attr(out, "class") <- "fnets"
+    attr(out, "args") <- args
+    #tuning data
+    attr(out, "data") <- attr(ive, "data")
     return(out)
+  }
+
+
+
+
+#' @title internal function for \code{plot.fnets} and \code{network}
+#' @keywords internal
+plot_internal <- function(x,
+                          type = c("granger", "pc", "lrpc"),
+                          display = c("network", "heatmap"),
+                          names = NA,
+                          groups = NA,
+                          threshold = 0,
+                          ...){
+  p <- dim(x$acv$Gamma_x)[1]
+  A <- matrix(0, nrow = p, ncol = p)
+
+  if(is.null(x$idio.var)) {
+    warning(paste0("object contains no idiosyncratic component"))
+  } else {
+    if(type == "granger") {
+      d <- dim(x$idio.var$beta)[1] / p
+      for (ll in 1:d)
+        A <- A + t(x$idio.var$beta)[, (ll - 1) * p + 1:p]
+    }
+
+    if(type == "pc") {
+      if(!x$do.lrpc & is.null(x$lrpc$pc) ){
+        stop(paste0("Partial correlation matrix is undetected"))
+      } else {
+        A <- x$lrpc$pc
+      }
+    }
+
+    if(type == "lrpc") {
+      if(!x$do.lrpc & is.null(x$lrpc$lrpc)) {
+        stop(paste0("Long-run partial correlation matrix is undetected"))
+      } else {
+        A <- x$lrpc$lrpc
+      }
+    }
+
+    A[abs(A) < threshold] <- 0
+
+    if(!is.na(groups[1])) {
+      grps <- perm <- c()
+      K <- length(unique(groups))
+      for (ii in 1:K) {
+        permii <- which(groups == unique(groups)[ii])
+        perm <- c(perm, permii)
+        grps <- c(grps, rep(ii, length(permii)))
+      }
+    } else {
+      perm <- 1:p
+      grps <- rep(1, p)
+      K <- 1
+    }
+    grp.col <- rep(rainbow(K, alpha = 1), table(grps))
+    A <- A[perm, perm]
+    if(!is.na(names[1]))
+      names <- names[perm]
+
+    return(list(A = A,
+                names = names,
+                grps = grps,
+                grp.col = grp.col,
+                K = K,
+                perm = perm))
+}}
+
+
+#' @title Convert networks into igraph objects
+#' @param object object
+#' @param ... additional arguments
+#' @seealso \link[fnets]{network.fnets}
+#' @export
+network <- function (object, ...) UseMethod("network", object)
+
+
+
+  #' @title Convert networks estimated by fnets into igraph objects
+  #' @method network fnets
+  #' @exportS3Method fnets::network
+  #' @description Converts S3 objects of class \code{fnets} into a network.
+  #' Produces an igraph object for the three networks underlying factor-adjusted VAR processes:
+  #' (i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices summed across the lags,
+  #' (ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
+  #' (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
+  #' @details See Barigozzi, Cho and Owens (2022) for further details.
+  #' @param object \code{fnets} object
+  #' @param type a string specifying which of the above three networks (i)--(iii) to visualise; possible values are
+  #' \itemize{
+  #'    \item{\code{"granger"}}{ directed network representing Granger causal linkages}
+  #'    \item{\code{"pc"}}{ undirected network representing contemporaneous linkages; available when \code{object$do.lrpc = TRUE}}
+  #'    \item{\code{"lrpc"}}{ undirected network summarising Granger causal and contemporaneous linkages; available when \code{x$do.lrpc = TRUE}}
+  #' }
+  #' @param names a character vector containing the names of the vertices
+  #' @param groups an integer vector denoting any group structure of the vertices
+  #' @param threshold if \code{threshold > 0}, hard thresholding is performed on the matrix giving rise to the network of interest
+  #' @param ... additional arguments to \code{igraph::graph_from_adjacency_matrix}
+  #' @return S3 object of type \code{igraph}
+  #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+  #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+  #' @seealso \link[fnets]{fnets}, \link[fnets]{plot.fnets}
+  #' @examples
+  #' \donttest{
+  #' set.seed(123)
+  #' n <- 500
+  #' p <- 50
+  #' common <- sim.unrestricted(n, p)
+  #' idio <- sim.var(n, p)
+  #' x <- common$data + idio$data
+  #' out <- fnets(x,
+  #'   do.threshold = TRUE,
+  #'   var.args = list(n.cores = 2)
+  #' )
+  #' network(out, type = "granger")
+  #' network(out, type = "pc")
+  #' network(out, type = "lrpc")
+  #' }
+  #' @importFrom igraph graph_from_adjacency_matrix
+  #' @export
+  network.fnets <- function(object,
+                      type = c("granger", "pc", "lrpc"),
+                      names = NA,
+                      groups = NA,
+                      threshold = 0,
+                      ...) {
+    type <- match.arg(type, c("granger", "pc", "lrpc"))
+    int <- plot_internal(object, type, display = "network", names, groups, threshold, ...)
+    A <- int$A
+    if(type == "granger")
+      g <-
+      igraph::graph_from_adjacency_matrix(A,
+                                          mode = "directed",
+                                          weighted = TRUE,
+                                          diag = FALSE,
+                                          ...)
+    if(type %in% c("pc", "lrpc"))
+      g <-
+      igraph::graph_from_adjacency_matrix(A,
+                                          mode = "undirected",
+                                          weighted = TRUE,
+                                          diag = FALSE,
+                                          ...)
+
+
+    return(list(network = g,
+                names = int$names,
+                groups = int$grps,
+                grp.col = int$grp.col))
   }
 
 #' @title Plotting the networks estimated by fnets
 #' @method plot fnets
 #' @description Plotting method for S3 objects of class \code{fnets}.
-#' Produces a plot visualising three networks underlying factor-adjusted VAR processes:
+#' When \code{display = "network"} or {"heatmap"}, produces a plot visualising three networks underlying factor-adjusted VAR processes:
 #' (i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices summed across the lags,
 #' (ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
 #' (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
 #' Edge widths are determined by edge weights.
+#' When \code{display = "tuning"}, produces up to two plots visualising
+#' CV and IC procedures for selecting tuning parameters and the VAR order.
 #' @details See Barigozzi, Cho and Owens (2022) for further details.
 #' @param x \code{fnets} object
-#' @param type a string specifying which of the above three networks (i)--(iii) to visualise; possible values are
+#' @param type a string specifying which of the above three networks (i)--(iii) to visualise
+#' when \code{display = "network"} or {"heatmap"},; possible values are
 #' \itemize{
 #'    \item{\code{"granger"}}{ directed network representing Granger causal linkages}
 #'    \item{\code{"pc"}}{ undirected network representing contemporaneous linkages; available when \code{x$do.lrpc = TRUE}}
 #'    \item{\code{"lrpc"}}{ undirected network summarising Granger causal and contemporaneous linkages; available when \code{x$do.lrpc = TRUE}}
 #' }
-#' @param display a string specifying how to visualise the network; possible values are:
+#' @param display a string specifying which plot to produce; possible values are:
 #' \itemize{
-#'    \item{\code{"network"}}{ as an \code{igraph} object, see \link[igraph]{plot.igraph}}
-#'    \item{\code{"heatmap"}}{ as a heatmap, see \link[fields]{imagePlot}}
+#'    \item{\code{"network"}}{ visualise the network as an \code{igraph} object, see \link[igraph]{plot.igraph}}
+#'    \item{\code{"heatmap"}}{ visualise the network as a heatmap, see \link[fields]{imagePlot}}
+#'    \item{\code{"tuning"}}{ visualise up to two plots visualising CV and IC procedures
+#'    for selecting tuning parameters and the VAR order}
 #' }
-#' @param names a character vector containing the names of the vertices
-#' @param groups an integer vector denoting any group structure of the vertices
+#' @param names a character vector containing the names of the network vertices
+#' @param groups an integer vector denoting any group structure of the network vertices
+#' @param v.colours a vector denoting vertex colours corresponding to \code{groups}
 #' @param threshold if \code{threshold > 0}, hard thresholding is performed on the matrix giving rise to the network of interest
 #' @param ... additional arguments
-#' @return A network plot produced as per the input arguments
+#' @return A plot produced as per the input arguments
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 #' @seealso \link[fnets]{fnets}
-#' @import igraph
+#' @examples
+#' \donttest{
+#' set.seed(123)
+#' n <- 500
+#' p <- 50
+#' common <- sim.unrestricted(n, p)
+#' idio <- sim.var(n, p)
+#' x <- common$data + idio$data
+#' out <- fnets(x,
+#'   do.threshold = TRUE,
+#'   var.args = list(n.cores = 2)
+#' )
+#' plot(out, type = "granger", display = "network",
+#' groups = rep(c(1,2), p/2), v.colours = c("orange","blue"))
+#' plot(out, type = "lrpc", display = "heatmap")
+#' plot(out, display = "tuning")
+#' }
+#' @importFrom igraph layout_in_circle plot.igraph E
 #' @importFrom fields imagePlot
 #' @importFrom grDevices rainbow
 #' @importFrom graphics mtext axis
 #' @importFrom RColorBrewer brewer.pal
 #' @export
-plot.fnets <-
-  function(x,
-           type = c("granger", "pc", "lrpc"),
-           display = c("network", "heatmap"),
-           names = NA,
-           groups = NA,
-           threshold = 0,
-           ...) {
-    type <- match.arg(type, c("granger", "pc", "lrpc"))
-    display <- match.arg(display, c("network", "heatmap"))
+  plot.fnets <-
+    function(x,
+             type = c("granger", "pc", "lrpc"),
+             display = c("network", "heatmap", "tuning"),
+             names = NA,
+             groups = NA,
+             v.colours = NA,
+             threshold = 0,
+             ...) {
+      oldpar <- par(no.readonly = TRUE)
+      on.exit(par(oldpar))
+      type <- match.arg(type, c("granger", "pc", "lrpc"))
+      display <- match.arg(display, c("network", "heatmap", "tuning"))
 
-    p <- dim(x$acv$Gamma_x)[1]
-    A <- matrix(0, nrow = p, ncol = p)
-
-    if(is.null(x$idio.var)) {
-      warning(paste0("object contains no idiosyncratic component"))
-    } else {
-      if(type == "granger") {
-        d <- dim(x$idio.var$beta)[1] / p
-        for (ll in 1:d)
-          A <- A + t(x$idio.var$beta)[, (ll - 1) * p + 1:p]
+      if(type == "granger"){
         nm <- "Granger causal"
-      }
-
-      if(type == "pc") {
-        if(!x$do.lrpc & is.null(x$lrpc$pc) ){
-          stop(paste0("Partial correlation matrix is undetected"))
-        } else {
-          A <- x$lrpc$pc
-          nm <- "Partial correlation"
-        }
-      }
-
-      if(type == "lrpc") {
-        if(!x$do.lrpc & is.null(x$lrpc$lrpc)) {
-          stop(paste0("Long-run partial correlation matrix is undetected"))
-        } else {
-          A <- x$lrpc$lrpc
-          nm <- "Long-run partial correlation"
-        }
+      } else if(type == "pc"){
+        nm <- "Partial correlation"
+      } else if(type == "lrpc"){
+        nm <- "Long-run partial correlation"
       }
       nm <- paste(nm, display, sep = " ")
 
-      A[abs(A) < threshold] <- 0
-
-      if(!is.na(groups[1])) {
-        grps <- perm <- c()
-        K <- length(unique(groups))
-        for (ii in 1:K) {
-          permii <- which(groups == unique(groups)[ii])
-          perm <- c(perm, permii)
-          grps <- c(grps, rep(ii, length(permii)))
-        }
-      } else {
-        perm <- 1:p
-        grps <- rep(1, p)
-        K <- 1
-      }
-      grp.col <- rep(rainbow(K, alpha = 1), table(grps))
-      A <- A[perm, perm]
-      if(!is.na(names[1]))
-        names <- names[perm]
-
       if(display == "network") {
-        v.col <- rep(rainbow(K, alpha = .2), table(grps))
-        if(type == "granger")
-          g <-
-            igraph::graph_from_adjacency_matrix(A,
-                                                mode = "directed",
-                                                weighted = TRUE,
-                                                diag = FALSE,
-                                                ...)
-        if(type %in% c("pc", "lrpc"))
-          g <-
-            igraph::graph_from_adjacency_matrix(A,
-                                                mode = "undirected",
-                                                weighted = TRUE,
-                                                diag = FALSE,
-                                                ...)
+        net <- network(x,
+                       type = type,
+                       names = names,
+                       groups = groups,
+                       threshold = threshold,
+                       ...)
+        ifelse(!is.na(net$groups[1]),
+               K <- length(unique(net$groups)),
+               K <- 1)
+        if(is.na(v.colours[1])) v.colours <- rainbow(K, alpha = .2)
+        if(length(v.colours) != K){
+          warning("length of v.colours must be equal to number of groups; setting to default")
+          v.colours <- rainbow(K, alpha = .2)
+        }
+        v.col <- rep(v.colours, table(net$groups))
+        g <- net$network
+        names <- net$names
+        grp.col <- net$grp.col
         lg <- igraph::layout_in_circle(g)
         igraph::plot.igraph(
           g,
@@ -416,6 +486,14 @@ plot.fnets <-
           edge.width = .5 + 3 * igraph::E(g)$weight
         )
       } else if(display == "heatmap") {
+        p <- attr(x, "args")$p
+        int <- plot_internal(x, type, display, names, groups, threshold, ...)
+        A <- int$A
+        grp.col <- int$grp.col
+        names <- int$names
+        groups <- int$grps
+        perm <- int$perm
+
         heat.cols <- rev(RColorBrewer::brewer.pal(11, "RdBu"))
         if(type == "granger")
           mv <- max(1e-3, abs(A))
@@ -434,7 +512,7 @@ plot.fnets <-
           main = nm,
           ...
         )
-        if(!is.na(names[1]) || !is.na(groups[1])) {
+        if(!is.na(names[1]) || (!is.na(groups[1]) & !all(groups==1)) ) {
           if(is.na(names[1]))
             names <- groups[perm]
           for (ii in 1:p)
@@ -456,16 +534,19 @@ plot.fnets <-
               col = grp.col[ii]
             )
         }
+      } else if(display == "tuning") {
+        tuning_plot(x)
       }
+
     }
-  }
+
 
 #' @title Forecasting by fnets
 #' @method predict fnets
 #' @description Produces forecasts of the data for a given forecasting horizon by
 #' separately estimating the best linear predictors of common and idiosyncratic components
 #' @param object \code{fnets} object
-#' @param x input time series matrix, with each row representing a variable
+#' @param x input time series matrix, with each row representing a variable; by default, uses input to \code{object}
 #' @param h forecasting horizon
 #' @param fc.restricted whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component
 #' @param r number of restricted factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
@@ -483,7 +564,7 @@ plot.fnets <-
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
-#' @seealso \link[fnets]{fnets}, \link[fnets]{common.predict}, \link[fnets]{idio.predict}
+#' @seealso \link[fnets]{fnets}
 #' @examples
 #' set.seed(123)
 #' n <- 500
@@ -491,19 +572,20 @@ plot.fnets <-
 #' common <- sim.restricted(n, p)
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
-#' out <- fnets(x, q = 2, var.order = 1, var.method = "lasso",
+#' out <- fnets(x, q = 2,
 #' do.lrpc = FALSE, var.args = list(n.cores = 2))
-#' cpre.unr <- common.predict(out, x, h = 1, fc.restricted = FALSE, r = NULL)
-#' cpre.res <- common.predict(out, x, h = 1, fc.restricted = TRUE, r = NULL)
-#' ipre <- idio.predict(out, x, cpre.res, h = 1)
+#' pre.unr <- predict(out, fc.restricted = FALSE)
+#' pre.res <- predict(out, fc.restricted = TRUE)
 #' @export
 predict.fnets <-
   function(object,
-           x,
+           x = NULL,
            h = 1,
            fc.restricted = TRUE,
            r = c("ic", "er"),
            ...) {
+    if(is.null(x)) x <- attr(object, "args")$x
+    h <- posint(h)
     cpre <- common.predict(object, x, h, fc.restricted, r)
     ipre <- idio.predict(object, x, cpre, h)
 
@@ -515,3 +597,53 @@ predict.fnets <-
     )
     return(out)
   }
+
+
+
+
+#' @title Print fnets
+#' @method print fnets
+#' @description Prints a summary of a \code{fnets} object
+#' @param x \code{fnets} object
+#' @param ... not used
+#' @return NULL, printed to console
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
+#' @seealso \link[fnets]{fnets}
+#' @examples \donttest{
+#' set.seed(123)
+#' n <- 500
+#' p <- 50
+#' common <- sim.restricted(n, p)
+#' idio <- sim.var(n, p)
+#' x <- common$data + idio$data
+#' out <- fnets(x, q = 2,
+#' do.lrpc = FALSE, var.args = list(n.cores = 2))
+#' print(out)
+#' x <- idio$data
+#' out <- fnets.var(x,
+#' n.cores = 2)
+#' print(out)
+#' }
+#' @export
+print.fnets <- function(x,
+                        ...){
+  args <- attr(x, "args")
+  cat(paste("Factor-adjusted vector autoregression model with \n"))
+  cat(paste("n: ", args$n, ", p: ", args$p,  "\n", sep = ""))
+  paste("Factor Component ---------")
+  cat(paste("Factor model: ", attr(x, "factor"), "\n", sep = ""))
+  cat(paste("Number of factors: ", x$q, "\n", sep = ""))
+  cat(paste("Number selection method: ", ifelse(is.null(args$q.method), "NA", args$q.method), "\n", sep = ""))
+  if(!is.null(args$q.method)) if(args$q.method == "ic")
+    cat(paste("Information criterion: ", ifelse(is.null(args$ic.op), "default", args$ic.op), "\n", sep = ""))
+  paste("VAR Component ---------")
+  cat(paste("VAR order: ", args$var.order, "\n", sep = ""))
+  cat(paste("VAR estimation method: ", args$var.method, "\n", sep = ""))
+  cat(paste("Tuning method: ", args$tuning, "\n", sep = ""))
+  cat(paste("Threshold: ", args$do.threshold, "\n", sep = ""))
+  cat(paste("Non-zero entries: ", sum(x$idio.var$beta != 0), "/", prod(dim(x$idio.var$beta)), "\n", sep = ""))
+  paste("Long Run Partial Correlations ---------")
+  cat(paste("LRPC: ", args$do.lrpc, "\n", sep = ""))
+}
+

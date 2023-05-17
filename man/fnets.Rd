@@ -20,7 +20,7 @@ fnets(
   do.lrpc = TRUE,
   lrpc.adaptive = FALSE,
   tuning.args = list(tuning = c("cv", "bic"), n.folds = 1, penalty = NULL, path.length
-    = 10, do.plot = FALSE)
+    = 10)
 )
 }
 \arguments{
@@ -80,7 +80,6 @@ for selecting the tuning parameters involved in VAR parameter and (long-run) par
    \item{\code{n.folds}}{ if \code{tuning = "cv"}, positive integer number of folds}
    \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, it is set to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}} by default
    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
-   \item{\code{do.plot}}{ whether to plot the output of the cross validation step}
 }}
 }
 \value{
@@ -123,11 +122,10 @@ common <- sim.unrestricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
 out <- fnets(x,
-  q = NULL, var.order = 1, var.method = "lasso", do.threshold = TRUE,
-  do.lrpc = TRUE, tuning.args = list(tuning = "cv", n.folds = 1, path.length = 10, do.plot = TRUE),
+  do.threshold = TRUE,
   var.args = list(n.cores = 2)
 )
-pre <- predict(out, x, h = 1, common.method = "unrestricted")
+pre <- predict(out, common.method = "unrestricted")
 plot(out, type = "granger", display = "network")
 plot(out, type = "lrpc", display = "heatmap")
 }
@@ -146,5 +144,5 @@ Hallin, M. & Liška, R. (2007) Determining the number of factors in the general 
 Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 }
 \seealso{
-\link[fnets]{predict.fnets}, \link[fnets]{plot.fnets}
+\link[fnets]{predict.fnets}, \link[fnets]{plot.fnets}, \link[fnets]{print.fnets}
 }

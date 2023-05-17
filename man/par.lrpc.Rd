@@ -8,7 +8,7 @@ par.lrpc(
   object,
   x,
   eta = NULL,
-  tuning.args = list(n.folds = 1, path.length = 10, do.plot = FALSE),
+  tuning.args = list(n.folds = 1, path.length = 10),
   lrpc.adaptive = FALSE,
   eta.adaptive = NULL,
   do.correct = TRUE,
@@ -28,7 +28,6 @@ for selecting the tuning parameter involved in long-run partial correlation matr
 \itemize{
    \item{\code{n.folds}}{ positive integer number of folds}
    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
-   \item{\code{do.plot}}{ whether to plot the output of the cross validation step, and if \code{do.threshold = TRUE}, plot the thresholding output}
 }}
 
 \item{lrpc.adaptive}{whether to use the adaptive estimation procedure}
@@ -65,9 +64,8 @@ p <- 50
 common <- sim.unrestricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
-out <- fnets(x, q = NULL, var.method = "lasso", do.lrpc = FALSE, var.args = list(n.cores = 2))
-plrpc <- par.lrpc(out, x,
-tuning.args = list(n.folds = 1, path.length = 10, do.plot = TRUE),  n.cores = 2)
+out <- fnets(x, do.lrpc = FALSE, var.args = list(n.cores = 2))
+plrpc <- par.lrpc(out, x, n.cores = 2)
 out$lrpc <- plrpc
 out$do.lrpc <- TRUE
 plot(out, type = "pc", display = "network", threshold = .05)

@@ -4,12 +4,12 @@
 \alias{predict.fm}
 \title{Forecasting for factor models}
 \usage{
-\method{predict}{fm}(object, x, h = 1, fc.restricted = TRUE, r = c("ic", "er"), ...)
+\method{predict}{fm}(object, x = NULL, h = 1, fc.restricted = TRUE, r = c("ic", "er"), ...)
 }
 \arguments{
 \item{object}{\code{fm} object}
 
-\item{x}{input time series matrix, with each row representing a variable}
+\item{x}{input time series matrix, with each row representing a variable; by default, uses input to \code{object}}
 
 \item{h}{forecasting horizon}
 
@@ -34,6 +34,15 @@ a list containing
 Produces forecasts of the data for a given forecasting horizon by
 estimating the best linear predictors of the common component
 }
+\examples{
+set.seed(123)
+n <- 500
+p <- 50
+common <- sim.restricted(n, p)
+x <- common$data + rnorm(n*p)
+out <- fnets.factor.model(x, fm.restricted = TRUE)
+pre <- predict(out)
+}
 \references{
 Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 
@@ -44,5 +53,5 @@ Barigozzi, M., Cho, H. & Owens, D. (2022) Factor-adjusted network estimation and
 Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 }
 \seealso{
-\link[fnets]{fnets.factor.model}, \link[fnets]{common.predict}
+\link[fnets]{fnets.factor.model}
 }

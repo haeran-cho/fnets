@@ -4,7 +4,7 @@
 \alias{abc.factor.number}
 \title{Factor number estimator of Alessi, Barigozzi and Capasso (2010)}
 \usage{
-abc.factor.number(x, covx = NULL, q.max = NULL, do.plot = FALSE, center = TRUE)
+abc.factor.number(x, covx = NULL, q.max = NULL, center = TRUE)
 }
 \arguments{
 \item{x}{input time series matrix, with each row representing a variable}
@@ -12,8 +12,6 @@ abc.factor.number(x, covx = NULL, q.max = NULL, do.plot = FALSE, center = TRUE)
 \item{covx}{covariance of \code{x}}
 
 \item{q.max}{maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}}
-
-\item{do.plot}{whether to plot the value of the information criterion}
 
 \item{center}{whether to de-mean the input \code{x} row-wise}
 }
@@ -29,22 +27,6 @@ with \code{ic.op = 5} recommended as a default choice based on numerical experim
 }
 \details{
 See Bai and Ng (2002) for further details.
-}
-\examples{
-library(fnets)
-
-set.seed(123)
-n <- 500
-p <- 50
-common <- sim.restricted(n, p)
-idio <- sim.var(n, p)
-x <- common$data * apply(idio$data, 1, sd) / apply(common$data, 1, sd) + idio$data
-
-abc <- factor.number(x, fm.restricted = TRUE, do.plot = TRUE)
-abc
-
-er <- factor.number(x, method = "er", fm.restricted = TRUE, do.plot = TRUE)
-er
 }
 \references{
 preprint

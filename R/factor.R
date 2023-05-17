@@ -57,24 +57,30 @@ fnets.factor.model <-
              trunc.lags = 20,
              n.perm = 10
            )) {
+    x <- as.matrix(x)
     p <- dim(x)[1]
     n <- dim(x)[2]
 
-    if(center)
-      mean.x <- apply(x, 1, mean)
-    else
-      mean.x <- rep(0, p)
+    if(!is.null(ic.op)) ic.op <- max(1, min(as.integer(ic.op), 6))
+
+    ifelse(center, mean.x <- apply(x, 1, mean), mean.x <- rep(0, p))
     xx <- x - mean.x
 
     if(!is.numeric(q)) {
       q.method <- match.arg(q, c("ic", "er"))
       q <- NULL
-    } else
+    } else {
+      q <- posint(q, 0)
       q.method <- NULL
+    }
+
+
+    args <- as.list(environment())
 
     common.args <- check.list.arg(common.args)
-    if(is.null(kern.bw))
-      kern.bw <- 4 * floor((n / log(n))^(1/3))
+    ifelse(is.null(kern.bw),
+      kern.bw <- 4 * floor((n / log(n))^(1/3)),
+      kern.bw <- max(0, kern.bw))
     mm <- min(max(1, kern.bw), floor(n / 4) - 1)
 
     #if(!is.null(q.method)) q.method <- match.arg(q.method, c("ic", "er"))
@@ -107,8 +113,10 @@ fnets.factor.model <-
         trunc.lags = common.args$trunc.lags,
         n.perm = common.args$n.perm
       )
-      loadings <- cve$irf.est
-      factors <- cve$u.est
+      if (q >= 1) {
+        loadings <- cve$irf.est
+        factors <-  cve$u.est
+      } else loadings <- factors <- NULL
     }
     out <- list(
       q = q,
@@ -118,12 +126,10 @@ fnets.factor.model <-
       acv = acv,
       mean.x = mean.x
     )
-    if(fm.restricted)
-      attr(out, "factor") <-
-      "restricted"
-    else
-      attr(out, "factor") <- "unrestricted"
-    attr(out, "class") <- "fm" #"fnets"
+    ifelse(fm.restricted,attr(out, "factor") <-"restricted",
+           attr(out, "factor") <- "unrestricted")
+    attr(out, "class") <- "fm"
+    attr(out, "args") <- args
 
     return(out)
   }
@@ -269,6 +275,7 @@ static.pca <-
     covx <- xx %*% t(xx) / n
     eig <- eigen(covx, symmetric = TRUE)
 
+    q.method.out <- 0
     if(is.null(q)) {
       if(q.method == "er") {
         q.method.out <- eig$values[1:q.max] / eig$values[1 + 1:q.max]
@@ -281,7 +288,6 @@ static.pca <-
             xx,
             covx = covx,
             q.max = q.max,
-            do.plot = FALSE,
             center = FALSE
           )
         q <- q.method.out$q.hat[ic.op]
@@ -326,7 +332,7 @@ static.pca <-
 #' @description Produces forecasts of the data for a given forecasting horizon by
 #'estimating the best linear predictors of the common component
 #' @param object \code{fm} object
-#' @param x input time series matrix, with each row representing a variable
+#' @param x input time series matrix, with each row representing a variable; by default, uses input to \code{object}
 #' @param h forecasting horizon
 #' @param fc.restricted whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component
 #' @param r number of restricted factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
@@ -345,14 +351,24 @@ static.pca <-
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 #' @seealso \link[fnets]{fnets.factor.model}, \link[fnets]{common.predict}
+#' @examples
+#' set.seed(123)
+#' n <- 500
+#' p <- 50
+#' common <- sim.restricted(n, p)
+#' x <- common$data + rnorm(n*p)
+#' out <- fnets.factor.model(x, fm.restricted = TRUE)
+#' pre <- predict(out)
 #' @export
 predict.fm <-
   function(object,
-           x,
+           x = NULL,
            h = 1,
            fc.restricted = TRUE,
            r = c("ic", "er"),
            ...) {
+    if(is.null(x)) x <- attr(object, "args")$x
+    h <- posint(h)
     out <-
       common.predict(
         object = object,
@@ -363,3 +379,35 @@ predict.fm <-
       )
     return(out)
   }
+
+
+#' @title Print factor model
+#' @method print fm
+#' @description Prints a summary of a \code{fm} object
+#' @param x \code{fm} object
+#' @param ... not used
+#' @return NULL, printed to console
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
+#' @seealso \link[fnets]{fnets}
+#' @examples
+#' set.seed(123)
+#' n <- 500
+#' p <- 50
+#' common <- sim.restricted(n, p)
+#' idio <- sim.var(n, p)
+#' x <- common$data + idio$data
+#' out <- fnets.factor.model(x, q = 2)
+#' print(out)
+#' @export
+print.fm <- function(x,
+                        ...){
+  args <- attr(x, "args")
+  cat(paste("Factor model with \n"))
+  cat(paste("n: ", args$n, ", p: ", args$p,  "\n", sep = ""))
+  cat(paste("Factor model: ", attr(x, "factor"), "\n", sep = ""))
+  cat(paste("Number of factors: ", x$q, "\n", sep = ""))
+  cat(paste("Number selection method: ", ifelse(is.null(args$q.method), "NA", args$q.method), "\n", sep = ""))
+  if(is.null(args$ic.op)) args$ic.op <- ifelse(attr(x, "factor") == "restricted", 2,5)
+  cat(paste("Information criterion: ", ifelse(args$q.method == "ic", args$ic.op, "NA"), "\n", sep = ""))
+}

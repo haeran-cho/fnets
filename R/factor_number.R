@@ -12,18 +12,16 @@
 #'    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013)}
 #' }
 #' @param q.max maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}
-#' @param do.plot whether to plot the information criteria values
 #' @param center whether to de-mean the input \code{x} row-wise
-#' @return if \code{method = "ic"}, a vector containing minimisers of the six information criteria, otherwise, the maximiser of the eigenvalue ratio
-#'
-#' @example R/examples/hl_ex.R
-#' @example R/examples/abc_ex.R
+#' @return S3 object of class \code{factor.number}.
+#' If \code{method = "ic"}, a vector containing minimisers of the six information criteria, otherwise, the maximiser of the eigenvalue ratio
+#' @seealso \link[fnets]{plot.factor.number}, \link[fnets]{print.factor.number}
+#' @example R/examples/factor_number_ex.R
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 #' @references Alessi, L., Barigozzi, M., and Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
 #' @references Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221.
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
-#' @importFrom graphics par abline box axis legend
 #' @importFrom stats var
 #' @export
 factor.number <-
@@ -31,16 +29,16 @@ factor.number <-
            fm.restricted = FALSE,
            method = c("ic","er"),
            q.max = NULL,
-           do.plot = FALSE,
            center = TRUE) {
+    x <- as.matrix(x)
     covx <- NULL
     p <- dim(x)[1]
+
+    if(!is.null(q.max)) q.max <- posint(q.max)
     method <- match.arg(method, c("ic", "er"))
+    args <- as.list(environment())
     if(method == "er"){
-      if(center)
-        mean.x <- apply(x, 1, mean)
-      else
-        mean.x <- rep(0, p)
+      ifelse(center, mean.x <- apply(x, 1, mean), mean.x <- rep(0, p))
       xx <- x - mean.x
       if(!fm.restricted){
         pca <- dyn.pca(xx, q.method = "er")
@@ -49,32 +47,35 @@ factor.number <-
         pca <- static.pca(xx, q.method = "er")
         q <- pca$q
       }
-      if(do.plot){
-        par(xpd = FALSE)
-        plot(pca$q.method.out, xlab = "q", ylab = "Eigenvalue Ratio")
-        abline(v = q)
-      }
       out <- q
     }
 
     if(method == "ic"){
       if(!fm.restricted) {
-       out <- hl.factor.number(
+       temp <- hl.factor.number(
           x = x,
           q.max = q.max,
           mm = NULL,
-          do.plot = do.plot,
           center = center
-        )$q.hat
+        )
       } else {
-        out <- abc.factor.number(
+        temp <- abc.factor.number(
           x = x,
           covx = covx,
           q.max = q.max,
-          do.plot = do.plot,
           center = center
-        )$q.hat
+        )
       }
+      out <- temp$q.hat
+    }
+    attr(out, "factor") <- ifelse(fm.restricted, "restricted", "unrestricted")
+    attr(out, "class") <- "factor.number"
+    attr(out, "args") <- args
+    if(method == "er") {
+      attr(out, "data") <- pca$q.method.out
+    } else {
+      data <- attr(temp, "data")
+      attr(out, "data") <- data
     }
     return(out)
   }
@@ -89,11 +90,9 @@ factor.number <-
 #' @param q.max maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}
 #' @param mm bandwidth; defaults to \code{floor(4 * (dim(x)[2]/log(dim(x)[2]))^(1/3)))}
 #' @param w vector of length \code{2 * mm + 1} containing symmetric weights; if \code{w = NULL}, default weights are generated using the Bartlett kernel and \code{mm}
-#' @param do.plot whether to plot the values of six information criteria
 #' @param center whether to de-mean the input \code{x} row-wise
 #' @return a list containing
 #' \item{q.hat}{ a vector containing minimisers of the six information criteria}
-#' @example R/examples/hl_ex.R
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 #' @importFrom graphics par abline box axis legend
 #' @importFrom stats var
@@ -102,17 +101,13 @@ hl.factor.number <-
   function(x,
            q.max = NULL,
            mm = NULL,
-           do.plot = FALSE,
            center = TRUE) {
     p <- dim(x)[1]
     n <- dim(x)[2]
     if(is.null(q.max))
       q.max <- min(50, floor(sqrt(min(n - 1, p))))
 
-    if(center)
-      mean.x <- apply(x, 1, mean)
-    else
-      mean.x <- rep(0, p)
+    ifelse(center, mean.x <- apply(x, 1, mean), mean.x <- rep(0, p))
     xx <- x - mean.x
 
     if(is.null(mm))
@@ -142,10 +137,7 @@ hl.factor.number <-
 
       tmp <- rep(0, q.max + 1)
       for (ii in 1:(mm + 1)) {
-        if(kk == length(n.seq))
-          nu <- q.max
-        else
-          nu <- 0
+        ifelse(kk == length(n.seq),nu <- q.max, nu <- 0)
         sv <- svd(Sigma_x[,, ii], nu = nu, nv = 0)
         dd <- sum(sv$d)
         tmp[1] <- tmp[1] + dd / pp / (2 * mm + 1)
@@ -182,67 +174,14 @@ hl.factor.number <-
       }
     }
 
-    if(do.plot) {
-      oldpar <- par(no.readonly = TRUE)
-      on.exit(par(oldpar))
-      par(mfrow = c(2, 3))
-      for (ii in 1:6) {
-        plot(
-          const.seq,
-          q.mat[, 10, ii] - 1,
-          type = "b",
-          pch = 1,
-          col = 2,
-          bty = "n",
-          axes = FALSE,
-          xlab = "constant",
-          ylab = "",
-          main = paste("IC ", ii)
-        )
-        box()
-        axis(1, at = pretty(range(const.seq)))
-        axis(
-          2,
-          at = pretty(range(q.mat[, 10, ii] - 1)),
-          col = 2,
-          col.ticks = 2,
-          col.axis = 2
-        )
-        par(new = TRUE)
-        plot(
-          const.seq,
-          Sc[, ii],
-          col = 4,
-          pch = 2,
-          type = "b",
-          bty = "n",
-          axes = FALSE,
-          xlab = "",
-          ylab = ""
-        )
-        axis(
-          4,
-          at = pretty(range(Sc[, ii])),
-          col = 4,
-          col.ticks = 4,
-          col.axis = 4
-        )
-        legend(
-          "topright",
-          legend = c("q", "Sc"),
-          col = c(2, 4),
-          lty = c(1, 1),
-          pch = c(1, 2),
-          bty = "n"
-        )
-      }
-    }
 
-    ls <-
+
+    out <-
       list(
         q.hat = q.hat
       )
-    return(ls)
+    attr(out, "data") <- list(Sc=Sc, const.seq=const.seq, q.mat=q.mat)
+    return(out)
   }
 
 #' @title Factor number estimator of Alessi, Barigozzi and Capasso (2010)
@@ -254,11 +193,9 @@ hl.factor.number <-
 #' @param x input time series matrix, with each row representing a variable
 #' @param covx covariance of \code{x}
 #' @param q.max maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}
-#' @param do.plot whether to plot the value of the information criterion
 #' @param center whether to de-mean the input \code{x} row-wise
 #' @return a list containing
 #' \item{q.hat}{ the mimimiser of the chosen information criteria}
-#' @example R/examples/abc_ex.R
 #' @references preprint
 #' @references Alessi, L., Barigozzi, M.,  & Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
 #' @references Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221.
@@ -269,14 +206,10 @@ abc.factor.number <-
   function(x,
            covx = NULL,
            q.max = NULL,
-           do.plot = FALSE,
            center = TRUE) {
     p <- dim(x)[1]
     n <- dim(x)[2]
-    if(center)
-      mean.x <- apply(x, 1, mean)
-    else
-      mean.x <- rep(0, p)
+    ifelse(center, mean.x <- apply(x, 1, mean), mean.x <- rep(0, p))
     xx <- x - mean.x
 
     if(is.null(q.max))
@@ -298,10 +231,7 @@ abc.factor.number <-
                log(min(nn, pp)) / min(nn, pp))
 
       tmp <- rep(0, q.max + 1)
-      if(kk == length(n.seq))
-        nu <- q.max
-      else
-        nu <- 0
+      ifelse(kk == length(n.seq), nu <- q.max, nu <- 0)
       sv <- svd(covx[1:pp, 1:pp], nu = nu, nv = 0)
       dd <- sum(sv$d)
       tmp[1] <- tmp[1] + dd / pp
@@ -337,8 +267,39 @@ abc.factor.number <-
       }
     }
 
-    if(do.plot) {
-      par(mfrow = c(2, 3))
+
+    out <- list(q.hat = q.hat, sv = sv)
+    attr(out, "data") <- list(Sc=Sc, const.seq=const.seq, q.mat=q.mat)
+    return(out)
+  }
+
+
+
+#' @title Plot factor number
+#' @method plot factor.number
+#' @description Plots the eigenvalue ratio or information criteria from a \code{factor.number} object
+#' @param x \code{factor.number} object
+#' @param ... not used
+#' @return NULL, printed to console
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
+#' @seealso \link[fnets]{factor.number}
+#' @example R/examples/factor_number_ex.R
+#' @importFrom graphics par abline box axis legend
+#' @export
+plot.factor.number <- function(x, ...){
+  data <- attr(x, "data")
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar))
+  if(attr(x, "args")$method == "er"){
+    par(xpd = FALSE)
+    plot(data, xlab = "q", ylab = "Eigenvalue Ratio")
+    abline(v = x)
+  } else {
+    par(mfrow = c(2, 3))
+    Sc <- data$Sc
+    const.seq <- data$const.seq
+    q.mat <- data$q.mat
       for (ii in 1:6) {
         plot(
           const.seq,
@@ -389,6 +350,25 @@ abc.factor.number <-
           bty = "n"
         )
       }
-    }
-    return(list(q.hat = q.hat, sv = sv))
   }
+}
+
+#' @title Print factor number
+#' @method print factor.number
+#' @description Prints a summary of a \code{factor.number} object
+#' @param x \code{factor.number} object
+#' @param ... not used
+#' @return NULL, printed to console
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
+#' @seealso \link[fnets]{factor.number}
+#' @example R/examples/factor_number_ex.R
+#' @export
+print.factor.number <- function(x, ...){
+  args <- attr(x, "args")
+  cat(paste("Factor number selection \n"))
+  cat(paste("Factor model: ", attr(x, "factor"), "\n", sep = ""))
+  cat("Number of factors: ", x, "\n")
+  cat(paste("Number selection method: ", args$method, "\n", sep = ""))
+  if(args$method == "ic") cat(paste("Information criterion: ", ifelse(is.null(args$ic.op), "default", args$ic.op), "\n", sep = ""))
+}

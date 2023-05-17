@@ -79,3 +79,6 @@ Hallin, M. & Liška, R. (2007) Determining the number of factors in the general 
 
 Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 }
+\seealso{
+\link[fnets]{print.fm}, \link[fnets]{predict.fm}
+}

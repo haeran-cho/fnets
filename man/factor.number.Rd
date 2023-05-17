@@ -9,7 +9,6 @@ factor.number(
   fm.restricted = FALSE,
   method = c("ic", "er"),
   q.max = NULL,
-  do.plot = FALSE,
   center = TRUE
 )
 }
@@ -26,12 +25,11 @@ factor.number(
 
 \item{q.max}{maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}}
 
-\item{do.plot}{whether to plot the information criteria values}
-
 \item{center}{whether to de-mean the input \code{x} row-wise}
 }
 \value{
-if \code{method = "ic"}, a vector containing minimisers of the six information criteria, otherwise, the maximiser of the eigenvalue ratio
+S3 object of class \code{factor.number}.
+If \code{method = "ic"}, a vector containing minimisers of the six information criteria, otherwise, the maximiser of the eigenvalue ratio
 }
 \description{
 Methods to estimate the number of factor.
@@ -44,18 +42,7 @@ For further details, see references.
 }
 \examples{
 library(fnets)
-
-set.seed(123)
-n <- 500
-p <- 50
-common <- sim.unrestricted(n, p)
-idio <- sim.var(n, p)
-x <- common$data * apply(idio$data, 1, sd) / apply(common$data, 1, sd) + idio$data
-
-hl <- factor.number(x, fm.restricted = FALSE, do.plot = TRUE)
-hl
-library(fnets)
-
+## Alessi, Barigozzi, and Capasso method for restricted models
 set.seed(123)
 n <- 500
 p <- 50
@@ -63,11 +50,26 @@ common <- sim.restricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data * apply(idio$data, 1, sd) / apply(common$data, 1, sd) + idio$data
 
-abc <- factor.number(x, fm.restricted = TRUE, do.plot = TRUE)
-abc
+abc <- factor.number(x, fm.restricted = TRUE)
+print(abc)
+plot(abc)
 
-er <- factor.number(x, method = "er", fm.restricted = TRUE, do.plot = TRUE)
-er
+## Eigenvalue ratio method
+er <- factor.number(x, method = "er", fm.restricted = TRUE)
+print(er)
+plot(er)
+
+## Hallin and Liška method for unrestricted models
+set.seed(123)
+n <- 500
+p <- 50
+common <- sim.unrestricted(n, p)
+idio <- sim.var(n, p)
+x <- common$data * apply(idio$data, 1, sd) / apply(common$data, 1, sd) + idio$data
+
+hl <- factor.number(x, fm.restricted = FALSE)
+print(hl)
+plot(hl)
 }
 \references{
 Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
@@ -79,4 +81,7 @@ Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor 
 Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 
 Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+}
+\seealso{
+\link[fnets]{plot.factor.number}, \link[fnets]{print.factor.number}
 }

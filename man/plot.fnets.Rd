@@ -7,9 +7,10 @@
 \method{plot}{fnets}(
   x,
   type = c("granger", "pc", "lrpc"),
-  display = c("network", "heatmap"),
+  display = c("network", "heatmap", "tuning"),
   names = NA,
   groups = NA,
+  v.colours = NA,
   threshold = 0,
   ...
 )
@@ -17,40 +18,65 @@
 \arguments{
 \item{x}{\code{fnets} object}
 
-\item{type}{a string specifying which of the above three networks (i)--(iii) to visualise; possible values are
+\item{type}{a string specifying which of the above three networks (i)--(iii) to visualise
+when \code{display = "network"} or {"heatmap"},; possible values are
 \itemize{
    \item{\code{"granger"}}{ directed network representing Granger causal linkages}
    \item{\code{"pc"}}{ undirected network representing contemporaneous linkages; available when \code{x$do.lrpc = TRUE}}
    \item{\code{"lrpc"}}{ undirected network summarising Granger causal and contemporaneous linkages; available when \code{x$do.lrpc = TRUE}}
 }}
 
-\item{display}{a string specifying how to visualise the network; possible values are:
+\item{display}{a string specifying which plot to produce; possible values are:
 \itemize{
-   \item{\code{"network"}}{ as an \code{igraph} object, see \link[igraph]{plot.igraph}}
-   \item{\code{"heatmap"}}{ as a heatmap, see \link[fields]{imagePlot}}
+   \item{\code{"network"}}{ visualise the network as an \code{igraph} object, see \link[igraph]{plot.igraph}}
+   \item{\code{"heatmap"}}{ visualise the network as a heatmap, see \link[fields]{imagePlot}}
+   \item{\code{"tuning"}}{ visualise up to two plots visualising CV and IC procedures
+   for selecting tuning parameters and the VAR order}
 }}
 
-\item{names}{a character vector containing the names of the vertices}
+\item{names}{a character vector containing the names of the network vertices}
 
-\item{groups}{an integer vector denoting any group structure of the vertices}
+\item{groups}{an integer vector denoting any group structure of the network vertices}
+
+\item{v.colours}{a vector denoting vertex colours corresponding to \code{groups}}
 
 \item{threshold}{if \code{threshold > 0}, hard thresholding is performed on the matrix giving rise to the network of interest}
 
 \item{...}{additional arguments}
 }
 \value{
-A network plot produced as per the input arguments
+A plot produced as per the input arguments
 }
 \description{
 Plotting method for S3 objects of class \code{fnets}.
-Produces a plot visualising three networks underlying factor-adjusted VAR processes:
+When \code{display = "network"} or {"heatmap"}, produces a plot visualising three networks underlying factor-adjusted VAR processes:
 (i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices summed across the lags,
 (ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
 (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
 Edge widths are determined by edge weights.
+When \code{display = "tuning"}, produces up to two plots visualising
+CV and IC procedures for selecting tuning parameters and the VAR order.
 }
 \details{
 See Barigozzi, Cho and Owens (2022) for further details.
+}
+\examples{
+\donttest{
+set.seed(123)
+n <- 500
+p <- 50
+common <- sim.unrestricted(n, p)
+idio <- sim.var(n, p)
+x <- common$data + idio$data
+out <- fnets(x,
+  do.threshold = TRUE,
+  var.args = list(n.cores = 2)
+)
+plot(out, type = "granger", display = "network",
+groups = rep(c(1,2), p/2), v.colours = c("orange","blue"))
+plot(out, type = "lrpc", display = "heatmap")
+plot(out, display = "tuning")
+}
 }
 \references{
 Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.

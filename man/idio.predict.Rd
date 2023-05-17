@@ -26,19 +26,22 @@ Produces forecasts of the idiosyncratic VAR process
 for a given forecasting horizon by estimating the best linear predictors
 }
 \examples{
+\dontrun{
 set.seed(123)
 n <- 500
 p <- 50
 common <- sim.unrestricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
-out <- fnets(x, q = NULL, var.order = 1, var.method = "lasso",
+out <- fnets(x,
 do.lrpc = FALSE, var.args = list(n.cores = 2))
-cpre <- common.predict(out, x, h = 1, r = NULL)
-ipre <- idio.predict(out, x, cpre, h = 1)
+cpre <- common.predict(out)
+ipre <- idio.predict(out, cpre)
+}
 }
 \references{
 Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 
 Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 }
+\keyword{internal}

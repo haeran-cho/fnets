@@ -55,8 +55,7 @@ check.list.arg <- function(arg) {
         tuning = c("cv", "bic"),
         n.folds = 1,
         penalty = NULL,
-        path.length = 10,
-        do.plot = FALSE
+        path.length = 10
       )
   if(arg.name == "common.args")
     default <-
@@ -66,6 +65,7 @@ check.list.arg <- function(arg) {
         trunc.lags = 20,
         n.perm = 10
       )
+  arg <- check.list.valid(arg)
   out <- check.list.match(arg, default)
   return(out)
 }
@@ -77,4 +77,38 @@ check.list.match <- function(arg, default) {
       arg[[ii]] <- default[[ii]]
   }
   return(arg)
+}
+
+#' @keywords internal
+check.list.valid <- function(arg) {
+  arg.name <- deparse(substitute(arg))
+  if(arg.name == "var.args"){
+    arg$n.iter <- posint(arg$n.iter)
+    arg$tol <- max(0, arg$tol)
+    arg$n.cores <- posint(arg$n.cores)
+  }
+  if(arg.name == "tuning.args"){
+    arg$n.folds <- posint(arg$n.folds)
+    arg$path.length <- posint(arg$path.length)
+  }
+  if(arg.name == "common.args"){
+    arg$var.order <- posint(arg$var.order)
+    arg$max.var.order <- posint(arg$max.var.order)
+    arg$trunc.lags <- posint(arg$trunc.lags)
+    arg$n.perm <- posint(arg$n.perm)
+  }
+  return(arg)
+}
+
+#' @keywords internal
+posint <- function(x, min.x = 1){
+  x.name <- deparse(substitute(x))
+  if(x < min.x | x != round(x)){
+    xx <- max(min.x, as.integer(x))
+    ifelse(xx == round(x),
+           warning(cat(x.name,"=",x, "coerced to ", xx,"\n")),
+           stop(cat(x.name,"=",x, "cannot be coerced to correct input format")))
+    x <- xx
+  }
+  return(x)
 }

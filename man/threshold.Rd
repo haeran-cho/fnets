@@ -4,14 +4,12 @@
 \alias{threshold}
 \title{Edge selection for VAR parameter, inverse innovation covariance, and long-run partial correlation matrices}
 \usage{
-threshold(mat, path.length = 500, do.plot = FALSE)
+threshold(mat, path.length = 500)
 }
 \arguments{
 \item{mat}{input parameter matrix}
 
 \item{path.length}{number of candidate thresholds}
-
-\item{do.plot}{whether to plot thresholding output}
 }
 \value{
 a list which contains the following fields:
@@ -37,4 +35,7 @@ Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network analysi
 Liu, B., Zhang, X. & Liu, Y. (2021) Simultaneous Change Point Inference and Structure Recovery for High Dimensional Gaussian Graphical Models. Journal of Machine Learning Research, 22(274), 1--62.
 
 Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+}
+\seealso{
+\link[fnets]{plot.threshold}, \link[fnets]{print.threshold}
 }

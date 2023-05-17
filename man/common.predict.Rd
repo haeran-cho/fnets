@@ -34,6 +34,7 @@ Produces forecasts of the common component
 for a given forecasting horizon by estimating the best linear predictors
 }
 \examples{
+\dontrun{
 set.seed(123)
 n <- 500
 p <- 50
@@ -42,8 +43,9 @@ idio <- sim.var(n, p)
 x <- common$data + idio$data
 out <- fnets(x, q = NULL, var.order = 1, var.method = "lasso",
 do.lrpc = FALSE, var.args = list(n.cores = 2))
-cpre <- common.predict(out, x, h = 1, r = NULL)
-ipre <- idio.predict(out, x, cpre, h = 1)
+cpre <- common.predict(out)
+ipre <- idio.predict(out, cpre)
+}
 }
 \references{
 Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
@@ -56,3 +58,4 @@ Forni, M., Hallin, M., Lippi, M. & Zaffaroni, P. (2017). Dynamic factor models w
 
 Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 }
+\keyword{internal}

@@ -10,7 +10,7 @@ test_that("var ds executes", {
   skip_on_cran()
 fv <- fnets.var(x,
                 center = TRUE, method = "ds", var.order = 1,
-                tuning.args = list(tuning = "cv", n.folds = 1, path.length = 10, do.plot = TRUE),
+                tuning.args = list(tuning = "cv", n.folds = 1, path.length = 10),
                 n.cores = 1
 )
 expect_equal(attr(fv, "class"), "fnets")
@@ -19,7 +19,7 @@ test_that("var bic executes", {
   skip_on_cran()
   fv <- fnets.var(x,
                   center = TRUE, method = "lasso", var.order = 1,
-                  tuning.args = list(tuning = "bic", n.folds = 1, path.length = 10, do.plot = TRUE),
+                  tuning.args = list(tuning = "bic", n.folds = 1, path.length = 10),
                   n.cores = 1
   )
   expect_equal(attr(fv, "class"), "fnets")
