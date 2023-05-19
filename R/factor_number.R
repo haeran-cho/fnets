@@ -369,6 +369,6 @@ print.factor.number <- function(x, ...){
   cat(paste("Factor number selection \n"))
   cat(paste("Factor model: ", attr(x, "factor"), "\n", sep = ""))
   cat("Number of factors: ", x, "\n")
-  cat(paste("Number selection method: ", args$method, "\n", sep = ""))
+  cat(paste("Method: ", args$method, "\n", sep = ""))
   if(args$method == "ic") cat(paste("Information criterion: ", ifelse(is.null(args$ic.op), "default", args$ic.op), "\n", sep = ""))
 }

@@ -75,7 +75,6 @@ fnets.factor.model <-
       q.method <- NULL
     }
 
-
     args <- as.list(environment())
 
     common.args <- check.list.arg(common.args)
@@ -212,7 +211,6 @@ dyn.pca <-
         q <- q.method.out$q.hat[ic.op]
       }
     }
-
 
     Gamma_c <- Gamma_i <- Sigma_c <- Sigma_i <- Sigma_x * 0
     if(q >= 1) {

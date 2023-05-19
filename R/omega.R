@@ -3,8 +3,8 @@
 #' from the VAR parameter estimates and the inverse of innovation covariance matrix obtained via constrained \code{l1}-minimisation.
 #' @details See Barigozzi, Cho and Owens (2022) for further details, and Cai, Liu and Zhou (2016) for further details on the adaptive estimation procedure.
 #' @param object \code{fnets} object
-#' @param x input time series matrix; with each row representing a variable
-#' @param eta regularisation parameter; if \code{eta = NULL}, it is selected by cross validation
+#' @param x input time series matrix with each row representing a variable
+#' @param eta \code{l1}-regularisation parameter; if \code{eta = NULL}, it is selected by cross validation
 #' @param tuning.args a list specifying arguments for the cross validation procedure
 #' for selecting the tuning parameter involved in long-run partial correlation matrix estimation. It contains:
 #' \itemize{
@@ -12,7 +12,7 @@
 #'    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #' }
 #' @param lrpc.adaptive whether to use the adaptive estimation procedure
-#' @param eta.adaptive regularisation parameter for Step 1 of the adaptive estimation procedure; if \code{eta.adaptive = NULL}, defaults to \code{2 * sqrt(log(dim(x)[1])/dim(x)[2])}
+#' @param eta.adaptive \code{l1}-regularisation parameter for Step 1 of the adaptive estimation procedure; if \code{eta.adaptive = NULL}, the default choice is \code{2 * sqrt(log(dim(x)[1])/dim(x)[2])}
 #' @param do.correct whether to correct for any negative entries in the diagonals of the inverse of long-run covariance matrix
 #' @param do.threshold whether to perform adaptive thresholding of \code{Delta} and \code{Omega} parameter estimators with \link[fnets]{threshold}
 #' @param n.cores number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}
@@ -21,7 +21,7 @@
 #' \item{Omega}{ estimated inverse of the long-run covariance matrix}
 #' \item{pc}{ estimated innovation partial correlation matrix}
 #' \item{lrpc}{ estimated long-run partial correlation matrix}
-#' \item{eta}{ regularisation parameter}
+#' \item{eta}{ \code{l1}-regularisation parameter}
 #' \item{lrpc.adaptive}{ input argument }
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Cai, T. T., Liu, W., & Zhou, H. H. (2016) Estimating sparse precision matrix: Optimal rates of convergence and adaptive estimation. The Annals of Statistics, 44(2), 455-488.
