@@ -107,7 +107,7 @@ posint <- function(x, min.x = 1){
     xx <- max(min.x, as.integer(x))
     ifelse(xx == round(x),
            warning(cat(x.name,"=",x, "coerced to ", xx,"\n")),
-           stop(cat(x.name,"=",x, "cannot be coerced to correct input format")))
+           stop(cat(x.name,"=",x, "cannot be coerced to correct input format. Must be integer greater than", min.x,"\n")))
     x <- xx
   }
   return(x)

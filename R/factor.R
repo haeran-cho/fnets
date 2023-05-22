@@ -244,7 +244,7 @@ dyn.pca <-
     out <-
       list(
         q = q,
-        # q.method.out = q.method.out,
+        q.method.out = q.method.out$q.hat,
         spec = spec,
         acv = acv,
         kern.bw = kern.bw

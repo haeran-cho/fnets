@@ -229,18 +229,23 @@ plot_internal <- function(x,
                           display = c("network", "heatmap"),
                           names = NA,
                           groups = NA,
-                          threshold = 0,
                           ...){
+  is.var <- FALSE
   p <- dim(x$acv$Gamma_x)[1]
+  if(is.null(p)) {
+    p <- dim(x$beta)[1]
+    is.var <- TRUE
+  }
   A <- matrix(0, nrow = p, ncol = p)
 
-  if(is.null(x$idio.var)) {
+  if(is.null(x$idio.var) & !is.var) {
     warning(paste0("object contains no idiosyncratic component"))
   } else {
     if(type == "granger") {
-      d <- dim(x$idio.var$beta)[1] / p
+      ifelse(is.var, beta <- x$beta, beta <- x$idio.var$beta)
+      d <- dim(beta)[1] / p
       for (ll in 1:d)
-        A <- A + t(x$idio.var$beta)[, (ll - 1) * p + 1:p]
+        A <- A + t(beta)[, (ll - 1) * p + 1:p]
     }
 
     if(type == "pc") {
@@ -259,7 +264,7 @@ plot_internal <- function(x,
       }
     }
 
-    A[abs(A) < threshold] <- 0
+    A[abs(A) < 0] <- 0
 
     if(!is.na(groups[1])) {
       grps <- perm <- c()
@@ -315,9 +320,12 @@ network <- function (object, ...) UseMethod("network", object)
   #' }
   #' @param names a character vector containing the names of the vertices
   #' @param groups an integer vector denoting any group structure of the vertices
-  #' @param threshold if \code{threshold > 0}, hard thresholding is performed on the matrix giving rise to the network of interest
   #' @param ... additional arguments to \code{igraph::graph_from_adjacency_matrix}
-  #' @return S3 object of type \code{igraph}
+  #' @return A list with the following fields:
+  #' \item{network}{ \code{igraph} object}
+  #' \item{names}{ input argument}
+  #' \item{groups}{ input argument}
+  #' \item{grp.col}{ colours corresponding to each group}
   #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
   #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
   #' @seealso \link[fnets]{fnets}, \link[fnets]{plot.fnets}
@@ -343,10 +351,9 @@ network <- function (object, ...) UseMethod("network", object)
                       type = c("granger", "pc", "lrpc"),
                       names = NA,
                       groups = NA,
-                      threshold = 0,
                       ...) {
     type <- match.arg(type, c("granger", "pc", "lrpc"))
-    int <- plot_internal(object, type, display = "network", names, groups, threshold, ...)
+    int <- plot_internal(object, type, display = "network", names, groups, ...)
     A <- int$A
     if(type == "granger")
       g <-
@@ -355,7 +362,7 @@ network <- function (object, ...) UseMethod("network", object)
                                           weighted = TRUE,
                                           diag = FALSE,
                                           ...)
-    if(type %in% c("pc", "lrpc"))
+    else if(type %in% c("pc", "lrpc"))
       g <-
       igraph::graph_from_adjacency_matrix(A,
                                           mode = "undirected",
@@ -399,7 +406,6 @@ network <- function (object, ...) UseMethod("network", object)
 #' @param names a character vector containing the names of the network vertices
 #' @param groups an integer vector denoting any group structure of the network vertices
 #' @param v.colours a vector denoting vertex colours corresponding to \code{groups}
-#' @param threshold if \code{threshold > 0}, hard thresholding is performed on the matrix giving rise to the network of interest
 #' @param ... additional arguments
 #' @return A plot produced as per the input arguments
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
@@ -435,7 +441,6 @@ network <- function (object, ...) UseMethod("network", object)
              names = NA,
              groups = NA,
              v.colours = NA,
-             threshold = 0,
              ...) {
       oldpar <- par(no.readonly = TRUE)
       on.exit(par(oldpar))
@@ -456,7 +461,6 @@ network <- function (object, ...) UseMethod("network", object)
                        type = type,
                        names = names,
                        groups = groups,
-                       threshold = threshold,
                        ...)
         ifelse(!is.na(net$groups[1]),
                K <- length(unique(net$groups)),
@@ -487,7 +491,7 @@ network <- function (object, ...) UseMethod("network", object)
         )
       } else if(display == "heatmap") {
         p <- attr(x, "args")$p
-        int <- plot_internal(x, type, display, names, groups, threshold, ...)
+        int <- plot_internal(x, type, display, names, groups, ...)
         A <- int$A
         grp.col <- int$grp.col
         names <- int$names
