@@ -2,7 +2,7 @@
 #' @description Estimates the VAR parameter matrices via \code{l1}-regularised Yule-Walker estimation
 #' and innovation covariance matrix via constrained \code{l1}-minimisation.
 #' @details Further information can be found in Barigozzi, Cho and Owens (2022).
-#' @param x input time series matrix, with each row representing a variable
+#' @param x input time series matrix, with each row representing a variable and each column containing the observations at a given time
 #' @param center whether to de-mean the input \code{x} row-wise
 #' @param method a string specifying the method to be adopted for VAR process estimation; possible values are:
 #' \itemize{
@@ -10,7 +10,7 @@
 #'    \item{\code{"ds"}}{ Dantzig Selector-type constrained \code{l1}-minimisation}
 #' }
 #' @param var.order order of the VAR process; if a vector of integers is supplied, the order is chosen via \code{tuning}
-#' @param lambda regularisation parameter; if \code{lambda = NULL}, \code{tuning} is employed to select the parameter
+#' @param lambda \code{l1}-regularisation parameter; if \code{lambda = NULL}, \code{tuning} is employed to select the parameter
 #' @param tuning.args a list specifying arguments for \code{tuning}
 #' for selecting the regularisation parameter (and VAR order). It contains:
 #' \itemize{
@@ -30,7 +30,7 @@
 #' @return a list which contains the following fields:
 #' \item{beta}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
 #' \item{Gamma}{ estimate of the innovation covariance matrix}
-#' \item{lambda}{ regularisation parameter}
+#' \item{lambda}{ \code{l1}-regularisation parameter}
 #' \item{var.order}{ VAR order}
 #' \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
 #' @example R/examples/var_ex.R
@@ -740,9 +740,6 @@ threshold <- function(mat,
   return(out)
 }
 
-
-
-
 #' @title Plotting the thresholding procedure
 #' @method plot threshold
 #' @description Plotting method for S3 objects of class \code{threshold}.
@@ -787,9 +784,6 @@ plot.threshold <- function(x, plots = c(TRUE, TRUE, TRUE), ...){
   }
 
 }
-
-
-
 
 #' @title Print threshold
 #' @method print threshold
