@@ -6,7 +6,7 @@
 #' @param q number of unrestricted factors
 #' @param heavy if \code{heavy = FALSE}, common shocks are generated from \code{rnorm} whereas if \code{heavy = TRUE}, from \code{rt} with \code{df = 5} and then scaled by \code{sqrt(3 / 5)}
 #' @return a list containing
-#' \item{data}{ generated series}
+#' \item{data}{ time series matrix with \code{n} rows and \code{p} columns }
 #' \item{q}{ number of factors}
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
@@ -45,7 +45,7 @@ sim.unrestricted <- function(n, p, q = 2, heavy = FALSE) {
 #' @param q number of unrestricted factors; number of restricted factors is given by \code{2 * q}
 #' @param heavy if \code{heavy = FALSE}, common shocks are generated from \code{rnorm} whereas if \code{heavy = TRUE}, from \code{rt} with \code{df = 5} and then scaled by \code{sqrt(3 / 5)}
 #' @return a list containing
-#' \item{data}{ generated series}
+#' \item{data}{ time series matrix with \code{n} rows and \code{p} columns }
 #' \item{q}{ number of factors}
 #' \item{r}{ number of restricted factors}
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series.
@@ -87,7 +87,7 @@ sim.restricted <- function(n, p, q = 2, heavy = FALSE) {
 #' @param Gamma innovation covariance matrix; ignored if \code{heavy = TRUE}
 #' @param heavy if \code{heavy = FALSE}, common shocks are generated from \code{rnorm} whereas if \code{heavy = TRUE}, from \code{rt} with \code{df = 5} and then scaled by \code{sqrt(3 / 5)}
 #' @return a list containing
-#' \item{data}{ generated series}
+#' \item{data}{ time series matrix with \code{n} rows and \code{p} columns }
 #' \item{A}{ transition matrix}
 #' \item{Gamma}{ innovation covariance matrix}
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series.

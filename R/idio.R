@@ -2,7 +2,7 @@
 #' @description Estimates the VAR parameter matrices via \code{l1}-regularised Yule-Walker estimation
 #' and innovation covariance matrix via constrained \code{l1}-minimisation.
 #' @details Further information can be found in Barigozzi, Cho and Owens (2022).
-#' @param x input time series matrix, with each row representing a variable
+#' @param x input time series matrix, with each row representing a variable and each column containing the observations at a given time
 #' @param center whether to de-mean the input \code{x} row-wise
 #' @param method a string specifying the method to be adopted for VAR process estimation; possible values are:
 #' \itemize{
@@ -740,9 +740,6 @@ threshold <- function(mat,
   return(out)
 }
 
-
-
-
 #' @title Plotting the thresholding procedure
 #' @method plot threshold
 #' @description Plotting method for S3 objects of class \code{threshold}.
@@ -787,9 +784,6 @@ plot.threshold <- function(x, plots = c(TRUE, TRUE, TRUE), ...){
   }
 
 }
-
-
-
 
 #' @title Print threshold
 #' @method print threshold

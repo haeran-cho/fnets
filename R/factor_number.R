@@ -4,7 +4,7 @@
 #' When \code{method = 'ic'}, the information criterion-methods discussed in Hallin and Liška (2007) (when \code{fm.restricted = FALSE})
 #' and Alessi, Barigozzi and Capasso (2010) (when \code{fm.restricted = TRUE}) are implemented, with the information criterion called by \code{ic.op = 5} recommended by default.
 #' @details For further details, see references.
-#' @param x input time series matrix, with each row representing a variable
+#' @param x input time series matrix, with each row representing a variable and each column containing the observations at a given time
 #' @param fm.restricted whether to estimate the number of restricted or unrestricted factors
 #' @param method A string specifying the factor number selection method; possible values are:
 #' \itemize{

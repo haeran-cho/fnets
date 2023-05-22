@@ -2,7 +2,7 @@
 #' @description Performs factor modelling under either restricted (static) or unrestricted (dynamic) factor models
 #' @details See Barigozzi, Cho and Owens (2022) for further details.
 #'
-#' @param x input time series matrix, with each row representing a variable
+#' @param x input time series matrix, with each row representing a variable and each column containing the observations at a given time
 #' @param center whether to de-mean the input \code{x} row-wise
 #' @param fm.restricted whether to estimate a restricted factor model using static PCA
 #' @param q Either a string specifying the factor number selection method when \code{fm.restricted = TRUE}; possible values are:
@@ -37,12 +37,12 @@
 #' @seealso \link[fnets]{print.fm}, \link[fnets]{predict.fm}
 #' @examples
 #' \donttest{
-#' set.seed(123)
+#' set.seed(1234)
 #' n <- 500
 #' p <- 50
 #' common <- sim.restricted(n, p)
-#' x <- common$data + rnorm(n*p)
-#' out <- fnets.factor.model(x, fm.restricted = TRUE)
+#' x <- common$data + matrix(rnorm(n * p), nrow = p)
+#' out <- fnets.factor.model(x, fm.restricted = FALSE)
 #' }
 #' @export
 fnets.factor.model <-
@@ -407,6 +407,6 @@ print.fm <- function(x,
   cat(paste("Factor model: ", attr(x, "factor"), "\n", sep = ""))
   cat(paste("Number of factors: ", x$q, "\n", sep = ""))
   cat(paste("Number selection method: ", ifelse(is.null(args$q.method), "NA", args$q.method), "\n", sep = ""))
-  if(is.null(args$ic.op)) args$ic.op <- ifelse(attr(x, "factor") == "restricted", 2,5)
+  if(is.null(args$ic.op)) args$ic.op <- ifelse(attr(x, "factor") == "restricted", 2, 5)
   cat(paste("Information criterion: ", ifelse(args$q.method == "ic", args$ic.op, "NA"), "\n", sep = ""))
 }
