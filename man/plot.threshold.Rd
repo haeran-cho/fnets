@@ -28,9 +28,22 @@ See Owens, Cho and Barigozzi (2022) for further details.
 }
 \examples{
 set.seed(123)
-A <- diag(.7, 50) + rnorm(50^2, 0, .1)
-threshold.A <- threshold(A)
-plot(threshold.A)
+n <- 500
+p <- 50
+common <- sim.unrestricted(n, p)
+idio <- sim.var(n, p)
+x <- common$data + idio$data
+out <- fnets(x,
+   var.args = list(n.cores = 2)
+)
+# Granger-causal network
+th1 <- threshold(out$idio.var$beta)
+plot(th1)
+print(th1)
+# Partial correlations
+th2 <- threshold(out$lrpc$pc)
+# Long-run partial correlations
+th1 <- threshold(out$lrpc$lrpc)
 }
 \references{
 Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.

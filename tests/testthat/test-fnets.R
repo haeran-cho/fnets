@@ -29,8 +29,8 @@ test_that("fnets executes", {
 
 test_that("predict executes", {
   skip_on_cran()
-  pre <- predict(out, x, h = 1, common.method = "unrestricted")
-  pre <- predict(out, x, h = 1, common.method = "restricted")
+  pre <- predict(out, h = 1, common.method = "unrestricted")
+  pre <- predict(out, h = 1, common.method = "restricted")
 })
 
 test_that("plot executes", {

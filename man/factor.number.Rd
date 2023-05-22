@@ -35,7 +35,7 @@ If \code{method = "ic"}, a vector containing minimisers of the six information c
 Methods to estimate the number of factor.
 When \code{method = 'er'}, the factor number is estimated by maximising the ration of successive eigenvalues.
 When \code{method = 'ic'}, the information criterion-methods discussed in Hallin and Liška (2007) (when \code{fm.restricted = FALSE})
-and Alessi, Barigozzi and Capasso (2010) (when \code{fm.restricted = TRUE}) are implemented, with the information criterion called by \code{ic.op = 5} recommended by default.
+and Alessi, Barigozzi and Capasso (2010) (when \code{fm.restricted = TRUE}) are implemented, with the information criterion called by \code{ic.op = 5} (as an argument to \code{fnets} or \code{fnets.factor.model}) recommended by default.
 }
 \details{
 For further details, see references.

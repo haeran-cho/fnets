@@ -4,12 +4,20 @@
 \alias{predict.fnets}
 \title{Forecasting by fnets}
 \usage{
-\method{predict}{fnets}(object, x = NULL, h = 1, fc.restricted = TRUE, r = c("ic", "er"), ...)
+\method{predict}{fnets}(
+  object,
+  newdata = NULL,
+  h = 1,
+  fc.restricted = TRUE,
+  r = c("ic", "er"),
+  ...
+)
 }
 \arguments{
 \item{object}{\code{fnets} object}
 
-\item{x}{input time series matrix, with each row representing a variable; by default, uses input to \code{object}}
+\item{newdata}{input time series matrix, with each row representing a variable; by default, uses input to \code{object}.
+Valid only for a VAR without factor adjustment, i.e. when \code{q = 0}.}
 
 \item{h}{forecasting horizon}
 

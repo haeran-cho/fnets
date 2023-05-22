@@ -35,8 +35,6 @@
 \item{groups}{an integer vector denoting any group structure of the vertices}
 
 \item{...}{additional arguments to \code{igraph::graph_from_adjacency_matrix}}
-
-\item{threshold}{if \code{threshold > 0}, hard thresholding is performed on the matrix giving rise to the network of interest}
 }
 \value{
 A list with the following fields:
@@ -45,7 +43,11 @@ A list with the following fields:
 \item{groups}{ input argument}
 \item{grp.col}{ colours corresponding to each group}
 
-S3 object of type \code{igraph}
+a list containing
+\item{network}{ \code{igraph} object}
+\item{names}{ input argument}
+\item{groups}{ input argument}
+\item{...}{ additional arguments to \code{igraph::graph_from_adjacency_matrix}}
 }
 \description{
 Converts S3 objects of class \code{fnets} into a network.

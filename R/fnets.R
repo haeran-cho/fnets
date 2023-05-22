@@ -233,7 +233,7 @@ plot_internal <- function(x,
   A <- matrix(0, nrow = p, ncol = p)
 
   if(is.null(x$idio.var) & !is.var) {
-    warning(paste0("object contains no idiosyncratic component"))
+    warning("object contains no idiosyncratic component")
   } else {
     if(type == "granger") {
       ifelse(is.var, beta <- x$beta, beta <- x$idio.var$beta)
@@ -244,7 +244,7 @@ plot_internal <- function(x,
 
     if(type == "pc") {
       if(!x$do.lrpc & is.null(x$lrpc$pc) ){
-        stop(paste0("Partial correlation matrix is undetected"))
+        stop("Partial correlation matrix is undetected")
       } else {
         A <- x$lrpc$pc
       }
@@ -252,7 +252,7 @@ plot_internal <- function(x,
 
     if(type == "lrpc") {
       if(!x$do.lrpc & is.null(x$lrpc$lrpc)) {
-        stop(paste0("Long-run partial correlation matrix is undetected"))
+        stop("Long-run partial correlation matrix is undetected")
       } else {
         A <- x$lrpc$lrpc
       }
@@ -371,6 +371,7 @@ network <- function (object, ...) UseMethod("network", object)
                 groups = int$grps,
                 grp.col = int$grp.col))
   }
+
 #' @title Convert networks estimated by fnets into igraph objects
 #' @method network fnets
 #' @exportS3Method fnets::network
@@ -389,9 +390,12 @@ network <- function (object, ...) UseMethod("network", object)
 #' }
 #' @param names a character vector containing the names of the vertices
 #' @param groups an integer vector denoting any group structure of the vertices
-#' @param threshold if \code{threshold > 0}, hard thresholding is performed on the matrix giving rise to the network of interest
 #' @param ... additional arguments to \code{igraph::graph_from_adjacency_matrix}
-#' @return S3 object of type \code{igraph}
+#' @return a list containing
+#' \item{network}{ \code{igraph} object}
+#' \item{names}{ input argument}
+#' \item{groups}{ input argument}
+#' \item{...}{ additional arguments to \code{igraph::graph_from_adjacency_matrix}}
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 #' @seealso \link[fnets]{fnets}, \link[fnets]{plot.fnets}
@@ -428,7 +432,7 @@ network.fnets <- function(object,
                                         weighted = TRUE,
                                         diag = FALSE,
                                         ...)
-  if(type %in% c("pc", "lrpc"))
+  else if(type %in% c("pc", "lrpc"))
     g <-
     igraph::graph_from_adjacency_matrix(A,
                                         mode = "undirected",
@@ -724,7 +728,8 @@ plot.fnets <-
 #' @description Produces forecasts of the data for a given forecasting horizon by
 #' separately estimating the best linear predictors of common and idiosyncratic components
 #' @param object \code{fnets} object
-#' @param x input time series matrix, with each row representing a variable; by default, uses input to \code{object}
+#' @param newdata input time series matrix, with each row representing a variable; by default, uses input to \code{object}.
+#' Valid only for a VAR without factor adjustment, i.e. when \code{q = 0}.
 #' @param h forecasting horizon
 #' @param fc.restricted whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component
 #' @param r number of restricted factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
@@ -757,15 +762,20 @@ plot.fnets <-
 #' @export
 predict.fnets <-
   function(object,
-           x = NULL,
+           newdata = NULL,
            h = 1,
            fc.restricted = TRUE,
            r = c("ic", "er"),
            ...) {
-  if(is.null(x)) x <- attr(object, "args")$x
+  if(is.null(newdata)) {
+    newdata <- attr(object, "args")$x
+  } else if (object$q >= 1) {
+    stop("To produce forecasts when a common component is present, estimate a model on the new data. \n")
+  }
+
   h <- posint(h)
-  cpre <- common.predict(object, x, h, fc.restricted, r)
-  ipre <- idio.predict(object, x, cpre, h)
+  cpre <- common.predict(object, newdata, h, fc.restricted, r)
+  ipre <- idio.predict(object, newdata, cpre, h)
 
   out <- list(
     forecast = cpre$fc + ipre$fc,

@@ -23,11 +23,23 @@ Threshold the entries of the input matrix at a data-driven level to perform edge
 See Liu, Zhang, and Liu (2021) for more information on the threshold selection process
 }
 \examples{
-\donttest{
 set.seed(123)
-A <- diag(.7, 50) + rnorm(50^2, 0, .1)
-threshold.A <- threshold(A)
-}
+n <- 500
+p <- 50
+common <- sim.unrestricted(n, p)
+idio <- sim.var(n, p)
+x <- common$data + idio$data
+out <- fnets(x,
+   var.args = list(n.cores = 2)
+)
+# Granger-causal network
+th1 <- threshold(out$idio.var$beta)
+plot(th1)
+print(th1)
+# Partial correlations
+th2 <- threshold(out$lrpc$pc)
+# Long-run partial correlations
+th1 <- threshold(out$lrpc$lrpc)
 }
 \references{
 Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.

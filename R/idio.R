@@ -628,12 +628,6 @@ idio.predict <- function(object, x, cpre, h = 1) {
   } else {
     fc <- NA
   }
-  # }
-  # if(attr(object, 'factor') == 'static'){
-  #   is <- matrix(0, p, n)
-  #   fc <- 0
-  # }
-
 
   out <- list(is = is[, 1:n], fc = fc, h = h)
   return(out)
@@ -694,12 +688,7 @@ prox.func <- function(B, lambda, L, GG, gg) {
 #' \item{threshold}{ data-driven threshold}
 #' \item{thr.mat}{ thresholded input matrix}
 #' @seealso \link[fnets]{plot.threshold}, \link[fnets]{print.threshold}
-#' @examples
-#' \donttest{
-#' set.seed(123)
-#' A <- diag(.7, 50) + rnorm(50^2, 0, .1)
-#' threshold.A <- threshold(A)
-#' }
+#' @example R/examples/thresh_ex.R
 #' @importFrom graphics par
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Liu, B., Zhang, X. & Liu, Y. (2021) Simultaneous Change Point Inference and Structure Recovery for High Dimensional Gaussian Graphical Models. Journal of Machine Learning Research, 22(274), 1--62.
@@ -759,11 +748,7 @@ threshold <- function(mat,
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 #' @seealso \link[fnets]{threshold}
-#' @examples
-#' set.seed(123)
-#' A <- diag(.7, 50) + rnorm(50^2, 0, .1)
-#' threshold.A <- threshold(A)
-#' plot(threshold.A)
+#' @example R/examples/thresh_ex.R
 #' @export
 plot.threshold <- function(x, plots = c(TRUE, FALSE, TRUE), ...){
   seqs <- attr(x, "seqs")
@@ -798,11 +783,7 @@ plot.threshold <- function(x, plots = c(TRUE, FALSE, TRUE), ...){
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @seealso \link[fnets]{threshold}
-#' @examples
-#' set.seed(123)
-#' A <- diag(.7, 50) + rnorm(50^2, 0, .1)
-#' threshold.A <- threshold(A)
-#' print(threshold.A)
+#' @example R/examples/thresh_ex.R
 #' @export
 print.threshold <- function(x,
                         ...){
