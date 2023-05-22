@@ -204,6 +204,8 @@ dyn.pca <-
         for (ii in 1:(mm + 1)){
           eigs <- eigs + sv[[ii]]$d[0:q + 1]
         }
+        q.method.out <- eigs[1:q] / eigs[1 + 1:q]
+        q <- which.max(q.method.out)
       } else if(q.method == "ic") {
         q.max <- min(50, floor(sqrt(min(n - 1, p))))
         q.method.out <-
@@ -242,11 +244,11 @@ dyn.pca <-
     out <-
       list(
         q = q,
-        q.method.out = q.method.out$q.hat,
         spec = spec,
         acv = acv,
         kern.bw = kern.bw
       )
+    if(q.method == "er" & flag) out$q.method.out <- q.method.out
     return(out)
   }
 

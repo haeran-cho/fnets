@@ -17,7 +17,7 @@ sim.var(n, p, Gamma = diag(1, p), heavy = FALSE)
 }
 \value{
 a list containing
-\item{data}{ generated series}
+\item{data}{ time series matrix with \code{n} rows and \code{p} columns }
 \item{A}{ transition matrix}
 \item{Gamma}{ innovation covariance matrix}
 }

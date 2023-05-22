@@ -19,9 +19,9 @@ par.lrpc(
 \arguments{
 \item{object}{\code{fnets} object}
 
-\item{x}{input time series matrix; with each row representing a variable}
+\item{x}{input time series matrix with each row representing a variable}
 
-\item{eta}{regularisation parameter; if \code{eta = NULL}, it is selected by cross validation}
+\item{eta}{\code{l1}-regularisation parameter; if \code{eta = NULL}, it is selected by cross validation}
 
 \item{tuning.args}{a list specifying arguments for the cross validation procedure
 for selecting the tuning parameter involved in long-run partial correlation matrix estimation. It contains:
@@ -32,7 +32,7 @@ for selecting the tuning parameter involved in long-run partial correlation matr
 
 \item{lrpc.adaptive}{whether to use the adaptive estimation procedure}
 
-\item{eta.adaptive}{regularisation parameter for Step 1 of the adaptive estimation procedure; if \code{eta.adaptive = NULL}, defaults to \code{2 * sqrt(log(dim(x)[1])/dim(x)[2])}}
+\item{eta.adaptive}{\code{l1}-regularisation parameter for Step 1 of the adaptive estimation procedure; if \code{eta.adaptive = NULL}, the default choice is \code{2 * sqrt(log(dim(x)[1])/dim(x)[2])}}
 
 \item{do.correct}{whether to correct for any negative entries in the diagonals of the inverse of long-run covariance matrix}
 
@@ -46,7 +46,7 @@ a list containing
 \item{Omega}{ estimated inverse of the long-run covariance matrix}
 \item{pc}{ estimated innovation partial correlation matrix}
 \item{lrpc}{ estimated long-run partial correlation matrix}
-\item{eta}{ regularisation parameter}
+\item{eta}{ \code{l1}-regularisation parameter}
 \item{lrpc.adaptive}{ input argument }
 }
 \description{
@@ -68,8 +68,8 @@ out <- fnets(x, do.lrpc = FALSE, var.args = list(n.cores = 2))
 plrpc <- par.lrpc(out, x, n.cores = 2)
 out$lrpc <- plrpc
 out$do.lrpc <- TRUE
-plot(out, type = "pc", display = "network", threshold = .05)
-plot(out, type = "lrpc", display = "heatmap", threshold = .05)
+plot(out, type = "pc", display = "network")
+plot(out, type = "lrpc", display = "heatmap")
 }
 }
 \references{

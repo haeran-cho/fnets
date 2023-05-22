@@ -9,7 +9,14 @@
   type = c("granger", "pc", "lrpc"),
   names = NA,
   groups = NA,
-  threshold = 0,
+  ...
+)
+
+\method{network}{fnets}(
+  object,
+  type = c("granger", "pc", "lrpc"),
+  names = NA,
+  groups = NA,
   ...
 )
 }
@@ -27,11 +34,17 @@
 
 \item{groups}{an integer vector denoting any group structure of the vertices}
 
-\item{threshold}{if \code{threshold > 0}, hard thresholding is performed on the matrix giving rise to the network of interest}
-
 \item{...}{additional arguments to \code{igraph::graph_from_adjacency_matrix}}
+
+\item{threshold}{if \code{threshold > 0}, hard thresholding is performed on the matrix giving rise to the network of interest}
 }
 \value{
+A list with the following fields:
+\item{network}{ \code{igraph} object}
+\item{names}{ input argument}
+\item{groups}{ input argument}
+\item{grp.col}{ colours corresponding to each group}
+
 S3 object of type \code{igraph}
 }
 \description{
@@ -40,11 +53,34 @@ Produces an igraph object for the three networks underlying factor-adjusted VAR 
 (i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices summed across the lags,
 (ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
 (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
+
+Converts S3 objects of class \code{fnets} into a network.
+Produces an igraph object for the three networks underlying factor-adjusted VAR processes:
+(i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices summed across the lags,
+(ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
+(iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
 }
 \details{
 See Barigozzi, Cho and Owens (2022) for further details.
+
+See Barigozzi, Cho and Owens (2022) for further details.
 }
 \examples{
+\donttest{
+set.seed(123)
+n <- 500
+p <- 50
+common <- sim.unrestricted(n, p)
+idio <- sim.var(n, p)
+x <- common$data + idio$data
+out <- fnets(x,
+  do.threshold = TRUE,
+  var.args = list(n.cores = 2)
+)
+network(out, type = "granger")
+network(out, type = "pc")
+network(out, type = "lrpc")
+}
 \donttest{
 set.seed(123)
 n <- 500
@@ -65,7 +101,13 @@ network(out, type = "lrpc")
 Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 
 Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+
+Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+
+Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 }
 \seealso{
+\link[fnets]{fnets}, \link[fnets]{plot.fnets}
+
 \link[fnets]{fnets}, \link[fnets]{plot.fnets}
 }

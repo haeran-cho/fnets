@@ -38,8 +38,8 @@
 #' plrpc <- par.lrpc(out, x, n.cores = 2)
 #' out$lrpc <- plrpc
 #' out$do.lrpc <- TRUE
-#' plot(out, type = "pc", display = "network", threshold = .05)
-#' plot(out, type = "lrpc", display = "heatmap", threshold = .05)
+#' plot(out, type = "pc", display = "network")
+#' plot(out, type = "lrpc", display = "heatmap")
 #' }
 #' @importFrom parallel detectCores
 #' @export

@@ -53,9 +53,9 @@ common.predict <-
     pre <- list(is = 0 * x, fc = matrix(0, nrow = p, ncol = h))
     if(attr(object, "factor") == "unrestricted") {
       if(object$q < 1) {
-        warning(paste0(
+        warning(
           "There should be at least one factor for common component estimation!"
-        ))
+        )
       } else {
         if(fc.restricted)
           pre <-
@@ -68,7 +68,7 @@ common.predict <-
               r.method = r.method,
               h = h
             )
-        if(!fc.restricted)
+        else
           pre <-
             common.unrestricted.predict(xx = xx,
                                         cve = object,
@@ -208,7 +208,7 @@ common.restricted.predict <-
     if(is.null(max.r))
       max.r <- max(q, min(50, round(sqrt(min(n, p)))))
     if(h >= dim(Gamma_c)[3]) {
-      warning(paste0("At most ", (dim(Gamma_c)[3] - 1) / 2, "-step ahead forecast is available!"))
+      warning("At most ", (dim(Gamma_c)[3] - 1) / 2, "-step ahead forecast is available!")
       h <- (dim(Gamma_c)[3] - 1) / 2
     }
 
@@ -218,7 +218,7 @@ common.restricted.predict <-
         r  <- max(q, abc$q.hat[5])
         sv <- abc$sv
       }
-      if(r.method == "er") {
+      else if(r.method == "er") {
         sv <- svd(Gamma_x[, , 1], nu = max.r, nv = 0)
         r <- which.max(sv$d[q:max.r] / sv$d[1 + q:max.r]) + q - 1
       }
@@ -250,7 +250,7 @@ common.unrestricted.predict <- function(xx, cve, h = 1) {
   n <- dim(xx)[2]
   trunc.lags <- dim(cve$loadings)[3]
   if(h >= trunc.lags + 1) {
-    warning(paste0("At most ", trunc.lags, "-step ahead forecast is available!"))
+    warning("At most ", trunc.lags, "-step ahead forecast is available!")
     h <- trunc.lags
   }
 
@@ -287,13 +287,9 @@ common.yw.est <- function(Gcp, block, var.order) {
   for (ll in 1:var.order) {
     B[, nblock * (ll - 1) + 1:nblock] <- t(Gcp[block, block, 1 + ll])
     for (lll in 1:var.order) {
-      if(ll >= lll) {
-        C[nblock * (ll - 1) + 1:nblock, nblock * (lll - 1) + 1:nblock] <-
-          Gcp[block, block, 1 + ll - lll]
-      } else {
-        C[nblock * (ll - 1) + 1:nblock, nblock * (lll - 1) + 1:nblock] <-
-          t(Gcp[block, block, 1 + lll - ll])
-      }
+        ifelse(ll >= lll,
+               C[nblock * (ll - 1) + 1:nblock, nblock * (lll - 1) + 1:nblock] <-Gcp[block, block, 1 + ll - lll],
+               C[nblock * (ll - 1) + 1:nblock, nblock * (lll - 1) + 1:nblock] <-t(Gcp[block, block, 1 + lll - ll]))
     }
   }
   A <- B %*% solve(C, symmetric = TRUE)

@@ -4,10 +4,10 @@
 \alias{plot.threshold}
 \title{Plotting the thresholding procedure}
 \usage{
-\method{plot}{threshold}(x, plots = c(TRUE, TRUE, TRUE), ...)
+\method{plot}{threshold}(x, plots = c(TRUE, FALSE, TRUE), ...)
 }
 \arguments{
-\item{x}{\code{fnets} object}
+\item{x}{\code{threshold} object}
 
 \item{plots}{logical vector, which plots to use (Ratio, Diff, CUSUM respectively)}
 
@@ -19,9 +19,9 @@ A network plot produced as per the input arguments
 \description{
 Plotting method for S3 objects of class \code{threshold}.
 Produces a plot visualising three diagnostics for the thresholding procedure, with threshold values t_k (x axis) against
-(i) Ratio_k
-(ii) Diff_k
-(iii) |CUSUM_k|
+(i) Ratio_k, the ratio of edges to non-edges in the matrix entries
+(ii) Diff_k, the first difference of \code{Ratio_k}
+(iii) |CUSUM_k|, the absolute scaled cumulative sums of \code{Diff_k}
 }
 \details{
 See Owens, Cho and Barigozzi (2022) for further details.

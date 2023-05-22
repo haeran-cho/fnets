@@ -16,7 +16,7 @@ fnets.factor.model(
 )
 }
 \arguments{
-\item{x}{input time series matrix, with each row representing a variable}
+\item{x}{input time series matrix, with each row representing a variable and each column containing the observations at a given time}
 
 \item{center}{whether to de-mean the input \code{x} row-wise}
 
@@ -60,12 +60,12 @@ See Barigozzi, Cho and Owens (2022) for further details.
 }
 \examples{
 \donttest{
-set.seed(123)
+set.seed(1234)
 n <- 500
 p <- 50
 common <- sim.restricted(n, p)
-x <- common$data + rnorm(n*p)
-out <- fnets.factor.model(x, fm.restricted = TRUE)
+x <- common$data + matrix(rnorm(n * p), nrow = p)
+out <- fnets.factor.model(x, fm.restricted = FALSE)
 }
 }
 \references{

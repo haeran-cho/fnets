@@ -93,7 +93,6 @@
 #' plot(out, type = "lrpc", display = "heatmap")
 #' }
 #' @seealso \link[fnets]{predict.fnets}, \link[fnets]{plot.fnets}, \link[fnets]{print.fnets}
-#' @importFrom graphics par
 #' @export
 fnets <-
   function(x,
@@ -296,7 +295,6 @@ plot_internal <- function(x,
 #' @export
 network <- function (object, ...) UseMethod("network", object)
 
-<<<<<<< HEAD
 
 
   #' @title Convert networks estimated by fnets into igraph objects
@@ -373,7 +371,6 @@ network <- function (object, ...) UseMethod("network", object)
                 groups = int$grps,
                 grp.col = int$grp.col))
   }
-=======
 #' @title Convert networks estimated by fnets into igraph objects
 #' @method network fnets
 #' @exportS3Method fnets::network
@@ -420,10 +417,9 @@ network.fnets <- function(object,
                           type = c("granger", "pc", "lrpc"),
                           names = NA,
                           groups = NA,
-                          threshold = 0,
                           ...) {
   type <- match.arg(type, c("granger", "pc", "lrpc"))
-  int <- plot_internal(object, type, display = "network", names, groups, threshold, ...)
+  int <- plot_internal(object, type, display = "network", names, groups, ...)
   A <- int$A
   if(type == "granger")
     g <-
@@ -445,7 +441,7 @@ network.fnets <- function(object,
               groups = int$grps,
               grp.col = int$grp.col))
 }
->>>>>>> e3f397eed43e0a2e243db31cf3150f15c6dabe9a
+
 
 #' @title Plotting the networks estimated by fnets
 #' @method plot fnets
@@ -504,8 +500,7 @@ network.fnets <- function(object,
 #' @importFrom graphics mtext axis
 #' @importFrom RColorBrewer brewer.pal
 #' @export
-<<<<<<< HEAD
-  plot.fnets <-
+plot.fnets <-
     function(x,
              type = c("granger", "pc", "lrpc"),
              display = c("network", "heatmap", "tuning"),
@@ -611,7 +606,9 @@ network.fnets <- function(object,
         }
       } else if(display == "tuning") {
         tuning_plot(x)
-=======
+      }
+}
+
 plot.fnets <-
   function(x,
            type = c("granger", "pc", "lrpc"),
@@ -619,7 +616,6 @@ plot.fnets <-
            names = NA,
            groups = NA,
            v.colours = NA,
-           threshold = 0,
            ...) {
 
     oldpar <- par(no.readonly = TRUE)
@@ -641,7 +637,6 @@ plot.fnets <-
                      type = type,
                      names = names,
                      groups = groups,
-                     threshold = threshold,
                      ...)
       ifelse(!is.na(net$groups[1]),
              K <- length(unique(net$groups)),
@@ -672,7 +667,7 @@ plot.fnets <-
       )
     } else if(display == "heatmap") {
       p <- attr(x, "args")$p
-      int <- plot_internal(x, type, display, names, groups, threshold, ...)
+      int <- plot_internal(x, type, display, names, groups, ...)
       A <- int$A
       grp.col <- int$grp.col
       names <- int$names
@@ -686,7 +681,6 @@ plot.fnets <-
         A[abs(A) > 1] <- sign(A[abs(A) > 1])
         diag(A) <- 0
         mv <- 1.01
->>>>>>> e3f397eed43e0a2e243db31cf3150f15c6dabe9a
       }
       breaks <- seq(-mv, mv, length.out = 12)
 
@@ -810,21 +804,32 @@ predict.fnets <-
 print.fnets <- function(x,
                         ...){
   args <- attr(x, "args")
+  if(!is.null(x$acv)) { #fnets.var
+    method <- args$var.method
+    beta <- x$idio.var$beta
+    do.lrpc <- args$do.lrpc
+    q <- x$q
+  } else {
+    method <- args$method
+    beta <- x$beta
+    do.lrpc <- FALSE
+    q <- 0
+  }
   cat(paste("Factor-adjusted vector autoregression model with \n"))
   cat(paste("n: ", args$n, ", p: ", args$p,  "\n", sep = ""))
   cat(paste("Factor-driven Common Component ---------"), "\n")
   cat(paste("Factor model: ", attr(x, "factor"), "\n", sep = ""))
-  cat(paste("Number of factors: ", x$q, "\n", sep = ""))
+  cat(paste("Number of factors: ", q, "\n", sep = ""))
   cat(paste("Number selection method: ", ifelse(is.null(args$q.method), "NA", args$q.method), "\n", sep = ""))
   if(!is.null(args$q.method)) if(args$q.method == "ic")
     cat(paste("Information criterion: ", ifelse(is.null(args$ic.op), "default", args$ic.op), "\n", sep = ""))
   cat(paste("Idiosyncratic VAR Component ---------"), "\n")
   cat(paste("VAR order: ", args$var.order, "\n", sep = ""))
-  cat(paste("VAR estimation method: ", args$var.method, "\n", sep = ""))
+  cat(paste("VAR estimation method: ", method, "\n", sep = ""))
   cat(paste("Tuning method: ", args$tuning, "\n", sep = ""))
   cat(paste("Threshold: ", args$do.threshold, "\n", sep = ""))
-  cat(paste("Non-zero entries: ", sum(x$idio.var$beta != 0), "/", prod(dim(x$idio.var$beta)), "\n", sep = ""))
+  cat(paste("Non-zero entries: ", sum(beta != 0), "/", prod(dim(beta)), "\n", sep = ""))
   cat(paste("Long Run Partial Correlations ---------"), "\n")
-  cat(paste("LRPC: ", args$do.lrpc, "\n", sep = ""))
+  cat(paste("LRPC: ", do.lrpc, "\n", sep = ""))
 }
 

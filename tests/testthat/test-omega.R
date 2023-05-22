@@ -19,6 +19,6 @@ out$lrpc <- plrpc
 out$do.lrpc <- TRUE
 
 test_that("plot executes", {
-plot(out, type = "pc", display = "network", threshold = .05)
-plot(out, type = "lrpc", display = "heatmap", threshold = .05)
+plot(out, type = "pc", display = "network")
+plot(out, type = "lrpc", display = "heatmap")
 })

@@ -17,7 +17,7 @@ sim.restricted(n, p, q = 2, heavy = FALSE)
 }
 \value{
 a list containing
-\item{data}{ generated series}
+\item{data}{ time series matrix with \code{n} rows and \code{p} columns }
 \item{q}{ number of factors}
 \item{r}{ number of restricted factors}
 }

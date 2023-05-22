@@ -10,7 +10,6 @@ plot_internal(
   display = c("network", "heatmap"),
   names = NA,
   groups = NA,
-  threshold = 0,
   ...
 )
 }

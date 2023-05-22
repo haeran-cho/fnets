@@ -13,7 +13,7 @@ factor.number(
 )
 }
 \arguments{
-\item{x}{input time series matrix, with each row representing a variable}
+\item{x}{input time series matrix, with each row representing a variable and each column containing the observations at a given time}
 
 \item{fm.restricted}{whether to estimate the number of restricted or unrestricted factors}
 

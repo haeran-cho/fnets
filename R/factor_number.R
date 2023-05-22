@@ -368,6 +368,6 @@ print.factor.number <- function(x, ...){
   args <- attr(x, "args")
   cat(paste("Factor number selection \n"))
   cat(paste("Factor model: ", attr(x, "factor"), "\n", sep = ""))
-  cat("Number of factors: ", x, "\n")
+  cat(paste("Number of factors: ", x, "\n"), sep = "")
   cat(paste("Method: ", args$method, "\n", sep = ""))
 }

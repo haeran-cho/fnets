@@ -24,7 +24,7 @@ fnets(
 )
 }
 \arguments{
-\item{x}{input time series matrix, with each row representing a variable}
+\item{x}{input time series matrix, with each row representing a variable and each column containing the observations at a given time}
 
 \item{center}{whether to de-mean the input \code{x} row-wise}
 
@@ -104,7 +104,7 @@ a list containing estimators of the impulse response functions (as an array of d
 \item{kern.bw}{ input parameter}
 }
 \description{
-Operating under a factor-adjusted vector autoregressive (VAR) model,
+Under a factor-adjusted vector autoregressive (VAR) model,
 the function estimates the spectral density and autocovariance matrices of the factor-driven common component and the idiosyncratic VAR process,
 the impulse response functions and common shocks for the common component,
 and VAR parameters, innovation covariance matrix and long-run partial correlations for the idiosyncratic component.

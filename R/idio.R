@@ -74,7 +74,7 @@ fnets.var <- function(x,
   dpca <- dyn.pca(xx, q = 0)
   acv <- dpca$acv
 
-  ive <- fnets.var.internal(xx, acv, method = c("lasso", "ds"),
+  ive <- fnets.var.internal(xx, acv, method = method,
                             lambda = lambda,
                             var.order = var.order,
                             tuning.args = tuning.args,
@@ -164,8 +164,11 @@ fnets.var.internal <- function(xx,
       n.cores = n.cores
     )
   ive$var.order <- icv$order.min
-  if(do.threshold)
-    ive$beta <- threshold(ive$beta)$thr.mat
+  if(do.threshold){
+    tt <- threshold(ive$beta)
+    ive$beta <- tt$thr.mat
+    attr(ive$beta, "threshold") <- tt$thresold
+  }
   attr(ive, "data") <- icv
   return(ive)
 }
@@ -609,6 +612,7 @@ idio.predict <- function(object, x, cpre, h = 1) {
 
   xx <- x - object$mean.x
   beta <- object$idio.var$beta
+  if(is.null(beta)) beta <- object$beta
   d <- dim(beta)[1] / p
   A <- t(beta)
 
@@ -707,7 +711,7 @@ threshold <- function(mat,
   if(!is.null(attr(mat, "thresholded"))) {
     warning("This matrix has already been thresholded. Returning input.")
     A <- mat
-    thr <- 0
+    thr <- ifelse(is.null(attr(mat, "threshold")), 0, attr(mat, "threshold"))
   } else {
     p <- dim(mat)[1]
     M <- max(abs(mat), 1e-3)
@@ -744,11 +748,11 @@ threshold <- function(mat,
 #' @method plot threshold
 #' @description Plotting method for S3 objects of class \code{threshold}.
 #' Produces a plot visualising three diagnostics for the thresholding procedure, with threshold values t_k (x axis) against
-#' (i) Ratio_k
-#' (ii) Diff_k
-#' (iii) |CUSUM_k|
+#' (i) Ratio_k, the ratio of edges to non-edges in the matrix entries
+#' (ii) Diff_k, the first difference of \code{Ratio_k}
+#' (iii) |CUSUM_k|, the absolute scaled cumulative sums of \code{Diff_k}
 #' @details See Owens, Cho and Barigozzi (2022) for further details.
-#' @param x \code{fnets} object
+#' @param x \code{threshold} object
 #' @param plots logical vector, which plots to use (Ratio, Diff, CUSUM respectively)
 #' @param ... additional arguments
 #' @return A network plot produced as per the input arguments
@@ -761,7 +765,7 @@ threshold <- function(mat,
 #' threshold.A <- threshold(A)
 #' plot(threshold.A)
 #' @export
-plot.threshold <- function(x, plots = c(TRUE, TRUE, TRUE), ...){
+plot.threshold <- function(x, plots = c(TRUE, FALSE, TRUE), ...){
   seqs <- attr(x, "seqs")
   oldpar <- par(no.readonly = TRUE)
   on.exit(par(oldpar))
