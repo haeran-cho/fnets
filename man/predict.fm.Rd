@@ -4,12 +4,10 @@
 \alias{predict.fm}
 \title{Forecasting for factor models}
 \usage{
-\method{predict}{fm}(object, x = NULL, h = 1, fc.restricted = TRUE, r = c("ic", "er"), ...)
+\method{predict}{fm}(object, h = 1, fc.restricted = TRUE, r = c("ic", "er"), ...)
 }
 \arguments{
 \item{object}{\code{fm} object}
-
-\item{x}{input time series matrix, with each row representing a variable; by default, uses input to \code{object}}
 
 \item{h}{forecasting horizon}
 
@@ -31,7 +29,7 @@ a list containing
 \item{r}{ factor number}
 }
 \description{
-Produces forecasts of the data for a given forecasting horizon by
+Produces forecasts of the data input to \code{object} for a given forecasting horizon by
 estimating the best linear predictors of the common component
 }
 \examples{

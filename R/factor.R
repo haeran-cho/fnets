@@ -330,10 +330,9 @@ static.pca <-
 
 #' @title Forecasting for factor models
 #' @method predict fm
-#' @description Produces forecasts of the data for a given forecasting horizon by
+#' @description Produces forecasts of the data input to \code{object} for a given forecasting horizon by
 #'estimating the best linear predictors of the common component
 #' @param object \code{fm} object
-#' @param x input time series matrix, with each row representing a variable; by default, uses input to \code{object}
 #' @param h forecasting horizon
 #' @param fc.restricted whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component
 #' @param r number of restricted factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
@@ -363,12 +362,11 @@ static.pca <-
 #' @export
 predict.fm <-
   function(object,
-           x = NULL,
            h = 1,
            fc.restricted = TRUE,
            r = c("ic", "er"),
            ...) {
-    if(is.null(x)) x <- attr(object, "args")$x
+    x <- attr(object, "args")$x
     h <- posint(h)
     out <-
       common.predict(
