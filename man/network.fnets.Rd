@@ -41,6 +41,7 @@ Produces an igraph object for the three networks underlying factor-adjusted VAR 
 (i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices summed across the lags,
 (ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
 (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
+When plotting the network, note that the edge weights may be negative.
 }
 \details{
 See Barigozzi, Cho and Owens (2022) for further details.

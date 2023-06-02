@@ -303,6 +303,7 @@ network <- function (object, ...) UseMethod("network", object)
 #' (i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices summed across the lags,
 #' (ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
 #' (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
+#' When plotting the network, note that the edge weights may be negative.
 #' @details See Barigozzi, Cho and Owens (2022) for further details.
 #' @param object \code{fnets} object
 #' @param type a string specifying which of the above three networks (i)--(iii) to visualise; possible values are
@@ -362,7 +363,8 @@ network.fnets <- function(object,
                                         weighted = TRUE,
                                         diag = FALSE,
                                         ...)
-
+  if(min(A) < 0)
+    warning("Negative edge weights present. Take care when plotting.")
   return(list(network = g,
               names = int$names,
               groups = int$grps,
