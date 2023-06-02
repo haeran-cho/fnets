@@ -83,6 +83,8 @@ fnets.var <- function(x,
                             tol = tol,
                             n.cores = n.cores)
   ive$mean.x <- mean.x
+  ive$do.lrpc <- FALSE
+  ive$q <- 0
 
   attr(ive, "class") <- "fnets"
   attr(ive, "factor") <- "none"
@@ -164,11 +166,8 @@ fnets.var.internal <- function(xx,
       n.cores = n.cores
     )
   ive$var.order <- icv$order.min
-  if(do.threshold){
-    tt <- threshold(ive$beta)
-    ive$beta <- tt$thr.mat
-    attr(ive$beta, "threshold") <- tt$thresold
-  }
+  if(do.threshold)
+    ive$beta <- threshold(ive$beta)$thr.mat
   attr(ive, "data") <- icv
   return(ive)
 }
@@ -679,12 +678,13 @@ prox.func <- function(B, lambda, L, GG, gg) {
   return(as.matrix(out))
 }
 
-#' @title Edge selection for VAR parameter, inverse innovation covariance, and long-run partial correlation matrices
-#' @description Threshold the entries of the input matrix at a data-driven level to perform edge selection
+#' @title Threshold the entries of the input matrix at a data-driven level
+#' @description Threshold the entries of the input matrix at a data-driven level.
+#' This can be used to perform edge selection for VAR parameter, inverse innovation covariance, and long-run partial correlation networks.
 #' @details See Liu, Zhang, and Liu (2021) for more information on the threshold selection process
 #' @param mat input parameter matrix
 #' @param path.length number of candidate thresholds
-#' @return a list which contains the following fields:
+#' @return an S3 object of class \code{threshold}, which contains the following fields:
 #' \item{threshold}{ data-driven threshold}
 #' \item{thr.mat}{ thresholded input matrix}
 #' @seealso \link[fnets]{plot.threshold}, \link[fnets]{print.threshold}
@@ -697,11 +697,7 @@ prox.func <- function(B, lambda, L, GG, gg) {
 threshold <- function(mat,
                       path.length = 500) {
   path.length <- posint(path.length)
-  if(!is.null(attr(mat, "thresholded"))) {
-    warning("This matrix has already been thresholded. Returning input.")
-    A <- mat
-    thr <- ifelse(is.null(attr(mat, "threshold")), 0, attr(mat, "threshold"))
-  } else {
+
     p <- dim(mat)[1]
     M <- max(abs(mat), 1e-3)
     m <- max(min(abs(mat)), M * .01, 1e-4)
@@ -724,8 +720,6 @@ threshold <- function(mat,
     A <- mat
     A[abs(A) < thr] <- 0
 
-    attr(A, "thresholded") <- TRUE
-  }
 
   out <- list(threshold = thr, thr.mat = A)
   attr(out, "seqs") <- list(rseq = rseq, ratio = ratio, dif = dif, cusum = cusum)
@@ -737,7 +731,7 @@ threshold <- function(mat,
 #' @method plot threshold
 #' @description Plotting method for S3 objects of class \code{threshold}.
 #' Produces a plot visualising three diagnostics for the thresholding procedure, with threshold values t_k (x axis) against
-#' (i) Ratio_k, the ratio of edges to non-edges in the matrix entries
+#' (i) Ratio_k, the ratio of the number of non-zero to zero entries in the matrix, as the threshold varies
 #' (ii) Diff_k, the first difference of \code{Ratio_k}
 #' (iii) |CUSUM_k|, the absolute scaled cumulative sums of \code{Diff_k}
 #' @details See Owens, Cho and Barigozzi (2022) for further details.

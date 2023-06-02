@@ -258,7 +258,6 @@ plot_internal <- function(x,
       }
     }
 
-    A[abs(A) < 0] <- 0
 
     if(!is.na(groups[1])) {
       grps <- perm <- c()
@@ -295,82 +294,6 @@ plot_internal <- function(x,
 #' @export
 network <- function (object, ...) UseMethod("network", object)
 
-
-
-#' @title Convert networks estimated by fnets into igraph objects
-#' @method network fnets
-#' @exportS3Method fnets::network
-#' @description Converts S3 objects of class \code{fnets} into a network.
-#' Produces an igraph object for the three networks underlying factor-adjusted VAR processes:
-#' (i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices summed across the lags,
-#' (ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
-#' (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
-#' @details See Barigozzi, Cho and Owens (2022) for further details.
-#' @param object \code{fnets} object
-#' @param type a string specifying which of the above three networks (i)--(iii) to visualise; possible values are
-#' \itemize{
-#'    \item{\code{"granger"}}{ directed network representing Granger causal linkages}
-#'    \item{\code{"pc"}}{ undirected network representing contemporaneous linkages; available when \code{object$do.lrpc = TRUE}}
-#'    \item{\code{"lrpc"}}{ undirected network summarising Granger causal and contemporaneous linkages; available when \code{x$do.lrpc = TRUE}}
-#' }
-#' @param names a character vector containing the names of the vertices
-#' @param groups an integer vector denoting any group structure of the vertices
-#' @param ... additional arguments to \code{igraph::graph_from_adjacency_matrix}
-#' @return A list with the following fields:
-#' \item{network}{ \code{igraph} object}
-#' \item{names}{ input argument}
-#' \item{groups}{ input argument}
-#' \item{grp.col}{ colours corresponding to each group}
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
-#' @seealso \link[fnets]{fnets}, \link[fnets]{plot.fnets}
-#' @examples
-#' \donttest{
-#' set.seed(123)
-#' n <- 500
-#' p <- 50
-#' common <- sim.unrestricted(n, p)
-#' idio <- sim.var(n, p)
-#' x <- common$data + idio$data
-#' out <- fnets(x,
-#'   do.threshold = TRUE,
-#'   var.args = list(n.cores = 2)
-#' )
-#' network(out, type = "granger")
-#' network(out, type = "pc")
-#' network(out, type = "lrpc")
-#' }
-#' @importFrom igraph graph_from_adjacency_matrix
-#' @export
-network.fnets <- function(object,
-                          type = c("granger", "pc", "lrpc"),
-                          names = NA,
-                          groups = NA,
-                          ...) {
-  type <- match.arg(type, c("granger", "pc", "lrpc"))
-  int <- plot_internal(object, type, display = "network", names, groups, ...)
-  A <- int$A
-  if(type == "granger")
-    g <-
-    igraph::graph_from_adjacency_matrix(A,
-                                        mode = "directed",
-                                        weighted = TRUE,
-                                        diag = FALSE,
-                                        ...)
-  else if(type %in% c("pc", "lrpc"))
-    g <-
-    igraph::graph_from_adjacency_matrix(A,
-                                        mode = "undirected",
-                                        weighted = TRUE,
-                                        diag = FALSE,
-                                        ...)
-
-
-  return(list(network = g,
-              names = int$names,
-              groups = int$grps,
-              grp.col = int$grp.col))
-}
 
 #' @title Convert networks estimated by fnets into igraph objects
 #' @method network fnets
@@ -613,115 +536,7 @@ plot.fnets <-
       }
 }
 
-plot.fnets <-
-  function(x,
-           type = c("granger", "pc", "lrpc"),
-           display = c("network", "heatmap", "tuning"),
-           names = NA,
-           groups = NA,
-           v.colours = NA,
-           ...) {
 
-    oldpar <- par(no.readonly = TRUE)
-    on.exit(par(oldpar))
-    type <- match.arg(type, c("granger", "pc", "lrpc"))
-    display <- match.arg(display, c("network", "heatmap", "tuning"))
-
-    if(type == "granger"){
-      nm <- "Granger causal"
-    } else if(type == "pc"){
-      nm <- "Partial correlation"
-    } else if(type == "lrpc"){
-      nm <- "Long-run partial correlation"
-    }
-    nm <- paste(nm, display, sep = " ")
-
-    if(display == "network") {
-      net <- network(x,
-                     type = type,
-                     names = names,
-                     groups = groups,
-                     ...)
-      ifelse(!is.na(net$groups[1]),
-             K <- length(unique(net$groups)),
-             K <- 1)
-      if(is.na(v.colours[1])) v.colours <- grDevices::rainbow(K, alpha = .2)
-      if(length(v.colours) != K){
-        warning("length of v.colours must be equal to number of groups; setting to default")
-        v.colours <- grDevices::rainbow(K, alpha = .2)
-      }
-      v.col <- rep(v.colours, table(net$groups))
-      g <- net$network
-      names <- net$names
-      grp.col <- net$grp.col
-      lg <- igraph::layout_in_circle(g)
-      igraph::plot.igraph(
-        g,
-        main = nm,
-        layout = lg,
-        vertex.label = names,
-        vertex.label.font = 2,
-        vertex.shape = "circle",
-        vertex.color = v.col,
-        vertex.label.color = grp.col,
-        vertex.label.cex = 0.6,
-        edge.color = "gray40",
-        edge.arrow.size = 0.5,
-        edge.width = .5 + 3 * igraph::E(g)$weight
-      )
-    } else if(display == "heatmap") {
-      p <- attr(x, "args")$p
-      int <- plot_internal(x, type, display, names, groups, ...)
-      A <- int$A
-      grp.col <- int$grp.col
-      names <- int$names
-      groups <- int$grps
-      perm <- int$perm
-
-      heat.cols <- rev(RColorBrewer::brewer.pal(11, "RdBu"))
-      if(type == "granger")
-        mv <- max(1e-3, abs(A))
-      if(type %in% c("pc", "lrpc")) {
-        A[abs(A) > 1] <- sign(A[abs(A) > 1])
-        diag(A) <- 0
-        mv <- 1.01
-      }
-      breaks <- seq(-mv, mv, length.out = 12)
-
-      fields::imagePlot(
-        A,
-        axes = FALSE,
-        col = heat.cols,
-        breaks = breaks,
-        main = nm,
-        ...
-      )
-      if(!is.na(names[1]) || (!is.na(groups[1]) & !all(groups==1)) ) {
-        if(is.na(names[1]))
-          names <- groups[perm]
-        for (ii in 1:p)
-          mtext(
-            text = names[ii],
-            at = (ii - 1) / (p - 1),
-            side = 1,
-            las = 2,
-            cex = .8,
-            col = grp.col[ii]
-          )
-        for (ii in 1:p)
-          mtext(
-            text = names[ii],
-            at = (ii - 1) / (p - 1),
-            side = 2,
-            las = 2,
-            cex = .8,
-            col = grp.col[ii]
-          )
-      }
-    } else if(display == "tuning") {
-      tuning_plot(x)
-    }
-}
 
 #' @title Forecasting by fnets
 #' @method predict fnets
@@ -774,6 +589,10 @@ predict.fnets <-
   }
 
   h <- posint(h)
+  if(ncol(newdata) < h){
+    h <- ncol(newdata)
+    warning("Forecast horizon restricted by number of observations")
+  }
   cpre <- common.predict(object, newdata, h, fc.restricted, r)
   ipre <- idio.predict(object, newdata, cpre, h)
 

@@ -1,3 +1,4 @@
+library(fnets)
 set.seed(123)
 n <- 500
 p <- 50
@@ -14,4 +15,4 @@ print(th1)
 # Partial correlations
 th2 <- threshold(out$lrpc$pc)
 # Long-run partial correlations
-th1 <- threshold(out$lrpc$lrpc)
+th3 <- threshold(out$lrpc$lrpc)

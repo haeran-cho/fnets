@@ -19,7 +19,7 @@ A network plot produced as per the input arguments
 \description{
 Plotting method for S3 objects of class \code{threshold}.
 Produces a plot visualising three diagnostics for the thresholding procedure, with threshold values t_k (x axis) against
-(i) Ratio_k, the ratio of edges to non-edges in the matrix entries
+(i) Ratio_k, the ratio of the number of non-zero to zero entries in the matrix, as the threshold varies
 (ii) Diff_k, the first difference of \code{Ratio_k}
 (iii) |CUSUM_k|, the absolute scaled cumulative sums of \code{Diff_k}
 }
@@ -27,6 +27,7 @@ Produces a plot visualising three diagnostics for the thresholding procedure, wi
 See Owens, Cho and Barigozzi (2022) for further details.
 }
 \examples{
+library(fnets)
 set.seed(123)
 n <- 500
 p <- 50
@@ -43,7 +44,7 @@ print(th1)
 # Partial correlations
 th2 <- threshold(out$lrpc$pc)
 # Long-run partial correlations
-th1 <- threshold(out$lrpc$lrpc)
+th3 <- threshold(out$lrpc$lrpc)
 }
 \references{
 Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.

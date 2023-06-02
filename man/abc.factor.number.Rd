@@ -26,7 +26,7 @@ and their variations with logarithm taken on the cost (\code{ic.op = 4, 5, 6}) a
 with \code{ic.op = 5} recommended as a default choice based on numerical experiments.
 }
 \details{
-See Bai and Ng (2002) for further details.
+See Alessi, Barigozzi and Capasso (2010) for further details.
 }
 \references{
 preprint

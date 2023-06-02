@@ -105,9 +105,10 @@ posint <- function(x, min.x = 1){
   x.name <- deparse(substitute(x))
   if(x < min.x | x != round(x)){
     xx <- max(min.x, as.integer(x))
-    ifelse(xx == round(x),
-           warning(cat(x.name,"=",x, "coerced to ", xx,"\n")),
-           stop(cat(x.name,"=",x, "cannot be coerced to correct input format. Must be integer greater than", min.x,"\n")))
+    if(xx == round(x))
+      warning(cat(x.name,"=",x, "coerced to ", xx,"\n"))
+    else
+      stop(paste(x.name,"=",x, "cannot be coerced to correct input format. Must be integer greater than", min.x,"\n"))
     x <- xx
   }
   return(x)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/idio.R
 \name{threshold}
 \alias{threshold}
-\title{Edge selection for VAR parameter, inverse innovation covariance, and long-run partial correlation matrices}
+\title{Threshold the entries of the input matrix at a data-driven level}
 \usage{
 threshold(mat, path.length = 500)
 }
@@ -12,17 +12,19 @@ threshold(mat, path.length = 500)
 \item{path.length}{number of candidate thresholds}
 }
 \value{
-a list which contains the following fields:
+an S3 object of class \code{threshold}, which contains the following fields:
 \item{threshold}{ data-driven threshold}
 \item{thr.mat}{ thresholded input matrix}
 }
 \description{
-Threshold the entries of the input matrix at a data-driven level to perform edge selection
+Threshold the entries of the input matrix at a data-driven level.
+This can be used to perform edge selection for VAR parameter, inverse innovation covariance, and long-run partial correlation networks.
 }
 \details{
 See Liu, Zhang, and Liu (2021) for more information on the threshold selection process
 }
 \examples{
+library(fnets)
 set.seed(123)
 n <- 500
 p <- 50
@@ -39,7 +41,7 @@ print(th1)
 # Partial correlations
 th2 <- threshold(out$lrpc$pc)
 # Long-run partial correlations
-th1 <- threshold(out$lrpc$lrpc)
+th3 <- threshold(out$lrpc$lrpc)
 }
 \references{
 Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.

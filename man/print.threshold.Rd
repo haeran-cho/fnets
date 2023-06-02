@@ -18,6 +18,7 @@ NULL, printed to console
 Prints a summary of a \code{threshold} object
 }
 \examples{
+library(fnets)
 set.seed(123)
 n <- 500
 p <- 50
@@ -34,7 +35,7 @@ print(th1)
 # Partial correlations
 th2 <- threshold(out$lrpc$pc)
 # Long-run partial correlations
-th1 <- threshold(out$lrpc$lrpc)
+th3 <- threshold(out$lrpc$lrpc)
 }
 \references{
 Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.

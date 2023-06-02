@@ -189,7 +189,7 @@ hl.factor.number <-
 #' Currently the three information criteria proposed in Alessi, Barigozzi and Capasso (2010) (\code{ic.op = 1, 2, 3})
 #' and their variations with logarithm taken on the cost (\code{ic.op = 4, 5, 6}) are implemented,
 #' with \code{ic.op = 5} recommended as a default choice based on numerical experiments.
-#' @details See Bai and Ng (2002) for further details.
+#' @details See Alessi, Barigozzi and Capasso (2010) for further details.
 #' @param x input time series matrix, with each row representing a variable
 #' @param covx covariance of \code{x}
 #' @param q.max maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}
@@ -368,6 +368,11 @@ print.factor.number <- function(x, ...){
   args <- attr(x, "args")
   cat(paste("Factor number selection \n"))
   cat(paste("Factor model: ", attr(x, "factor"), "\n", sep = ""))
-  cat(paste("Number of factors: ", x, "\n"), sep = "")
-  cat(paste("Method: ", args$method, "\n", sep = ""))
+  if(args$method == "er"){
+    cat(paste("Number of factors: ", x, "\n"), sep = "")
+  }
+  else for(ii in 1:6)
+    cat(paste("IC", ii, "Number of factors: ", x[ii], "\n"), sep = "")
+  met <- ifelse(args$method == "er", "Eigenvalue Ratio", "Information Criterion")
+  cat(paste("Method: ", met, "\n", sep = ""))
 }
