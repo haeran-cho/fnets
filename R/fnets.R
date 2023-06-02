@@ -297,80 +297,80 @@ network <- function (object, ...) UseMethod("network", object)
 
 
 
-  #' @title Convert networks estimated by fnets into igraph objects
-  #' @method network fnets
-  #' @exportS3Method fnets::network
-  #' @description Converts S3 objects of class \code{fnets} into a network.
-  #' Produces an igraph object for the three networks underlying factor-adjusted VAR processes:
-  #' (i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices summed across the lags,
-  #' (ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
-  #' (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
-  #' @details See Barigozzi, Cho and Owens (2022) for further details.
-  #' @param object \code{fnets} object
-  #' @param type a string specifying which of the above three networks (i)--(iii) to visualise; possible values are
-  #' \itemize{
-  #'    \item{\code{"granger"}}{ directed network representing Granger causal linkages}
-  #'    \item{\code{"pc"}}{ undirected network representing contemporaneous linkages; available when \code{object$do.lrpc = TRUE}}
-  #'    \item{\code{"lrpc"}}{ undirected network summarising Granger causal and contemporaneous linkages; available when \code{x$do.lrpc = TRUE}}
-  #' }
-  #' @param names a character vector containing the names of the vertices
-  #' @param groups an integer vector denoting any group structure of the vertices
-  #' @param ... additional arguments to \code{igraph::graph_from_adjacency_matrix}
-  #' @return A list with the following fields:
-  #' \item{network}{ \code{igraph} object}
-  #' \item{names}{ input argument}
-  #' \item{groups}{ input argument}
-  #' \item{grp.col}{ colours corresponding to each group}
-  #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-  #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
-  #' @seealso \link[fnets]{fnets}, \link[fnets]{plot.fnets}
-  #' @examples
-  #' \donttest{
-  #' set.seed(123)
-  #' n <- 500
-  #' p <- 50
-  #' common <- sim.unrestricted(n, p)
-  #' idio <- sim.var(n, p)
-  #' x <- common$data + idio$data
-  #' out <- fnets(x,
-  #'   do.threshold = TRUE,
-  #'   var.args = list(n.cores = 2)
-  #' )
-  #' network(out, type = "granger")
-  #' network(out, type = "pc")
-  #' network(out, type = "lrpc")
-  #' }
-  #' @importFrom igraph graph_from_adjacency_matrix
-  #' @export
-  network.fnets <- function(object,
-                      type = c("granger", "pc", "lrpc"),
-                      names = NA,
-                      groups = NA,
-                      ...) {
-    type <- match.arg(type, c("granger", "pc", "lrpc"))
-    int <- plot_internal(object, type, display = "network", names, groups, ...)
-    A <- int$A
-    if(type == "granger")
-      g <-
-      igraph::graph_from_adjacency_matrix(A,
-                                          mode = "directed",
-                                          weighted = TRUE,
-                                          diag = FALSE,
-                                          ...)
-    else if(type %in% c("pc", "lrpc"))
-      g <-
-      igraph::graph_from_adjacency_matrix(A,
-                                          mode = "undirected",
-                                          weighted = TRUE,
-                                          diag = FALSE,
-                                          ...)
+#' @title Convert networks estimated by fnets into igraph objects
+#' @method network fnets
+#' @exportS3Method fnets::network
+#' @description Converts S3 objects of class \code{fnets} into a network.
+#' Produces an igraph object for the three networks underlying factor-adjusted VAR processes:
+#' (i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices summed across the lags,
+#' (ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
+#' (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
+#' @details See Barigozzi, Cho and Owens (2022) for further details.
+#' @param object \code{fnets} object
+#' @param type a string specifying which of the above three networks (i)--(iii) to visualise; possible values are
+#' \itemize{
+#'    \item{\code{"granger"}}{ directed network representing Granger causal linkages}
+#'    \item{\code{"pc"}}{ undirected network representing contemporaneous linkages; available when \code{object$do.lrpc = TRUE}}
+#'    \item{\code{"lrpc"}}{ undirected network summarising Granger causal and contemporaneous linkages; available when \code{x$do.lrpc = TRUE}}
+#' }
+#' @param names a character vector containing the names of the vertices
+#' @param groups an integer vector denoting any group structure of the vertices
+#' @param ... additional arguments to \code{igraph::graph_from_adjacency_matrix}
+#' @return A list with the following fields:
+#' \item{network}{ \code{igraph} object}
+#' \item{names}{ input argument}
+#' \item{groups}{ input argument}
+#' \item{grp.col}{ colours corresponding to each group}
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+#' @seealso \link[fnets]{fnets}, \link[fnets]{plot.fnets}
+#' @examples
+#' \donttest{
+#' set.seed(123)
+#' n <- 500
+#' p <- 50
+#' common <- sim.unrestricted(n, p)
+#' idio <- sim.var(n, p)
+#' x <- common$data + idio$data
+#' out <- fnets(x,
+#'   do.threshold = TRUE,
+#'   var.args = list(n.cores = 2)
+#' )
+#' network(out, type = "granger")
+#' network(out, type = "pc")
+#' network(out, type = "lrpc")
+#' }
+#' @importFrom igraph graph_from_adjacency_matrix
+#' @export
+network.fnets <- function(object,
+                          type = c("granger", "pc", "lrpc"),
+                          names = NA,
+                          groups = NA,
+                          ...) {
+  type <- match.arg(type, c("granger", "pc", "lrpc"))
+  int <- plot_internal(object, type, display = "network", names, groups, ...)
+  A <- int$A
+  if(type == "granger")
+    g <-
+    igraph::graph_from_adjacency_matrix(A,
+                                        mode = "directed",
+                                        weighted = TRUE,
+                                        diag = FALSE,
+                                        ...)
+  else if(type %in% c("pc", "lrpc"))
+    g <-
+    igraph::graph_from_adjacency_matrix(A,
+                                        mode = "undirected",
+                                        weighted = TRUE,
+                                        diag = FALSE,
+                                        ...)
 
 
-    return(list(network = g,
-                names = int$names,
-                groups = int$grps,
-                grp.col = int$grp.col))
-  }
+  return(list(network = g,
+              names = int$names,
+              groups = int$grps,
+              grp.col = int$grp.col))
+}
 
 #' @title Convert networks estimated by fnets into igraph objects
 #' @method network fnets
