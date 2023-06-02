@@ -40,8 +40,9 @@ x <- common$data + idio$data
 
 Fit a factor-adjusted VAR model with `q = 2` factors and `lasso` for VAR transition matrix estimation
 ```
-out <- fnets(x, q = 2, idio.var.order = 1, idio.method = "lasso", lrpc.method = "none")
+out <- fnets(x, q = 2, var.order = 1, var.method = "lasso", do.lrpc = FALSE)
 ```
+
 Plot the Granger network induced by the estimated VAR transition matrices:
 ```
 plot(out, type = "granger", display = "network")
@@ -55,12 +56,12 @@ out$lrpc.method <- 'par'
 plot(out, type = "lrpc", display = "heatmap")
 ```
 
-Of course, we can estimate the (long-run) partial correlation-based networks directly using `fnets`:
+Estimate the (long-run) partial correlation-based networks directly using `fnets`:
 ```
-out <- fnets(x, q = 2, idio.var.order = 1, idio.method = "lasso", lrpc.method = "par")
+out <- fnets(x, q = 2, var.order = 1, var.method = "lasso", do.lrpc = TRUE)
 ```
 
-Perform h-step ahead forecasting
+Perform h-step ahead forecasting:
 ```
 pr <- predict(out, h = 1, common.method = "restricted")
 pr$forecast
