@@ -483,7 +483,7 @@ plot.fnets <-
           vertex.label.cex = 0.6,
           edge.color = "gray40",
           edge.arrow.size = 0.5,
-          edge.width = .5 + 3 * igraph::E(g)$weight
+          edge.width = .5 + 3 * abs(igraph::E(g)$weight)
         )
       } else if(display == "heatmap") {
         p <- attr(x, "args")$p
