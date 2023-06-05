@@ -303,7 +303,7 @@ network <- function (object, ...) UseMethod("network", object)
 #' (i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices summed across the lags,
 #' (ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
 #' (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
-#' When plotting the network, note that the edge weights may be negative.
+#' When plotting the network, note that the edge weights may be negative since they correspond to the entries of the estimators of VAR parameters and (long-run) partial correlations.
 #' @details See Barigozzi, Cho and Owens (2022) for further details.
 #' @param object \code{fnets} object
 #' @param type a string specifying which of the above three networks (i)--(iii) to visualise; possible values are
@@ -336,7 +336,7 @@ network <- function (object, ...) UseMethod("network", object)
 #'   var.args = list(n.cores = 2)
 #' )
 #' net <- network(out, type = "granger")$network
-#' plot(net, layout = igraph::layout_in_circle(net)) #Owens et. al., Figure 5
+#' plot(net, layout = igraph::layout_in_circle(net))
 #' network(out, type = "pc")
 #' network(out, type = "lrpc")
 #' }
@@ -538,8 +538,6 @@ plot.fnets <-
         tuning_plot(x)
       }
 }
-
-
 
 #' @title Forecasting by fnets
 #' @method predict fnets
