@@ -25,6 +25,7 @@ See Liu, Zhang, and Liu (2021) for more information on the threshold selection p
 }
 \examples{
 library(fnets)
+
 set.seed(123)
 n <- 500
 p <- 50

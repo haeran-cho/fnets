@@ -4,12 +4,12 @@
 \alias{predict.fm}
 \title{Forecasting for factor models}
 \usage{
-\method{predict}{fm}(object, h = 1, fc.restricted = TRUE, r = c("ic", "er"), ...)
+\method{predict}{fm}(object, n.ahead = 1, fc.restricted = TRUE, r = c("ic", "er"), ...)
 }
 \arguments{
 \item{object}{\code{fm} object}
 
-\item{h}{forecasting horizon}
+\item{n.ahead}{forecasting horizon}
 
 \item{fc.restricted}{whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component}
 

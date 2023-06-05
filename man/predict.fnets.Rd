@@ -7,7 +7,7 @@
 \method{predict}{fnets}(
   object,
   newdata = NULL,
-  h = 1,
+  n.ahead = 1,
   fc.restricted = TRUE,
   r = c("ic", "er"),
   ...
@@ -17,9 +17,9 @@
 \item{object}{\code{fnets} object}
 
 \item{newdata}{input time series matrix, with each row representing a variable; by default, uses input to \code{object}.
-Valid only for a VAR without factor adjustment, i.e. when \code{q = 0}.}
+Valid only for the case where \code{newdata} is modelled as a VAR process without any factors}
 
-\item{h}{forecasting horizon}
+\item{n.ahead}{forecasting horizon}
 
 \item{fc.restricted}{whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component}
 

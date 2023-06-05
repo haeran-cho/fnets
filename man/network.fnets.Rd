@@ -58,7 +58,8 @@ out <- fnets(x,
   do.threshold = TRUE,
   var.args = list(n.cores = 2)
 )
-network(out, type = "granger")
+net <- network(out, type = "granger")$network
+plot(net, layout = igraph::layout_in_circle(net)) #Owens et. al., Figure 5
 network(out, type = "pc")
 network(out, type = "lrpc")
 }

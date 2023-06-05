@@ -4,14 +4,14 @@
 \alias{common.predict}
 \title{Forecasting the factor-driven common component}
 \usage{
-common.predict(object, x, h = 1, fc.restricted = TRUE, r = c("ic", "er"))
+common.predict(object, x, n.ahead = 1, fc.restricted = TRUE, r = c("ic", "er"))
 }
 \arguments{
 \item{object}{\code{fnets} object}
 
 \item{x}{input time series matrix, with each row representing a variable}
 
-\item{h}{forecasting horizon}
+\item{n.ahead}{forecasting horizon}
 
 \item{fc.restricted}{whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component}
 
@@ -27,7 +27,7 @@ a list containing
 \item{is}{ in-sample estimator of the common component}
 \item{fc}{ forecasts of the common component for a given forecasting horizon \code{h}}
 \item{r}{ restricted factor number}
-\item{h}{ forecast horizon}
+\item{n.ahead}{ forecast horizon}
 }
 \description{
 Produces forecasts of the common component

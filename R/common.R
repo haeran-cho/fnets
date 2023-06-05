@@ -3,7 +3,7 @@
 #' for a given forecasting horizon by estimating the best linear predictors
 #' @param object \code{fnets} object
 #' @param x input time series matrix, with each row representing a variable
-#' @param h forecasting horizon
+#' @param n.ahead forecasting horizon
 #' @param fc.restricted whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component
 #' @param r number of restricted factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
 #'  possible values are:
@@ -15,7 +15,7 @@
 #' \item{is}{ in-sample estimator of the common component}
 #' \item{fc}{ forecasts of the common component for a given forecasting horizon \code{h}}
 #' \item{r}{ restricted factor number}
-#' \item{h}{ forecast horizon}
+#' \item{n.ahead}{ forecast horizon}
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Forni, M., Hallin, M., Lippi, M. & Reichlin, L. (2005). The generalized dynamic factor model: one-sided estimation and forecasting. Journal of the American Statistical Association, 100(471), 830--840.
@@ -38,7 +38,7 @@
 common.predict <-
   function(object,
            x,
-           h = 1,
+           n.ahead = 1,
            fc.restricted = TRUE,
            r = c("ic", "er")) {
     xx <- x - object$mean.x
@@ -50,7 +50,7 @@ common.predict <-
     } else
       r.method <- NULL
 
-    pre <- list(is = 0 * x, fc = matrix(0, nrow = p, ncol = h))
+    pre <- list(is = 0 * x, fc = matrix(0, nrow = p, ncol = n.ahead))
     if(attr(object, "factor") == "unrestricted") {
       if(object$q < 1) {
         warning(
@@ -66,13 +66,13 @@ common.predict <-
               q = object$q,
               r = r,
               r.method = r.method,
-              h = h
+              n.ahead = n.ahead
             )
         else
           pre <-
             common.unrestricted.predict(xx = xx,
                                         cve = object,
-                                        h = h)
+                                        n.ahead = n.ahead)
       }
     }
 
@@ -90,7 +90,7 @@ common.predict <-
           q = object$q,
           r = object$q,
           r.method = r.method,
-          h = h
+          n.ahead = n.ahead
         )
 
       }
@@ -201,15 +201,15 @@ common.restricted.predict <-
            r = NULL,
            max.r = NULL,
            r.method = NULL,
-           h = 1) {
+           n.ahead = 1) {
 
     p <- dim(xx)[1]
     n <- dim(xx)[2]
     if(is.null(max.r))
       max.r <- max(q, min(50, round(sqrt(min(n, p)))))
-    if(h >= dim(Gamma_c)[3]) {
+    if(n.ahead >= dim(Gamma_c)[3]) {
       warning("At most ", (dim(Gamma_c)[3] - 1) / 2, "-step ahead forecast is available!")
-      h <- (dim(Gamma_c)[3] - 1) / 2
+      n.ahead <- (dim(Gamma_c)[3] - 1) / 2
     }
 
     if(is.null(r)) {
@@ -227,11 +227,11 @@ common.restricted.predict <-
 
     is <-
       sv$u[, 1:r, drop = FALSE] %*% t(sv$u[, 1:r, drop = FALSE]) %*% xx
-    if(h >= 1) {
-      fc <- matrix(0, nrow = p, ncol = h)
+    if(n.ahead >= 1) {
+      fc <- matrix(0, nrow = p, ncol = n.ahead)
       proj.x <-
         t(t(sv$u[, 1:r, drop = FALSE]) / sv$d[1:r]) %*% t(sv$u[, 1:r, drop = FALSE]) %*% xx[, n]
-      for (hh in 1:h)
+      for (hh in 1:n.ahead)
         fc[, hh] <- t(Gamma_c[, , hh + 1]) %*% proj.x
     } else {
       fc <- NA
@@ -240,18 +240,18 @@ common.restricted.predict <-
     out <- list(is = is,
                 fc = fc,
                 r = r,
-                h = h)
+                n.ahead = n.ahead)
     return(out)
   }
 
 #' @keywords internal
-common.unrestricted.predict <- function(xx, cve, h = 1) {
+common.unrestricted.predict <- function(xx, cve, n.ahead = 1) {
   p <- dim(xx)[1]
   n <- dim(xx)[2]
   trunc.lags <- dim(cve$loadings)[3]
-  if(h >= trunc.lags + 1) {
+  if(n.ahead >= trunc.lags + 1) {
     warning("At most ", trunc.lags, "-step ahead forecast is available!")
-    h <- trunc.lags
+    n.ahead <- trunc.lags
   }
 
   irf <- cve$loadings
@@ -264,9 +264,9 @@ common.unrestricted.predict <- function(xx, cve, h = 1) {
     is[, (trunc.lags + 1):n] <-
     is[, (trunc.lags + 1):n] + as.matrix(irf[, , ll]) %*% u[, (trunc.lags + 1):n - ll + 1, drop = FALSE]
 
-  if(h >= 1) {
-    fc <- matrix(0, nrow = p, ncol = h)
-    for (hh in 1:h)
+  if(n.ahead >= 1) {
+    fc <- matrix(0, nrow = p, ncol = n.ahead)
+    for (hh in 1:n.ahead)
       for (ll in 1:(trunc.lags + 1 - hh))
         fc[, hh] <-
           fc[, hh] + as.matrix(irf[, , ll + hh]) %*% u[, n - ll + 1, drop = FALSE]
@@ -274,7 +274,7 @@ common.unrestricted.predict <- function(xx, cve, h = 1) {
     fc <- NA
   }
 
-  out <- list(is = is, fc = fc, h = h)
+  out <- list(is = is, fc = fc, n.ahead = n.ahead)
   return(out)
 }
 

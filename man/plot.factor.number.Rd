@@ -19,6 +19,7 @@ Plots the eigenvalue ratio or information criteria from a \code{factor.number} o
 }
 \examples{
 library(fnets)
+
 ## Alessi, Barigozzi, and Capasso method for restricted models
 set.seed(123)
 n <- 500

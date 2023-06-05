@@ -4,7 +4,7 @@
 \alias{idio.predict}
 \title{Forecasting idiosyncratic VAR process}
 \usage{
-idio.predict(object, x, cpre, h = 1)
+idio.predict(object, x, cpre, n.ahead = 1)
 }
 \arguments{
 \item{object}{\code{fnets} object}
@@ -13,13 +13,13 @@ idio.predict(object, x, cpre, h = 1)
 
 \item{cpre}{output of \link[fnets]{common.predict}}
 
-\item{h}{forecast horizon}
+\item{n.ahead}{forecast horizon}
 }
 \value{
 a list containing
 \item{is}{ in-sample estimator of the idiosyncratic component}
 \item{fc}{ forecasts of the idiosyncratic component for a given forecasting horizon \code{h}}
-\item{h}{ forecast horizon}
+\item{n.ahead}{ forecast horizon}
 }
 \description{
 Produces forecasts of the idiosyncratic VAR process

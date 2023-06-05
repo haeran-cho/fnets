@@ -19,6 +19,7 @@ Prints a summary of a \code{threshold} object
 }
 \examples{
 library(fnets)
+
 set.seed(123)
 n <- 500
 p <- 50

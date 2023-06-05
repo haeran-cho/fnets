@@ -28,6 +28,7 @@ See Owens, Cho and Barigozzi (2022) for further details.
 }
 \examples{
 library(fnets)
+
 set.seed(123)
 n <- 500
 p <- 50

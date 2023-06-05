@@ -19,6 +19,7 @@ Prints a summary of a \code{factor.number} object
 }
 \examples{
 library(fnets)
+
 ## Alessi, Barigozzi, and Capasso method for restricted models
 set.seed(123)
 n <- 500

@@ -83,7 +83,7 @@ fnets.var <- function(x,
                             tol = tol,
                             n.cores = n.cores)
   ive$mean.x <- mean.x
-  ive$do.lrpc <- FALSE
+  args$do.lrpc <- ive$do.lrpc <- FALSE
   ive$q <- 0
 
   attr(ive, "class") <- "fnets"
@@ -583,11 +583,11 @@ tuning_plot <- function(x, ...){
 #' @param object \code{fnets} object
 #' @param x input time series matrix, with each row representing a variable
 #' @param cpre output of \link[fnets]{common.predict}
-#' @param h forecast horizon
+#' @param n.ahead forecast horizon
 #' @return a list containing
 #' \item{is}{ in-sample estimator of the idiosyncratic component}
 #' \item{fc}{ forecasts of the idiosyncratic component for a given forecasting horizon \code{h}}
-#' \item{h}{ forecast horizon}
+#' \item{n.ahead}{ forecast horizon}
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 #' @examples
@@ -604,7 +604,7 @@ tuning_plot <- function(x, ...){
 #' ipre <- idio.predict(out, cpre)
 #' }
 #' @keywords internal
-idio.predict <- function(object, x, cpre, h = 1) {
+idio.predict <- function(object, x, cpre, n.ahead = 1) {
   p <- dim(x)[1]
   n <- dim(x)[2]
   # if(attr(object, 'factor') == 'dynamic'){
@@ -616,9 +616,9 @@ idio.predict <- function(object, x, cpre, h = 1) {
   A <- t(beta)
 
   is <- xx - cpre$is
-  if(h >= 1) {
-    fc <- matrix(0, nrow = p, ncol = h)
-    for (ii in 1:h) {
+  if(n.ahead >= 1) {
+    fc <- matrix(0, nrow = p, ncol = n.ahead)
+    for (ii in 1:n.ahead) {
       for (ll in 1:d)
         fc[, ii] <-
           fc[, ii] + A[, p * (ll - 1) + 1:p] %*% is[, n + ii - ll]
@@ -628,7 +628,7 @@ idio.predict <- function(object, x, cpre, h = 1) {
     fc <- NA
   }
 
-  out <- list(is = is[, 1:n], fc = fc, h = h)
+  out <- list(is = is[, 1:n], fc = fc, n.ahead = n.ahead)
   return(out)
 }
 

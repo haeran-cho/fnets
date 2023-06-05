@@ -335,7 +335,8 @@ network <- function (object, ...) UseMethod("network", object)
 #'   do.threshold = TRUE,
 #'   var.args = list(n.cores = 2)
 #' )
-#' network(out, type = "granger")
+#' net <- network(out, type = "granger")$network
+#' plot(net, layout = igraph::layout_in_circle(net)) #Owens et. al., Figure 5
 #' network(out, type = "pc")
 #' network(out, type = "lrpc")
 #' }
@@ -547,7 +548,7 @@ plot.fnets <-
 #' @param object \code{fnets} object
 #' @param newdata input time series matrix, with each row representing a variable; by default, uses input to \code{object}.
 #' Valid only for the case where \code{newdata} is modelled as a VAR process without any factors
-#' @param h forecasting horizon
+#' @param n.ahead forecasting horizon
 #' @param fc.restricted whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component
 #' @param r number of restricted factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
 #'  possible values are:
@@ -580,7 +581,7 @@ plot.fnets <-
 predict.fnets <-
   function(object,
            newdata = NULL,
-           h = 1,
+           n.ahead = 1,
            fc.restricted = TRUE,
            r = c("ic", "er"),
            ...) {
@@ -590,13 +591,13 @@ predict.fnets <-
     stop("To produce forecasts when a common component is present, estimate a model on the new data. \n")
   }
 
-  h <- posint(h)
-  if(ncol(newdata) < h){
-    h <- ncol(newdata)
+  n.ahead <- posint(n.ahead)
+  if(ncol(newdata) < n.ahead){
+    n.ahead <- ncol(newdata)
     warning("Forecast horizon restricted by number of observations")
   }
-  cpre <- common.predict(object, newdata, h, fc.restricted, r)
-  ipre <- idio.predict(object, newdata, cpre, h)
+  cpre <- common.predict(object, newdata, n.ahead, fc.restricted, r)
+  ipre <- idio.predict(object, newdata, cpre, n.ahead)
 
   out <- list(
     forecast = cpre$fc + ipre$fc,

@@ -10,13 +10,13 @@ out <- fnets(x, q = NULL, var.order = 1, var.method = "lasso", do.lrpc = FALSE)
 
 
 test_that("ic works", {
-  cpre <- common.predict(out, x, h = 1, r = NULL)
+  cpre <- predict(out)
 })
 
 test_that("er works", {
-  cpre <- common.predict(out, x, h = 1, r = "er")
+  cpre <- predict(out, r = "er")
 })
 
 test_that("fc.restricted works", {
-  cpre <- common.predict(out, x, h = 1, r = 2, fc.restricted = FALSE)
+  cpre <- predict(out, r = 2, fc.restricted = FALSE)
 })

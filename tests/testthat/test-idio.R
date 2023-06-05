@@ -6,6 +6,7 @@ p <- 50
 idio <- sim.var(n, p)
 x <- idio$data
 
+
 test_that("var ds executes", {
   skip_on_cran()
 fv <- fnets.var(x,
@@ -13,6 +14,8 @@ fv <- fnets.var(x,
                 tuning.args = list(tuning = "cv", n.folds = 1, path.length = 10),
                 n.cores = 1
 )
+plot(fv)
+predict(fv)
 expect_equal(attr(fv, "class"), "fnets")
 })
 test_that("var bic executes", {
