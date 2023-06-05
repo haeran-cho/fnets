@@ -31,7 +31,7 @@ test_that("predict executes", {
   skip_on_cran()
   pre <- predict(out, common.method = "unrestricted")
   pre <- predict(out, common.method = "restricted")
-  pre <- predict(out, common.method = "unrestricted")
+  pre <- predict(out, common.method = "unrestricted", n.ahead = 10)
 })
 
 test_that("plot executes", {

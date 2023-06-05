@@ -227,7 +227,7 @@ plot_internal <- function(x,
   is.var <- FALSE
   p <- dim(x$acv$Gamma_x)[1]
   if(is.null(p)) {
-    p <- dim(x$beta)[1]
+    p <- dim(x$beta)[2]
     is.var <- TRUE
   }
   A <- matrix(0, nrow = p, ncol = p)
@@ -237,7 +237,7 @@ plot_internal <- function(x,
   } else {
     if(type == "granger") {
       ifelse(is.var, beta <- x$beta, beta <- x$idio.var$beta)
-      d <- dim(beta)[1] / p
+      d <- dim(beta)[1] /p
       for (ll in 1:d)
         A <- A + t(beta)[, (ll - 1) * p + 1:p]
     }

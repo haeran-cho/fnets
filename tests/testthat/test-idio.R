@@ -20,6 +20,20 @@ plot(fv, display = 'heatmap')
 predict(fv)
 expect_equal(attr(fv, "class"), "fnets")
 })
+test_that("var high order", {
+  skip_on_cran()
+  fv <- fnets.var(x,
+                  center = TRUE, method = "lasso", var.order = 5,
+                  tuning.args = list(tuning = "cv", n.folds = 1, path.length = 10),
+                  n.cores = 1
+  )
+  plot(fv)
+  plot(fv, display = 'tuning')
+  plot(fv, display = 'heatmap')
+  predict(fv)
+  predict(fv, n.ahead = 10)
+  expect_equal(attr(fv, "class"), "fnets")
+})
 test_that("var bic executes", {
   skip_on_cran()
   fv <- fnets.var(x,
