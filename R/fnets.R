@@ -546,7 +546,7 @@ plot.fnets <-
 #' separately estimating the best linear predictors of common and idiosyncratic components
 #' @param object \code{fnets} object
 #' @param newdata input time series matrix, with each row representing a variable; by default, uses input to \code{object}.
-#' Valid only for a VAR without factor adjustment, i.e. when \code{q = 0}.
+#' Valid only for the case where \code{newdata} is modelled as a VAR process without any factors
 #' @param h forecasting horizon
 #' @param fc.restricted whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component
 #' @param r number of restricted factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
@@ -646,21 +646,21 @@ print.fnets <- function(x,
     do.lrpc <- FALSE
     q <- 0
   }
-  cat(paste("Factor-adjusted vector autoregression model with \n"))
+  cat(paste("Factor-adjusted vector autoregressive model with \n"))
   cat(paste("n: ", args$n, ", p: ", args$p,  "\n", sep = ""))
   cat(paste("Factor-driven Common Component ---------"), "\n")
   cat(paste("Factor model: ", attr(x, "factor"), "\n", sep = ""))
-  cat(paste("Number of factors: ", q, "\n", sep = ""))
-  cat(paste("Number selection method: ", ifelse(is.null(args$q.method), "NA", args$q.method), "\n", sep = ""))
+  cat(paste("Factor number: ", q, "\n", sep = ""))
+  cat(paste("Factor number selection method: ", ifelse(is.null(args$q.method), "NA", args$q.method), "\n", sep = ""))
   if(!is.null(args$q.method)) if(args$q.method == "ic")
-    cat(paste("Information criterion: ", ifelse(is.null(args$ic.op), "default", args$ic.op), "\n", sep = ""))
+    cat(paste("Information criterion: ", ifelse(is.null(args$ic.op), "IC5", paste("IC", args$ic.op, sep = "")), "\n", sep = ""))
   cat(paste("Idiosyncratic VAR Component ---------"), "\n")
   cat(paste("VAR order: ", args$var.order, "\n", sep = ""))
   cat(paste("VAR estimation method: ", method, "\n", sep = ""))
   cat(paste("Tuning method: ", args$tuning, "\n", sep = ""))
   cat(paste("Threshold: ", args$do.threshold, "\n", sep = ""))
   cat(paste("Non-zero entries: ", sum(beta != 0), "/", prod(dim(beta)), "\n", sep = ""))
-  cat(paste("Long Run Partial Correlations ---------"), "\n")
+  cat(paste("Long-run partial correlations ---------"), "\n")
   cat(paste("LRPC: ", do.lrpc, "\n", sep = ""))
 }
 

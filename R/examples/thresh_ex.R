@@ -1,4 +1,5 @@
 library(fnets)
+
 set.seed(123)
 n <- 500
 p <- 50
