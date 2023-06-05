@@ -15,6 +15,8 @@ fv <- fnets.var(x,
                 n.cores = 1
 )
 plot(fv)
+plot(fv, display = 'tuning')
+plot(fv, display = 'heatmap')
 predict(fv)
 expect_equal(attr(fv, "class"), "fnets")
 })
