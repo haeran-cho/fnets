@@ -2,7 +2,7 @@
 library(fnets)
 set.seed(123)
 n <- 500
-p <- 50
+p <- 20
 common <- sim.unrestricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
@@ -27,6 +27,8 @@ test_that("fnets executes", {
   expect_equal(attr(out, "class"), "fnets")
 })
 
+
+
 test_that("predict executes", {
   skip_on_cran()
   pre <- predict(out, common.method = "unrestricted")
@@ -37,7 +39,12 @@ test_that("predict executes", {
 test_that("plot executes", {
   skip_on_cran()
   plot(out, type = "granger", display = "network")
+  plot(out, type = "lrpc", display = "network")
+  plot(out, type = "pc", display = "network")
+  plot(out, type = "granger", display = "heatmap")
   plot(out, type = "lrpc", display = "heatmap")
+  plot(out, type = "pc", display = "heatmap")
+  plot(out, display = "tuning")
 })
 
 test_that("network executes", {
@@ -62,4 +69,24 @@ test_that("fnets.factor.model unrestricted executes", {
   skip_on_cran()
   out <- fnets.factor.model(x, fm.restricted = FALSE)
   expect_equal(attr(out, "class"), "fm")
+})
+
+
+test_that("q=0", {
+  out <- fnets(
+    x,
+    q = 0,
+    var.order = 1,
+    var.method = "lasso",
+    do.threshold = TRUE,
+    do.lrpc = TRUE,
+    tuning.args = list(
+      tuning = "cv",
+      n.folds = 1,
+      path.length = 10
+    ),
+    var.args = list(n.cores = 2)
+  )
+  predict(out, n.ahead = 10)
+  predict(out, newdata = x, n.ahead = 10)
 })

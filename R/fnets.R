@@ -470,6 +470,7 @@ plot.fnets <-
         names <- net$names
         grp.col <- net$grp.col
         lg <- igraph::layout_in_circle(g)
+        if(is.null(igraph::E(g)$weight)) igraph::E(g)$weight <- 0
         igraph::plot.igraph(
           g,
           main = nm,

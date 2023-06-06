@@ -2,7 +2,7 @@ library(fnets)
 
 set.seed(123)
 n <- 500
-p <- 50
+p <- 20
 idio <- sim.var(n, p)
 x <- idio$data
 
@@ -34,6 +34,17 @@ test_that("var high order", {
   predict(fv, n.ahead = 10)
   predict(fv, newdata = x, n.ahead = 10)
   expect_equal(attr(fv, "class"), "fnets")
+})
+test_that("threshold", {
+  skip_on_cran()
+  fv <- fnets.var(x,
+                  center = TRUE, method = "lasso", var.order = 1, do.threshold = TRUE,
+                  tuning.args = list(tuning = "cv", n.folds = 1, path.length = 10),
+                  n.cores = 1
+  )
+  th <- threshold(fv$beta)
+  th
+  plot(th)
 })
 test_that("var bic executes", {
   skip_on_cran()
