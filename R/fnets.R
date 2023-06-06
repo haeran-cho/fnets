@@ -194,13 +194,13 @@ fnets <-
   )
 
   attr(out, "factor") <- ifelse(fm.restricted, "restricted", "unrestricted")
+  attr(out, "args") <- args
 
   ## lrpc estimation
   ifelse(do.lrpc,
          out$lrpc <-
            par.lrpc(
              out,
-             x,
              eta = NULL,
              tuning.args = tuning.args,
              do.threshold = do.threshold,
@@ -210,7 +210,6 @@ fnets <-
          out$lrpc <- NA)
 
   attr(out, "class") <- "fnets"
-  attr(out, "args") <- args
   #tuning data
   attr(out, "data") <- attr(ive, "data")
   return(out)

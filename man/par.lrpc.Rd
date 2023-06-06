@@ -6,7 +6,6 @@
 \usage{
 par.lrpc(
   object,
-  x,
   eta = NULL,
   tuning.args = list(n.folds = 1, path.length = 10),
   lrpc.adaptive = FALSE,
@@ -18,8 +17,6 @@ par.lrpc(
 }
 \arguments{
 \item{object}{\code{fnets} object}
-
-\item{x}{input time series matrix with each row representing a variable}
 
 \item{eta}{\code{l1}-regularisation parameter; if \code{eta = NULL}, it is selected by cross validation}
 
@@ -65,7 +62,7 @@ common <- sim.unrestricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
 out <- fnets(x, do.lrpc = FALSE, var.args = list(n.cores = 2))
-plrpc <- par.lrpc(out, x, n.cores = 2)
+plrpc <- par.lrpc(out, n.cores = 2)
 out$lrpc <- plrpc
 out$do.lrpc <- TRUE
 plot(out, type = "pc", display = "network")

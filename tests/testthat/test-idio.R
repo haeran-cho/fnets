@@ -32,6 +32,7 @@ test_that("var high order", {
   plot(fv, display = 'heatmap')
   predict(fv)
   predict(fv, n.ahead = 10)
+  predict(fv, newdata = x, n.ahead = 10)
   expect_equal(attr(fv, "class"), "fnets")
 })
 test_that("var bic executes", {

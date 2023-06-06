@@ -8,7 +8,7 @@ idio <- sim.var(n, p)
 x <- common$data + idio$data
 out <- fnets(x, q = NULL, var.method = "lasso", do.lrpc = FALSE)
 
-plrpc <- par.lrpc(out, x, tuning.args = list(n.folds = 1, path.length = 10),
+plrpc <- par.lrpc(out, tuning.args = list(n.folds = 1, path.length = 10),
                   n.cores = 1)
 
 test_that("plrpc executes", {

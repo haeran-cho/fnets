@@ -50,7 +50,7 @@ plot(out, type = "granger", display = "network")
 
 Estimate and plot the partial-correlation and long-run partial correlation-based networks:
 ```
-plrpc <- par.lrpc(out, x)
+plrpc <- par.lrpc(out)
 out$lrpc <- plrpc
 out$lrpc.method <- 'par'
 plot(out, type = "lrpc", display = "heatmap")

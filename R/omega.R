@@ -3,7 +3,6 @@
 #' from the VAR parameter estimates and the inverse of innovation covariance matrix obtained via constrained \code{l1}-minimisation.
 #' @details See Barigozzi, Cho and Owens (2022) for further details, and Cai, Liu and Zhou (2016) for further details on the adaptive estimation procedure.
 #' @param object \code{fnets} object
-#' @param x input time series matrix with each row representing a variable
 #' @param eta \code{l1}-regularisation parameter; if \code{eta = NULL}, it is selected by cross validation
 #' @param tuning.args a list specifying arguments for the cross validation procedure
 #' for selecting the tuning parameter involved in long-run partial correlation matrix estimation. It contains:
@@ -35,7 +34,7 @@
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
 #' out <- fnets(x, do.lrpc = FALSE, var.args = list(n.cores = 2))
-#' plrpc <- par.lrpc(out, x, n.cores = 2)
+#' plrpc <- par.lrpc(out, n.cores = 2)
 #' out$lrpc <- plrpc
 #' out$do.lrpc <- TRUE
 #' plot(out, type = "pc", display = "network")
@@ -44,7 +43,6 @@
 #' @importFrom parallel detectCores
 #' @export
 par.lrpc <- function(object,
-                     x,
                      eta = NULL,
                      tuning.args = list(n.folds = 1,
                                         path.length = 10),
@@ -53,7 +51,7 @@ par.lrpc <- function(object,
                      do.correct = TRUE,
                      do.threshold = FALSE,
                      n.cores = min(parallel::detectCores() - 1, 3)) {
-  x <- as.matrix(x)
+  x <- as.matrix(attr(object, "args")$x)
   xx <- x - object$mean.x
   p <- dim(x)[1]
   n <- dim(x)[2]
