@@ -51,16 +51,26 @@ par.lrpc <- function(object,
                      do.correct = TRUE,
                      do.threshold = FALSE,
                      n.cores = min(parallel::detectCores() - 1, 3)) {
+  is.var <- FALSE
+  p <- dim(object$acv$Gamma_x)[1]
+  if(is.null(p)) {
+    p <- dim(object$beta)[2]
+    is.var <- TRUE
+  }
   x <- as.matrix(attr(object, "args")$x)
   xx <- x - object$mean.x
-  p <- dim(x)[1]
   n <- dim(x)[2]
 
   tuning.args <- check.list.arg(tuning.args)
   n.cores <- posint(n.cores)
 
-  GG <- object$idio.var$Gamma
-  A <- t(object$idio.var$beta)
+  if(!is.var){
+    GG <- object$idio.var$Gamma
+    A <- t(object$idio.var$beta)
+  } else {
+    GG <- object$Gamma
+    A <- t(object$beta)
+  }
   d <- dim(A)[2] / p
 
   A1 <- diag(1, p)
@@ -79,7 +89,8 @@ par.lrpc <- function(object,
       kern.bw = object$kern.bw,
       n.cores = n.cores,
       lrpc.adaptive = lrpc.adaptive,
-      eta.adaptive = eta.adaptive
+      eta.adaptive = eta.adaptive,
+      is.var = is.var
     )
     eta <- dcv$eta
   } else eta <- max(0, eta)
@@ -112,7 +123,8 @@ par.lrpc <- function(object,
   }
   Omega <- 2 * pi * t(A1) %*% Delta %*% A1
   if (do.correct)
-    Omega <- correct.diag(Re(object$spec$Sigma_i[, , 1]), Omega)
+    if(!is.null(object$spec$Sigma_i))
+      Omega <- correct.diag(Re(object$spec$Sigma_i[, , 1]), Omega)
   if(do.threshold){
     dd <- diag(Omega)
     Omega <- threshold(Omega)$thr.mat
@@ -147,7 +159,8 @@ direct.cv <-
            kern.bw = NULL,
            n.cores = min(parallel::detectCores() - 1, 3),
            lrpc.adaptive = FALSE,
-           eta.adaptive = NULL) {
+           eta.adaptive = NULL,
+           is.var = FALSE) {
     n <- ncol(xx)
     p <- nrow(xx)
 
@@ -163,9 +176,9 @@ direct.cv <-
         )), digits = 10)
     }
     if (target == "acv") {
-      A <- t(object$idio.var$beta)
+      ifelse(is.var, A <- t(object$beta), A <- t(object$idio.var$beta))
       d <- dim(A)[2] / p
-      GG <- object$idio.var$Gamma
+      ifelse(is.var, GG <- object$Gamma, GG <- object$idio.var$Gamma)
       eta.max <- max(abs(GG))
       ifelse(lrpc.adaptive, eta.max.2 <- 2 * sqrt(log(p) / n), eta.max.2 <- eta.max)
       eta.path <-

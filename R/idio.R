@@ -58,7 +58,6 @@ fnets.var <- function(x,
   n <- dim(x)[2]
 
   if(!is.null(lambda)) lambda <- max(0, tol)
-  var.order <- posint(var.order)
   if(!is.null(n.iter)) n.iter <- posint(n.iter)
   tol <- max(0, tol)
   n.cores <- posint(n.cores)
@@ -109,6 +108,7 @@ fnets.var.internal <- function(xx,
                                n.iter = NULL,
                                tol = 0,
                                n.cores = min(parallel::detectCores() - 1, 3)){
+  for (ii in 1:length(var.order)) var.order[ii] <- posint(var.order[ii])
 
   method <- match.arg(method, c("lasso", "ds"))
   tuning <- match.arg(tuning.args$tuning, c("cv", "bic"))
@@ -145,7 +145,7 @@ fnets.var.internal <- function(xx,
   GG <- mg$GG
 
   if(method == "lasso"){
-    if(is.null(n.iter)) n.iter <- var.order*100
+    if(is.null(n.iter)) n.iter <- icv$order.min*100
     ive <-
       var.lasso(
         GG,
@@ -521,7 +521,7 @@ tuning_plot <- function(x, ...){
   lambda.path <- data$lambda.path
   var.order <- data$var.order
   args <- attr(x, "args")
-  par(mfrow = c(1,1+args$do.lrpc)) ## check
+  par(mfrow = c(1,1+x$do.lrpc)) ## check
 
   if(args$tuning == "ic") {
     ylab = "IC"
@@ -558,7 +558,7 @@ tuning_plot <- function(x, ...){
       lty = 1
     )
 
-  if (args$do.lrpc) {
+  if (x$do.lrpc) {
     data <- attr(x$lrpc, "data")
     plot(
       data$eta.path,

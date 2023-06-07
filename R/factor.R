@@ -85,7 +85,10 @@ fnets.factor.model <-
 
     #if(!is.null(q.method)) q.method <- match.arg(q.method, c("ic", "er"))
     if(fm.restricted) {
-      spca <-
+      if(isTRUE(q==0)){
+        spca <- list()
+      } else {
+        spca <-
         static.pca(
           xx,
           q = q,
@@ -94,6 +97,7 @@ fnets.factor.model <-
           mm = mm
         )
       q <- spca$q
+      }
       loadings <- spca$lam
       factors <- spca$f
       spec <- NULL

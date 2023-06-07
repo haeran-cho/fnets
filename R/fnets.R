@@ -452,11 +452,13 @@ plot.fnets <-
       nm <- paste(nm, display, sep = " ")
 
       if(display == "network") {
+        suppressWarnings({
         net <- network(x,
                        type = type,
                        names = names,
                        groups = groups,
-                       ...)
+                       ...
+                       ) })
         ifelse(!is.na(net$groups[1]),
                K <- length(unique(net$groups)),
                K <- 1)

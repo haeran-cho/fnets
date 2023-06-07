@@ -18,6 +18,7 @@ plot(fv)
 plot(fv, display = 'tuning')
 plot(fv, display = 'heatmap')
 predict(fv)
+par.lrpc(fv, n.cores = 1)
 expect_equal(attr(fv, "class"), "fnets")
 })
 test_that("var high order", {
@@ -46,10 +47,19 @@ test_that("threshold", {
   th
   plot(th)
 })
+test_that("var cv executes", {
+  skip_on_cran()
+  fv <- fnets.var(x,
+                  center = TRUE, method = "lasso", var.order = 1:2,
+                  tuning.args = list(tuning = "cv", n.folds = 1, path.length = 10),
+                  n.cores = 1
+  )
+  expect_equal(attr(fv, "class"), "fnets")
+})
 test_that("var bic executes", {
   skip_on_cran()
   fv <- fnets.var(x,
-                  center = TRUE, method = "lasso", var.order = 1,
+                  center = TRUE, method = "lasso", var.order = 1:2,
                   tuning.args = list(tuning = "bic", n.folds = 1, path.length = 10),
                   n.cores = 1
   )
