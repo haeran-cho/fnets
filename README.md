@@ -63,7 +63,7 @@ out <- fnets(x, q = 2, var.order = 1, var.method = "lasso", do.lrpc = TRUE)
 
 Perform h-step ahead forecasting:
 ```
-pr <- predict(out, h = 1, common.method = "restricted")
+pr <- predict(out, n.ahead = 1, common.method = "restricted")
 pr$forecast
 ```
 
