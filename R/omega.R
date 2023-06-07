@@ -105,13 +105,19 @@ par.lrpc <- function(object,
       n.cores = n.cores
     )$DD
   }
-  if(do.threshold)
+  if(do.threshold){
+    dd <- diag(Delta)
     Delta <- threshold(Delta)$thr.mat
+    diag(Delta) <- dd
+  }
   Omega <- 2 * pi * t(A1) %*% Delta %*% A1
   if (do.correct)
     Omega <- correct.diag(Re(object$spec$Sigma_i[, , 1]), Omega)
-  if(do.threshold)
+  if(do.threshold){
+    dd <- diag(Omega)
     Omega <- threshold(Omega)$thr.mat
+    diag(Omega) <- dd
+  }
   pc <- -t(t(Delta) / sqrt(diag(Delta))) / sqrt(diag(Delta))
   lrpc <- -t(t(Omega) / sqrt(diag(Omega))) / sqrt(diag(Omega))
   out <-
