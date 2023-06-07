@@ -400,7 +400,7 @@ predict.fm <-
 #' common <- sim.restricted(n, p)
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
-#' out <- fnets.factor.model(x, q = 2)
+#' out <- fnets.factor.model(x, q = "ic")
 #' print(out)
 #' @export
 print.fm <- function(x,
@@ -411,6 +411,6 @@ print.fm <- function(x,
   cat(paste("Factor model: ", attr(x, "factor"), "\n", sep = ""))
   cat(paste("Number of factors: ", x$q, "\n", sep = ""))
   cat(paste("Number selection method: ", ifelse(is.null(args$q.method), "NA", args$q.method), "\n", sep = ""))
-  if(is.null(args$ic.op)) args$ic.op <- ifelse(attr(x, "factor") == "restricted", 2, 5)
-  cat(paste("Information criterion: ", ifelse(args$q.method == "ic", args$ic.op, "NA"), "\n", sep = ""))
+  if(!is.null(args$q.method)) if(args$q.method == "ic")
+    cat(paste("Information criterion: ", ifelse(is.null(args$ic.op), "IC5", paste("IC", args$ic.op, sep = "")), "\n", sep = ""))
 }

@@ -196,7 +196,6 @@ hl.factor.number <-
 #' @param center whether to de-mean the input \code{x} row-wise
 #' @return a list containing
 #' \item{q.hat}{ the mimimiser of the chosen information criteria}
-#' @references preprint
 #' @references Alessi, L., Barigozzi, M.,  & Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
 #' @references Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
@@ -272,8 +271,6 @@ abc.factor.number <-
     attr(out, "data") <- list(Sc=Sc, const.seq=const.seq, q.mat=q.mat)
     return(out)
   }
-
-
 
 #' @title Plot factor number
 #' @method plot factor.number
@@ -368,11 +365,13 @@ print.factor.number <- function(x, ...){
   args <- attr(x, "args")
   cat(paste("Factor number selection \n"))
   cat(paste("Factor model: ", attr(x, "factor"), "\n", sep = ""))
+  met <- ifelse(args$method == "er", "Eigenvalue ratio", "Information criterion")
+  cat(paste("Method: ", met, "\n", sep = ""))
   if(args$method == "er"){
     cat(paste("Number of factors: ", x, "\n"), sep = "")
   }
-  else for(ii in 1:6)
-    cat(paste("IC", ii, "Number of factors: ", x[ii], "\n"), sep = "")
-  met <- ifelse(args$method == "er", "Eigenvalue Ratio", "Information Criterion")
-  cat(paste("Method: ", met, "\n", sep = ""))
+  else{
+    cat(paste("Number of factors:", "\n", sep = ""))
+    for(ii in 1:6) cat(paste("IC", ii, ": ", x[ii], "\n", sep = ""))
+  }
 }
