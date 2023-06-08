@@ -8,8 +8,8 @@
 #' @param r number of restricted factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
 #'  possible values are:
 #' \itemize{
-#'    \item{\code{"ic"}}{ information criteria of Bai and Ng (2002)}
-#'    \item{\code{"er"}}{ eigenvalue ratio}
+#'    \item{\code{"ic"}}{ information criteria of Alessi, Barigozzi & Capasso (2010))}
+#'    \item{\code{"er"}}{ eigenvalue ratio of Ahn & Horenstein (2013)}
 #' }
 #' @return a list containing
 #' \item{is}{ in-sample estimator of the common component}
@@ -17,9 +17,10 @@
 #' \item{r}{ restricted factor number}
 #' \item{n.ahead}{ forecast horizon}
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
+#' @references Alessi, L., Barigozzi, M., and Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-#' @references Forni, M., Hallin, M., Lippi, M. & Reichlin, L. (2005). The generalized dynamic factor model: one-sided estimation and forecasting. Journal of the American Statistical Association, 100(471), 830--840.
-#' @references Forni, M., Hallin, M., Lippi, M. & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
+#' @references Forni, M., Hallin, M., Lippi, M. & Reichlin, L. (2005) The generalized dynamic factor model: one-sided estimation and forecasting. Journal of the American Statistical Association, 100(471), 830--840.
+#' @references Forni, M., Hallin, M., Lippi, M. & Zaffaroni, P. (2017) Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 #' @examples
 #' \dontrun{
@@ -99,9 +100,6 @@ common.predict <-
   }
 
 #' @title Blockwise VAR estimation under GDFM
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-#' @references Forni, M., Hallin, M., Lippi, M. & Zaffaroni, P. (2017). Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 #' @keywords internal
 common.irf.estimation <-
   function(xx,

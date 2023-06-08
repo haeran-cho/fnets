@@ -505,8 +505,6 @@ yw.ic <- function(xx,
 #' @param x \code{fnets} object
 #' @param ... additional arguments
 #' @return CV/IC plot for the VAR component, and CV plot for the lrpc component (when \code{x$do.lrpc = TRUE}).
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 #' @seealso \link[fnets]{fnets}
 #' @importFrom graphics par abline box axis legend matplot
 #' @keywords internal
@@ -588,8 +586,6 @@ tuning_plot <- function(x, ...){
 #' \item{is}{ in-sample estimator of the idiosyncratic component}
 #' \item{fc}{ forecasts of the idiosyncratic component for a given forecasting horizon \code{h}}
 #' \item{n.ahead}{ forecast horizon}
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 #' @examples
 #' \dontrun{
 #' set.seed(123)

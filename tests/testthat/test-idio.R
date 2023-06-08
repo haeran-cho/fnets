@@ -63,5 +63,7 @@ test_that("var bic executes", {
                   tuning.args = list(tuning = "bic", n.folds = 1, path.length = 10),
                   n.cores = 1
   )
+  plot(fv, display = 'tuning')
+  plot(fv, display = "heatmap", groups = rep(c(1, 2), each = p/2), group.colours = c("red", "blue"))
   expect_equal(attr(fv, "class"), "fnets")
 })

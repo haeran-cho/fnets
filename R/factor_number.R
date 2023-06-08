@@ -2,14 +2,15 @@
 #' @description Methods to estimate the number of factor.
 #' When \code{method = 'er'}, the factor number is estimated by maximising the ration of successive eigenvalues.
 #' When \code{method = 'ic'}, the information criterion-methods discussed in Hallin and Liška (2007) (when \code{fm.restricted = FALSE})
-#' and Alessi, Barigozzi and Capasso (2010) (when \code{fm.restricted = TRUE}) are implemented, with the information criterion called by \code{ic.op = 5} (as an argument to \code{fnets} or \code{fnets.factor.model}) recommended by default.
+#' and Alessi, Barigozzi and Capasso (2010) (when \code{fm.restricted = TRUE}) are implemented.
+#' The information criterion called by \code{ic.op = 5} (as an argument to \code{fnets} or \code{fnets.factor.model}) is recommended by default.
 #' @details For further details, see references.
 #' @param x input time series matrix, with each row representing a variable and each column containing the observations at a given time
 #' @param fm.restricted whether to estimate the number of restricted or unrestricted factors
 #' @param method A string specifying the factor number selection method; possible values are:
 #' \itemize{
 #'    \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE}}
-#'    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013)}
+#'    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013) when \code{fm.restricted = TRUE} or Avarucci et al. (2022) when \code{fm.restricted = FALSE}}
 #' }
 #' @param q.max maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}
 #' @param center whether to de-mean the input \code{x} row-wise
@@ -19,7 +20,7 @@
 #' @example R/examples/factor_number_ex.R
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 #' @references Alessi, L., Barigozzi, M., and Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
-#' @references Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221.
+#' @references Avarucci, M., Cavicchioli, M., Forni, M., & Zaffaroni, P. (2022) The main business cycle shock(s): Frequency-band estimation of the number of dynamic factors.
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 #' @importFrom stats var
@@ -88,7 +89,7 @@ factor.number <-
 #' @details See Hallin and Liška (2007) for further details.
 #' @param x input time series matrix, with each row representing a variable
 #' @param q.max maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}
-#' @param mm bandwidth; defaults to \code{floor(4 * (dim(x)[2]/log(dim(x)[2]))^(1/3)))}
+#' @param mm a positive integer specifying the kernel bandwidth for dynamic PCA; by default, it is set to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}
 #' @param w vector of length \code{2 * mm + 1} containing symmetric weights; if \code{w = NULL}, default weights are generated using the Bartlett kernel and \code{mm}
 #' @param center whether to de-mean the input \code{x} row-wise
 #' @return a list containing
@@ -197,8 +198,6 @@ hl.factor.number <-
 #' @return a list containing
 #' \item{q.hat}{ the mimimiser of the chosen information criteria}
 #' @references Alessi, L., Barigozzi, M.,  & Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
-#' @references Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 #' @importFrom graphics abline
 #' @keywords internal
 abc.factor.number <-
@@ -278,8 +277,6 @@ abc.factor.number <-
 #' @param x \code{factor.number} object
 #' @param ... not used
 #' @return NULL, printed to console
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @seealso \link[fnets]{factor.number}
 #' @example R/examples/factor_number_ex.R
 #' @importFrom graphics par abline box axis legend
@@ -356,8 +353,6 @@ plot.factor.number <- function(x, ...){
 #' @param x \code{factor.number} object
 #' @param ... not used
 #' @return NULL, printed to console
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @seealso \link[fnets]{factor.number}
 #' @example R/examples/factor_number_ex.R
 #' @export

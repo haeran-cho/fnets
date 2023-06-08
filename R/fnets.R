@@ -11,8 +11,8 @@
 #' @param fm.restricted whether to estimate a restricted factor model using static PCA
 #' @param q Either the number of factors or a string specifying the factor number selection method; possible values are:
 #' \itemize{
-#'    \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE} modifying Bai and Ng (2002)}
-#'    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013)}
+#'    \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE}}
+#'    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013) when \code{fm.restricted = TRUE} or Avarucci et al. (2022) when \code{fm.restricted = FALSE}}
 #' }
 #' see \link[fnets]{factor.number}.
 #' @param ic.op choice of the information criterion penalty, see \link[fnets]{factor.number} for further details
@@ -72,7 +72,7 @@
 #' \item{kern.bw}{ input parameter}
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 #' @references Alessi, L., Barigozzi, M.,  & Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
-#' @references Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221.
+#' @references Avarucci, M., Cavicchioli, M., Forni, M., & Zaffaroni, P. (2022) The main business cycle shock(s): Frequency-band estimation of the number of dynamic factors.
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
@@ -258,7 +258,6 @@ plot_internal <- function(x,
       }
     }
 
-
     if(!is.na(groups[1])) {
       grps <- perm <- c()
       K <- length(unique(groups))
@@ -275,7 +274,7 @@ plot_internal <- function(x,
 
     if(is.na(group.colours[1])) group.colours <- grDevices::rainbow(K, alpha = .2 + .8*(display == "heatmap"))
     if(length(group.colours) != K){
-      warning("length of group.colours must be equal to number of groups; setting to default")
+      warning("Length of group.colours must be equal to number of groups; default colours will be used")
       group.colours <- grDevices::rainbow(K, alpha = .2 + .8*(display == "heatmap"))
     }
     grp.col <- rep(group.colours, table(grps))
@@ -329,8 +328,6 @@ network <- function (object, ...) UseMethod("network", object)
 #' \item{groups}{ input argument}
 #' \item{grp.col}{ vector of colours corresponding to each node}
 #' \item{...}{ additional arguments to \code{igraph::graph_from_adjacency_matrix}}
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 #' @seealso \link[fnets]{fnets}, \link[fnets]{plot.fnets}
 #' @examples
 #' \donttest{
@@ -357,6 +354,7 @@ network.fnets <- function(object,
                           groups = NA,
                           group.colours = NA,
                           ...) {
+
   type <- match.arg(type, c("granger", "pc", "lrpc"))
   int <- plot_internal(object, type, display = "network", names, groups, group.colours, ...)
   A <- int$A
@@ -382,7 +380,6 @@ network.fnets <- function(object,
               groups = int$grps,
               grp.col = int$grp.col))
 }
-
 
 #' @title Plotting the networks estimated by fnets
 #' @method plot fnets
@@ -415,8 +412,6 @@ network.fnets <- function(object,
 #' @param group.colours a vector denoting colours corresponding to \code{groups}
 #' @param ... additional arguments
 #' @return A plot produced as per the input arguments
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 #' @seealso \link[fnets]{fnets}
 #' @examples
 #' \donttest{
@@ -556,11 +551,11 @@ plot.fnets <-
 #' Valid only for the case where \code{newdata} is modelled as a VAR process without any factors
 #' @param n.ahead forecasting horizon
 #' @param fc.restricted whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component
-#' @param r number of restricted factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
+#' @param r number of static factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
 #'  possible values are:
 #' \itemize{
-#'    \item{\code{"ic"}}{ information criteria of Bai and Ng (2002)}
-#'    \item{\code{"er"}}{ eigenvalue ratio}
+#'    \item{\code{"ic"}}{ information criteria of Alessi, Barigozzi & Capasso (2010)}
+#'    \item{\code{"er"}}{ eigenvalue ratio of Ahn & Horenstein (2013)}
 #' }
 #' @param ... not used
 #' @return a list containing
@@ -568,9 +563,6 @@ plot.fnets <-
 #' \item{common.pred}{ a list containing forecasting results for the common component}
 #' \item{idio.pred}{ a list containing forecasting results for the idiosyncratic component}
 #' \item{mean.x}{ \code{mean.x} argument from \code{object}}
-#' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @seealso \link[fnets]{fnets}
 #' @examples
 #' set.seed(123)
@@ -620,8 +612,6 @@ predict.fnets <-
 #' @param x \code{fnets} object
 #' @param ... not used
 #' @return NULL, printed to console
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @seealso \link[fnets]{fnets}
 #' @examples \donttest{
 #' set.seed(123)
