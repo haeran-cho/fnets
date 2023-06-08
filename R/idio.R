@@ -386,7 +386,7 @@ yw.cv <- function(xx,
 
 #' @title logarithmic factorial of `n`
 #' @keywords internal
-log.factorial <- function(n)
+logfactorial <- function(n)
   sum(log(1:max(n, 1)))
 
 #' @title full likelihood
@@ -415,7 +415,7 @@ ebic <- function(object, n, penalty = 0) {
   gg <- mg$gg
   GG <- mg$GG
   n / 2 * log(2 * f.func.full(GG, gg, beta)) + sparsity * log(n) +
-    2 * penalty * (log.factorial(p^2 * d) - log.factorial(sparsity) - log.factorial(p ^
+    2 * penalty * (logfactorial(p^2 * d) - logfactorial(sparsity) - logfactorial(p ^
                                                                                         2 * d - sparsity))
 }
 
@@ -469,7 +469,7 @@ yw.ic <- function(xx,
       beta <- threshold(beta)$thr.mat
       sparsity <- sum(beta[, 1] != 0)
       ifelse(sparsity == 0,pen <- 0,
-             pen <-2 * penalty * (log.factorial(var.order[jj] * p) - log(sparsity) - log(var.order[jj] * p - sparsity)))
+             pen <-2 * penalty * (logfactorial(var.order[jj] * p) - log(sparsity) - log(var.order[jj] * p - sparsity)))
 
       ic.err.mat[ii, jj] <-
         ic.err.mat[ii, jj] + n / 2 * log(2 * f.func.mat(GG, gg, beta)[1]) + sparsity * log(n) + pen

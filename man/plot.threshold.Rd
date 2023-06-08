@@ -27,11 +27,12 @@ Produces a plot visualising three diagnostics for the thresholding procedure, wi
 See Owens, Cho and Barigozzi (2022) for further details.
 }
 \examples{
+\donttest{
 library(fnets)
 
 set.seed(123)
 n <- 500
-p <- 50
+p <- 20
 common <- sim.unrestricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
@@ -46,6 +47,7 @@ print(th1)
 th2 <- threshold(out$lrpc$pc)
 # Long-run partial correlations
 th3 <- threshold(out$lrpc$lrpc)
+}
 }
 \references{
 Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.

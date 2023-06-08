@@ -1,8 +1,9 @@
+\donttest{
 library(fnets)
 
 set.seed(123)
 n <- 500
-p <- 50
+p <- 20
 common <- sim.unrestricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
@@ -17,3 +18,4 @@ print(th1)
 th2 <- threshold(out$lrpc$pc)
 # Long-run partial correlations
 th3 <- threshold(out$lrpc$lrpc)
+}
