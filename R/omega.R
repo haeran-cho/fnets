@@ -130,7 +130,7 @@ par.lrpc <- function(object,
     Omega <- threshold(Omega)$thr.mat
     diag(Omega) <- dd
   }
-  pc <- -t(t(Delta) / sqrt(diag(Delta))) / sqrt(diag(Delta))
+  pc <- -t(t(Delta) / sqrt(abs(diag(Delta)))) / sqrt(abs(diag(Delta)))
   lrpc <- -t(t(Omega) / sqrt(diag(Omega))) / sqrt(diag(Omega))
   out <-
     list(

@@ -9,6 +9,7 @@
   type = c("granger", "pc", "lrpc"),
   names = NA,
   groups = NA,
+  group.colours = NA,
   ...
 )
 }
@@ -26,6 +27,8 @@
 
 \item{groups}{an integer vector denoting any group structure of the vertices}
 
+\item{group.colours}{a vector denoting colours corresponding to \code{groups}}
+
 \item{...}{additional arguments to \code{igraph::graph_from_adjacency_matrix}}
 }
 \value{
@@ -33,6 +36,7 @@ a list containing
 \item{network}{ \code{igraph} object}
 \item{names}{ input argument}
 \item{groups}{ input argument}
+\item{grp.col}{ vector of colours corresponding to each node}
 \item{...}{ additional arguments to \code{igraph::graph_from_adjacency_matrix}}
 }
 \description{

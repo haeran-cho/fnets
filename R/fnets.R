@@ -222,6 +222,7 @@ plot_internal <- function(x,
                           display = c("network", "heatmap"),
                           names = NA,
                           groups = NA,
+                          group.colours = NA,
                           ...){
   is.var <- FALSE
   p <- dim(x$acv$Gamma_x)[1]
@@ -271,7 +272,14 @@ plot_internal <- function(x,
       grps <- rep(1, p)
       K <- 1
     }
-    grp.col <- rep(grDevices::rainbow(K, alpha = 1), table(grps))
+
+    if(is.na(group.colours[1])) group.colours <- grDevices::rainbow(K, alpha = .2 + .8*(display == "heatmap"))
+    if(length(group.colours) != K){
+      warning("length of group.colours must be equal to number of groups; setting to default")
+      group.colours <- grDevices::rainbow(K, alpha = .2 + .8*(display == "heatmap"))
+    }
+    grp.col <- rep(group.colours, table(grps))
+
     A <- A[perm, perm]
     if(!is.na(names[1]))
       names <- names[perm]
@@ -313,11 +321,13 @@ network <- function (object, ...) UseMethod("network", object)
 #' }
 #' @param names a character vector containing the names of the vertices
 #' @param groups an integer vector denoting any group structure of the vertices
+#' @param group.colours a vector denoting colours corresponding to \code{groups}
 #' @param ... additional arguments to \code{igraph::graph_from_adjacency_matrix}
 #' @return a list containing
 #' \item{network}{ \code{igraph} object}
 #' \item{names}{ input argument}
 #' \item{groups}{ input argument}
+#' \item{grp.col}{ vector of colours corresponding to each node}
 #' \item{...}{ additional arguments to \code{igraph::graph_from_adjacency_matrix}}
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
@@ -345,10 +355,12 @@ network.fnets <- function(object,
                           type = c("granger", "pc", "lrpc"),
                           names = NA,
                           groups = NA,
+                          group.colours = NA,
                           ...) {
   type <- match.arg(type, c("granger", "pc", "lrpc"))
-  int <- plot_internal(object, type, display = "network", names, groups, ...)
+  int <- plot_internal(object, type, display = "network", names, groups, group.colours, ...)
   A <- int$A
+
   if(type == "granger")
     g <-
     igraph::graph_from_adjacency_matrix(A,
@@ -400,7 +412,7 @@ network.fnets <- function(object,
 #' }
 #' @param names a character vector containing the names of the network vertices
 #' @param groups an integer vector denoting any group structure of the network vertices
-#' @param v.colours a vector denoting vertex colours corresponding to \code{groups}
+#' @param group.colours a vector denoting colours corresponding to \code{groups}
 #' @param ... additional arguments
 #' @return A plot produced as per the input arguments
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
@@ -419,7 +431,7 @@ network.fnets <- function(object,
 #'   var.args = list(n.cores = 2)
 #' )
 #' plot(out, type = "granger", display = "network",
-#' groups = rep(c(1,2), p/2), v.colours = c("orange","blue"))
+#' groups = rep(c(1,2), p/2), group.colours = c("orange","blue"))
 #' plot(out, type = "lrpc", display = "heatmap")
 #' plot(out, display = "tuning")
 #' }
@@ -435,7 +447,7 @@ plot.fnets <-
              display = c("network", "heatmap", "tuning"),
              names = NA,
              groups = NA,
-             v.colours = NA,
+             group.colours = NA,
              ...) {
       oldpar <- par(no.readonly = TRUE)
       on.exit(par(oldpar))
@@ -457,17 +469,11 @@ plot.fnets <-
                        type = type,
                        names = names,
                        groups = groups,
+                       group.colours = group.colours,
                        ...
                        ) })
-        ifelse(!is.na(net$groups[1]),
-               K <- length(unique(net$groups)),
-               K <- 1)
-        if(is.na(v.colours[1])) v.colours <- rainbow(K, alpha = .2)
-        if(length(v.colours) != K){
-          warning("length of v.colours must be equal to number of groups; setting to default")
-          v.colours <- rainbow(K, alpha = .2)
-        }
-        v.col <- rep(v.colours, table(net$groups))
+#
+        #v.col <- net$v.col #rep(v.colours, table(net$groups))
         g <- net$network
         names <- net$names
         grp.col <- net$grp.col
@@ -480,8 +486,8 @@ plot.fnets <-
           vertex.label = names,
           vertex.label.font = 2,
           vertex.shape = "circle",
-          vertex.color = v.col,
-          vertex.label.color = grp.col,
+          vertex.color = grp.col,
+          vertex.label.color = "black",
           vertex.label.cex = 0.6,
           edge.color = "gray40",
           edge.arrow.size = 0.5,
@@ -489,7 +495,7 @@ plot.fnets <-
         )
       } else if(display == "heatmap") {
         p <- attr(x, "args")$p
-        int <- plot_internal(x, type, display, names, groups, ...)
+        int <- plot_internal(x, type, display, names, groups, group.colours, ...)
         A <- int$A
         grp.col <- int$grp.col
         names <- int$names

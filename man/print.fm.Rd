@@ -24,7 +24,7 @@ p <- 50
 common <- sim.restricted(n, p)
 idio <- sim.var(n, p)
 x <- common$data + idio$data
-out <- fnets.factor.model(x, q = 2)
+out <- fnets.factor.model(x, q = "ic")
 print(out)
 }
 \references{

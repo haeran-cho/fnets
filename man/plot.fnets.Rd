@@ -10,7 +10,7 @@
   display = c("network", "heatmap", "tuning"),
   names = NA,
   groups = NA,
-  v.colours = NA,
+  group.colours = NA,
   ...
 )
 }
@@ -37,7 +37,7 @@ when \code{display = "network"} or \code{display = "heatmap"}; possible values a
 
 \item{groups}{an integer vector denoting any group structure of the network vertices}
 
-\item{v.colours}{a vector denoting vertex colours corresponding to \code{groups}}
+\item{group.colours}{a vector denoting colours corresponding to \code{groups}}
 
 \item{...}{additional arguments}
 }
@@ -70,7 +70,7 @@ out <- fnets(x,
   var.args = list(n.cores = 2)
 )
 plot(out, type = "granger", display = "network",
-groups = rep(c(1,2), p/2), v.colours = c("orange","blue"))
+groups = rep(c(1,2), p/2), group.colours = c("orange","blue"))
 plot(out, type = "lrpc", display = "heatmap")
 plot(out, display = "tuning")
 }

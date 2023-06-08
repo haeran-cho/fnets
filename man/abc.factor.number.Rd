@@ -29,8 +29,6 @@ with \code{ic.op = 5} recommended as a default choice based on numerical experim
 See Alessi, Barigozzi and Capasso (2010) for further details.
 }
 \references{
-preprint
-
 Alessi, L., Barigozzi, M.,  & Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
 
 Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221.
