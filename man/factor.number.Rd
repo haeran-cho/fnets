@@ -20,7 +20,7 @@ factor.number(
 \item{method}{A string specifying the factor number selection method; possible values are:
 \itemize{
    \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE}}
-   \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013)}
+   \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013) when \code{fm.restricted = TRUE} or Avarucci et al. (2022) when \code{fm.restricted = FALSE}}
 }}
 
 \item{q.max}{maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}}
@@ -35,7 +35,8 @@ If \code{method = "ic"}, a vector containing minimisers of the six information c
 Methods to estimate the number of factor.
 When \code{method = 'er'}, the factor number is estimated by maximising the ration of successive eigenvalues.
 When \code{method = 'ic'}, the information criterion-methods discussed in Hallin and Liška (2007) (when \code{fm.restricted = FALSE})
-and Alessi, Barigozzi and Capasso (2010) (when \code{fm.restricted = TRUE}) are implemented, with the information criterion called by \code{ic.op = 5} (as an argument to \code{fnets} or \code{fnets.factor.model}) recommended by default.
+and Alessi, Barigozzi and Capasso (2010) (when \code{fm.restricted = TRUE}) are implemented.
+The information criterion called by \code{ic.op = 5} (as an argument to \code{fnets} or \code{fnets.factor.model}) is recommended by default.
 }
 \details{
 For further details, see references.
@@ -77,7 +78,7 @@ Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of fa
 
 Alessi, L., Barigozzi, M., and Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
 
-Bai, J. & Ng, S. (2002) Determining the number of factors in approximate factor models. Econometrica. 70: 191-221.
+Avarucci, M., Cavicchioli, M., Forni, M., & Zaffaroni, P. (2022) The main business cycle shock(s): Frequency-band estimation of the number of dynamic factors.
 
 Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 

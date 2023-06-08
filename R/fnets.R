@@ -467,8 +467,6 @@ plot.fnets <-
                        group.colours = group.colours,
                        ...
                        ) })
-#
-        #v.col <- net$v.col #rep(v.colours, table(net$groups))
         g <- net$network
         names <- net$names
         grp.col <- net$grp.col

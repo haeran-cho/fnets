@@ -11,13 +11,13 @@
 
 \item{n.ahead}{forecasting horizon}
 
-\item{fc.restricted}{whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component}
+\item{fc.restricted}{if \code{fc.restricted = TRUE}, the forecast is generated under a restricted factor model}
 
-\item{r}{number of restricted factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
- possible values are:
+\item{r}{number of static factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
+possible values are:
 \itemize{
    \item{\code{"ic"}}{ information criteria of Alessi, Barigozzi & Capasso (2010)}
-   \item{\code{"er"}}{ eigenvalue ratio}
+   \item{\code{"er"}}{ eigenvalue ratio of Ahn & Horenstein (2013) }
 }}
 
 \item{...}{not used}
@@ -40,15 +40,6 @@ common <- sim.restricted(n, p)
 x <- common$data + rnorm(n*p)
 out <- fnets.factor.model(x, fm.restricted = TRUE)
 pre <- predict(out)
-}
-\references{
-Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
-
-Alessi, L., Barigozzi, M.,  & Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
-
-Barigozzi, M., Cho, H. & Owens, D. (2022) Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-
-Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 }
 \seealso{
 \link[fnets]{fnets.factor.model}

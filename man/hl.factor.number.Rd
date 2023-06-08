@@ -11,7 +11,7 @@ hl.factor.number(x, q.max = NULL, mm = NULL, center = TRUE)
 
 \item{q.max}{maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}}
 
-\item{mm}{bandwidth; defaults to \code{floor(4 * (dim(x)[2]/log(dim(x)[2]))^(1/3)))}}
+\item{mm}{a positive integer specifying the kernel bandwidth for dynamic PCA; by default, it is set to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}}
 
 \item{center}{whether to de-mean the input \code{x} row-wise}
 

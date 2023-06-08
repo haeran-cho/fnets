@@ -521,7 +521,7 @@ tuning_plot <- function(x, ...){
   args <- attr(x, "args")
   par(mfrow = c(1,1+x$do.lrpc)) ## check
 
-  if(args$tuning == "ic") {
+  if(args$tuning == "bic") {
     ylab = "IC"
     main = "IC for VAR parameter estimation"
   } else if(args$tuning == "cv") {

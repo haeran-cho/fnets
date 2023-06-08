@@ -20,7 +20,7 @@ dyn.pca(
 
 \item{q.method}{A string specifying the factor number selection method; possible values are:
 \itemize{
-   \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE} modifying Bai and Ng (2002)}
+   \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE}}
    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013)}
 }}
 
