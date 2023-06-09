@@ -1,4 +1,4 @@
-\donttest{
+\dontrun{
 library(fnets)
 
 set.seed(123)

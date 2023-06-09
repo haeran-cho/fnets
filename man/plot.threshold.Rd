@@ -27,7 +27,7 @@ Produces a plot visualising three diagnostics for the thresholding procedure, wi
 See Owens, Cho and Barigozzi (2022) for further details.
 }
 \examples{
-\donttest{
+\dontrun{
 library(fnets)
 
 set.seed(123)

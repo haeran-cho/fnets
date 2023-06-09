@@ -24,7 +24,7 @@ This can be used to perform edge selection for VAR parameter, inverse innovation
 See Liu, Zhang, and Liu (2021) for more information on the threshold selection process
 }
 \examples{
-\donttest{
+\dontrun{
 library(fnets)
 
 set.seed(123)

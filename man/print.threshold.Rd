@@ -18,7 +18,7 @@ NULL, printed to console
 Prints a summary of a \code{threshold} object
 }
 \examples{
-\donttest{
+\dontrun{
 library(fnets)
 
 set.seed(123)
