@@ -52,7 +52,7 @@ fnets.var <- function(x,
                       do.threshold = FALSE,
                       n.iter = NULL,
                       tol = 0,
-                      n.cores = min(parallel::detectCores() - 1, 3)) {
+                      n.cores = 1) {
   x <- as.matrix(x)
   p <- dim(x)[1]
   n <- dim(x)[2]
@@ -107,7 +107,7 @@ fnets.var.internal <- function(xx,
                                do.threshold = FALSE,
                                n.iter = NULL,
                                tol = 0,
-                               n.cores = min(parallel::detectCores() - 1, 3)){
+                               n.cores = 1){
   for (ii in 1:length(var.order)) var.order[ii] <- posint(var.order[ii])
 
   method <- match.arg(method, c("lasso", "ds"))
@@ -254,7 +254,7 @@ var.dantzig <-
            gg,
            lambda,
            symmetric = "min",
-           n.cores = min(parallel::detectCores() - 1, 3)) {
+           n.cores = 1) {
     p <- dim(gg)[2]
     d <- dim(gg)[1] / dim(gg)[2]
     beta <- gg * 0
@@ -306,7 +306,7 @@ yw.cv <- function(xx,
                   path.length = 10,
                   q = 0,
                   kern.bw = NULL,
-                  n.cores = min(parallel::detectCores() - 1, 3)) {
+                  n.cores = 1) {
   n <- ncol(xx)
   p <- nrow(xx)
 

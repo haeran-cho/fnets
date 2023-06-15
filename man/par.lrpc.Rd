@@ -12,7 +12,7 @@ par.lrpc(
   eta.adaptive = NULL,
   do.correct = TRUE,
   do.threshold = FALSE,
-  n.cores = min(parallel::detectCores() - 1, 3)
+  n.cores = 1
 )
 }
 \arguments{

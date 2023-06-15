@@ -4,13 +4,7 @@
 \alias{var.dantzig}
 \title{Dantzig selector-type estimator of VAR processes via constrained \code{l1}-minimisation}
 \usage{
-var.dantzig(
-  GG,
-  gg,
-  lambda,
-  symmetric = "min",
-  n.cores = min(parallel::detectCores() - 1, 3)
-)
+var.dantzig(GG, gg, lambda, symmetric = "min", n.cores = 1)
 }
 \description{
 Dantzig selector-type estimator of VAR processes via constrained \code{l1}-minimisation

@@ -111,7 +111,7 @@ fnets <-
            var.method = c("lasso", "ds"),
            var.args = list(
              n.iter = NULL,
-             n.cores = min(parallel::detectCores() - 1, 3)
+             n.cores = 1
            ),
            do.threshold = FALSE,
            do.lrpc = TRUE,

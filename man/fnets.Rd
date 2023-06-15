@@ -15,7 +15,7 @@ fnets(
     n.perm = 10),
   var.order = 1,
   var.method = c("lasso", "ds"),
-  var.args = list(n.iter = NULL, n.cores = min(parallel::detectCores() - 1, 3)),
+  var.args = list(n.iter = NULL, n.cores = 1),
   do.threshold = FALSE,
   do.lrpc = TRUE,
   lrpc.adaptive = FALSE,

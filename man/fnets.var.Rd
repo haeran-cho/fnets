@@ -15,7 +15,7 @@ fnets.var(
   do.threshold = FALSE,
   n.iter = NULL,
   tol = 0,
-  n.cores = min(parallel::detectCores() - 1, 3)
+  n.cores = 1
 )
 }
 \arguments{
