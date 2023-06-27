@@ -1,7 +1,7 @@
 Package: fnets
 Type: Package
 Title: Factor-Adjusted Network Estimation and Forecasting for High-Dimensional Time Series
-Version: 0.1.3
+Version: 0.1.4
 Authors@R: c(
     person("Matteo", "Barigozzi", email = "matteo.barigozzi@unibo.it", role = "aut"),
     person("Haeran", "Cho", email = "haeran.cho@bristol.ac.uk", role = c("cre", "aut")),
@@ -23,7 +23,7 @@ Imports:
     RColorBrewer
 License: GPL (>= 3)
 Encoding: UTF-8
-LazyData: false
+LazyData: true
 RoxygenNote: 7.1.2
 Suggests: 
     testthat (>= 3.0.0)

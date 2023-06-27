@@ -9,7 +9,7 @@ idio.predict(object, x, cpre, n.ahead = 1)
 \arguments{
 \item{object}{\code{fnets} object}
 
-\item{x}{input time series matrix, with each row representing a variable}
+\item{x}{input time series, with each row representing a variable}
 
 \item{cpre}{output of \link[fnets]{common.predict}}
 
@@ -17,8 +17,8 @@ idio.predict(object, x, cpre, n.ahead = 1)
 }
 \value{
 a list containing
-\item{is}{ in-sample estimator of the idiosyncratic component}
-\item{fc}{ forecasts of the idiosyncratic component for a given forecasting horizon \code{h}}
+\item{is}{ in-sample estimator of the idiosyncratic component (with each column representing a variable)}
+\item{fc}{ forecasts of the idiosyncratic component for a given forecasting horizon \code{h} (with each column representing a variable)}
 \item{n.ahead}{ forecast horizon}
 }
 \description{
@@ -27,13 +27,7 @@ for a given forecasting horizon by estimating the best linear predictors
 }
 \examples{
 \dontrun{
-set.seed(123)
-n <- 500
-p <- 50
-common <- sim.unrestricted(n, p)
-idio <- sim.var(n, p)
-x <- common$data + idio$data
-out <- fnets(x,
+out <- fnets(unrestricted,
 do.lrpc = FALSE, var.args = list(n.cores = 2))
 cpre <- common.predict(out)
 ipre <- idio.predict(out, cpre)

@@ -19,15 +19,8 @@ Plots the eigenvalue ratio or information criteria from a \code{factor.number} o
 }
 \examples{
 library(fnets)
-
 ## Alessi, Barigozzi, and Capasso method for restricted models
-set.seed(123)
-n <- 500
-p <- 50
-common <- sim.restricted(n, p)
-idio <- sim.var(n, p)
-x <- common$data * apply(idio$data, 1, sd) / apply(common$data, 1, sd) + idio$data
-
+x <- fnets::restricted
 abc <- factor.number(x, fm.restricted = TRUE)
 print(abc)
 plot(abc)
@@ -38,13 +31,7 @@ print(er)
 plot(er)
 
 ## Hallin and Liška method for unrestricted models
-set.seed(123)
-n <- 500
-p <- 50
-common <- sim.unrestricted(n, p)
-idio <- sim.var(n, p)
-x <- common$data * apply(idio$data, 1, sd) / apply(common$data, 1, sd) + idio$data
-
+x <- fnets::unrestricted
 hl <- factor.number(x, fm.restricted = FALSE)
 print(hl)
 plot(hl)

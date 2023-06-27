@@ -12,8 +12,8 @@
 #'    \item{\code{"er"}}{ eigenvalue ratio of Ahn & Horenstein (2013)}
 #' }
 #' @return a list containing
-#' \item{is}{ in-sample estimator of the common component}
-#' \item{fc}{ forecasts of the common component for a given forecasting horizon \code{h}}
+#' \item{is}{ in-sample estimator of the common component (with each column representing a variable)}
+#' \item{fc}{ forecasts of the common component for a given forecasting horizon \code{h} (with each column representing a variable)}
 #' \item{r}{ restricted factor number}
 #' \item{n.ahead}{ forecast horizon}
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
@@ -24,12 +24,7 @@
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 #' @examples
 #' \dontrun{
-#' set.seed(123)
-#' n <- 500
-#' p <- 50
-#' common <- sim.unrestricted(n, p)
-#' idio <- sim.var(n, p)
-#' x <- common$data + idio$data
+#' x <- fnets::unrestricted
 #' out <- fnets(x, q = NULL, var.order = 1, var.method = "lasso",
 #' do.lrpc = FALSE, var.args = list(n.cores = 2))
 #' cpre <- common.predict(out)
@@ -51,7 +46,7 @@ common.predict <-
     } else
       r.method <- NULL
 
-    pre <- list(is = 0 * x, fc = matrix(0, nrow = p, ncol = n.ahead))
+    pre <- list(is = 0 * t(x), fc = matrix(0, nrow = n.ahead, ncol = p))
     if(attr(object, "factor") == "unrestricted") {
       if(object$q < 1) {
         warning(
@@ -191,6 +186,7 @@ common.irf.estimation <-
   }
 
 #' @keywords internal
+#' @importFrom stats as.ts
 common.restricted.predict <-
   function(xx,
            Gamma_x,
@@ -235,14 +231,15 @@ common.restricted.predict <-
       fc <- NA
     }
 
-    out <- list(is = is,
-                fc = fc,
+    out <- list(is = as.ts(t(is)),
+                fc = as.ts(t(fc)),
                 r = r,
                 n.ahead = n.ahead)
     return(out)
   }
 
 #' @keywords internal
+#' @importFrom stats as.ts
 common.unrestricted.predict <- function(xx, cve, n.ahead = 1) {
   p <- dim(xx)[1]
   n <- dim(xx)[2]
@@ -272,7 +269,7 @@ common.unrestricted.predict <- function(xx, cve, n.ahead = 1) {
     fc <- NA
   }
 
-  out <- list(is = is, fc = fc, n.ahead = n.ahead)
+  out <- list(is = as.ts(t(is)), fc = as.ts(t(fc)), n.ahead = n.ahead)
   return(out)
 }
 

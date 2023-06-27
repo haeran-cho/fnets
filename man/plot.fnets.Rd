@@ -59,18 +59,13 @@ See Barigozzi, Cho and Owens (2022) for further details.
 }
 \examples{
 \donttest{
-set.seed(123)
-n <- 500
-p <- 50
-common <- sim.unrestricted(n, p)
-idio <- sim.var(n, p)
-x <- common$data + idio$data
+x <- fnets::unrestricted
 out <- fnets(x,
   do.threshold = TRUE,
   var.args = list(n.cores = 2)
 )
 plot(out, type = "granger", display = "network",
-groups = rep(c(1,2), p/2), group.colours = c("orange","blue"))
+groups = rep(c(1,2), 50/2), group.colours = c("orange","blue"))
 plot(out, type = "lrpc", display = "heatmap")
 plot(out, display = "tuning")
 }

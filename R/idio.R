@@ -2,8 +2,8 @@
 #' @description Estimates the VAR parameter matrices via \code{l1}-regularised Yule-Walker estimation
 #' and innovation covariance matrix via constrained \code{l1}-minimisation.
 #' @details Further information can be found in Barigozzi, Cho and Owens (2022).
-#' @param x input time series matrix, with each row representing a variable and each column containing the observations at a given time
-#' @param center whether to de-mean the input \code{x} row-wise
+#' @param x input time series
+#' @param center whether to de-mean the input \code{x}
 #' @param method a string specifying the method to be adopted for VAR process estimation; possible values are:
 #' \itemize{
 #'    \item{\code{"lasso"}}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
@@ -35,6 +35,7 @@
 #' \item{mean.x}{ if \code{center = TRUE}, returns a vector containing row-wise sample means of \code{x}; if \code{center = FALSE}, returns a vector of zeros}
 #' @example R/examples/var_ex.R
 #' @importFrom parallel detectCores
+#' @importFrom stats as.ts
 #' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 #' @export
@@ -53,7 +54,7 @@ fnets.var <- function(x,
                       n.iter = NULL,
                       tol = 0,
                       n.cores = 1) {
-  x <- as.matrix(x)
+  x <- t(as.ts(x))
   p <- dim(x)[1]
   n <- dim(x)[2]
 
@@ -67,6 +68,7 @@ fnets.var <- function(x,
   tuning <- match.arg(tuning.args$tuning, c("cv", "bic"))
 
   args <- as.list(environment())
+  args$x <- t(args$x)
 
   ifelse(center,mean.x <- apply(x, 1, mean), mean.x <- rep(0, p))
   xx <- x - mean.x
@@ -579,26 +581,21 @@ tuning_plot <- function(x, ...){
 #' @description Produces forecasts of the idiosyncratic VAR process
 #' for a given forecasting horizon by estimating the best linear predictors
 #' @param object \code{fnets} object
-#' @param x input time series matrix, with each row representing a variable
+#' @param x input time series, with each row representing a variable
 #' @param cpre output of \link[fnets]{common.predict}
 #' @param n.ahead forecast horizon
 #' @return a list containing
-#' \item{is}{ in-sample estimator of the idiosyncratic component}
-#' \item{fc}{ forecasts of the idiosyncratic component for a given forecasting horizon \code{h}}
+#' \item{is}{ in-sample estimator of the idiosyncratic component (with each column representing a variable)}
+#' \item{fc}{ forecasts of the idiosyncratic component for a given forecasting horizon \code{h} (with each column representing a variable)}
 #' \item{n.ahead}{ forecast horizon}
 #' @examples
 #' \dontrun{
-#' set.seed(123)
-#' n <- 500
-#' p <- 50
-#' common <- sim.unrestricted(n, p)
-#' idio <- sim.var(n, p)
-#' x <- common$data + idio$data
-#' out <- fnets(x,
+#' out <- fnets(unrestricted,
 #' do.lrpc = FALSE, var.args = list(n.cores = 2))
 #' cpre <- common.predict(out)
 #' ipre <- idio.predict(out, cpre)
 #' }
+#' @importFrom stats as.ts
 #' @keywords internal
 idio.predict <- function(object, x, cpre, n.ahead = 1) {
   p <- dim(x)[1]
@@ -611,7 +608,7 @@ idio.predict <- function(object, x, cpre, n.ahead = 1) {
   d <- dim(beta)[1] / p
   A <- t(beta)
 
-  is <- xx - cpre$is
+  is <- xx - t(cpre$is)
   if(n.ahead >= 1) {
     fc <- matrix(0, nrow = p, ncol = n.ahead)
     for (ii in 1:n.ahead) {
@@ -624,7 +621,7 @@ idio.predict <- function(object, x, cpre, n.ahead = 1) {
     fc <- NA
   }
 
-  out <- list(is = is[, 1:n], fc = fc, n.ahead = n.ahead)
+  out <- list(is = as.ts(t(is[, 1:n])), fc = as.ts(t(fc)), n.ahead = n.ahead)
   return(out)
 }
 

@@ -33,12 +33,7 @@ Produces forecasts of the data input to \code{object} for a given forecasting ho
 estimating the best linear predictors of the common component
 }
 \examples{
-set.seed(123)
-n <- 500
-p <- 50
-common <- sim.restricted(n, p)
-x <- common$data + rnorm(n*p)
-out <- fnets.factor.model(x, fm.restricted = TRUE)
+out <- fnets.factor.model(restricted, fm.restricted = TRUE)
 pre <- predict(out)
 }
 \seealso{

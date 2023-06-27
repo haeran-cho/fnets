@@ -19,9 +19,9 @@ fnets.var(
 )
 }
 \arguments{
-\item{x}{input time series matrix, with each row representing a variable and each column containing the observations at a given time}
+\item{x}{input time series}
 
-\item{center}{whether to de-mean the input \code{x} row-wise}
+\item{center}{whether to de-mean the input \code{x}}
 
 \item{method}{a string specifying the method to be adopted for VAR process estimation; possible values are:
 \itemize{

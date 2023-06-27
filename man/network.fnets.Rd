@@ -52,12 +52,7 @@ See Barigozzi, Cho and Owens (2022) for further details.
 }
 \examples{
 \donttest{
-set.seed(123)
-n <- 500
-p <- 50
-common <- sim.unrestricted(n, p)
-idio <- sim.var(n, p)
-x <- common$data + idio$data
+x <- fnets::unrestricted
 out <- fnets(x,
   do.threshold = TRUE,
   var.args = list(n.cores = 2)

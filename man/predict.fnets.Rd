@@ -16,7 +16,7 @@
 \arguments{
 \item{object}{\code{fnets} object}
 
-\item{newdata}{input time series matrix, with each row representing a variable; by default, uses input to \code{object}.
+\item{newdata}{input time series matrix; by default, uses input to \code{object}.
 Valid only for the case where \code{newdata} is modelled as a VAR process without any factors}
 
 \item{n.ahead}{forecasting horizon}
@@ -44,12 +44,7 @@ Produces forecasts of the data for a given forecasting horizon by
 separately estimating the best linear predictors of common and idiosyncratic components
 }
 \examples{
-set.seed(123)
-n <- 500
-p <- 50
-common <- sim.restricted(n, p)
-idio <- sim.var(n, p)
-x <- common$data + idio$data
+x <- fnets::restricted
 out <- fnets(x, q = 2,
 do.lrpc = FALSE, var.args = list(n.cores = 2))
 pre.unr <- predict(out, fc.restricted = FALSE)

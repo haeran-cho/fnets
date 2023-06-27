@@ -24,8 +24,8 @@ common.predict(object, x, n.ahead = 1, fc.restricted = TRUE, r = c("ic", "er"))
 }
 \value{
 a list containing
-\item{is}{ in-sample estimator of the common component}
-\item{fc}{ forecasts of the common component for a given forecasting horizon \code{h}}
+\item{is}{ in-sample estimator of the common component (with each column representing a variable)}
+\item{fc}{ forecasts of the common component for a given forecasting horizon \code{h} (with each column representing a variable)}
 \item{r}{ restricted factor number}
 \item{n.ahead}{ forecast horizon}
 }
@@ -35,12 +35,7 @@ for a given forecasting horizon by estimating the best linear predictors
 }
 \examples{
 \dontrun{
-set.seed(123)
-n <- 500
-p <- 50
-common <- sim.unrestricted(n, p)
-idio <- sim.var(n, p)
-x <- common$data + idio$data
+x <- fnets::unrestricted
 out <- fnets(x, q = NULL, var.order = 1, var.method = "lasso",
 do.lrpc = FALSE, var.args = list(n.cores = 2))
 cpre <- common.predict(out)

@@ -24,9 +24,9 @@ fnets(
 )
 }
 \arguments{
-\item{x}{input time series matrix, with each row representing a variable and each column containing the observations at a given time}
+\item{x}{input time series}
 
-\item{center}{whether to de-mean the input \code{x} row-wise}
+\item{center}{whether to de-mean the input \code{x}}
 
 \item{fm.restricted}{whether to estimate a restricted factor model using static PCA}
 
@@ -115,12 +115,7 @@ List arguments do not need to be specified with all list components; any missing
 }
 \examples{
 \donttest{
-set.seed(123)
-n <- 500
-p <- 50
-common <- sim.unrestricted(n, p)
-idio <- sim.var(n, p)
-x <- common$data + idio$data
+x <- fnets::unrestricted
 out <- fnets(x,
   do.threshold = TRUE,
   var.args = list(n.cores = 2)

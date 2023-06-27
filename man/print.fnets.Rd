@@ -19,16 +19,11 @@ Prints a summary of a \code{fnets} object
 }
 \examples{
 \donttest{
-set.seed(123)
-n <- 500
-p <- 50
-common <- sim.restricted(n, p)
-idio <- sim.var(n, p)
-x <- common$data + idio$data
+x <- fnets::restricted
 out <- fnets(x, q = 2,
 do.lrpc = FALSE, var.args = list(n.cores = 2))
 print(out)
-x <- idio$data
+x <- sim.var(500, 50)$data
 out <- fnets.var(x,
 n.cores = 2)
 print(out)

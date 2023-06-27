@@ -5,7 +5,7 @@
 #' and Alessi, Barigozzi and Capasso (2010) (when \code{fm.restricted = TRUE}) are implemented.
 #' The information criterion called by \code{ic.op = 5} (as an argument to \code{fnets} or \code{fnets.factor.model}) is recommended by default.
 #' @details For further details, see references.
-#' @param x input time series matrix, with each row representing a variable and each column containing the observations at a given time
+#' @param x input time series
 #' @param fm.restricted whether to estimate the number of restricted or unrestricted factors
 #' @param method A string specifying the factor number selection method; possible values are:
 #' \itemize{
@@ -13,7 +13,7 @@
 #'    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013) when \code{fm.restricted = TRUE} or Avarucci et al. (2022) when \code{fm.restricted = FALSE}}
 #' }
 #' @param q.max maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}
-#' @param center whether to de-mean the input \code{x} row-wise
+#' @param center whether to de-mean the input \code{x}
 #' @return S3 object of class \code{factor.number}.
 #' If \code{method = "ic"}, a vector containing minimisers of the six information criteria, otherwise, the maximiser of the eigenvalue ratio
 #' @seealso \link[fnets]{plot.factor.number}, \link[fnets]{print.factor.number}
@@ -23,7 +23,7 @@
 #' @references Avarucci, M., Cavicchioli, M., Forni, M., & Zaffaroni, P. (2022) The main business cycle shock(s): Frequency-band estimation of the number of dynamic factors.
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
-#' @importFrom stats var
+#' @importFrom stats var as.ts
 #' @export
 factor.number <-
   function(x,
@@ -31,7 +31,7 @@ factor.number <-
            method = c("ic","er"),
            q.max = NULL,
            center = TRUE) {
-    x <- as.matrix(x)
+    x <- t(as.ts(x))
     covx <- NULL
     p <- dim(x)[1]
 

@@ -13,7 +13,7 @@ factor.number(
 )
 }
 \arguments{
-\item{x}{input time series matrix, with each row representing a variable and each column containing the observations at a given time}
+\item{x}{input time series}
 
 \item{fm.restricted}{whether to estimate the number of restricted or unrestricted factors}
 
@@ -25,7 +25,7 @@ factor.number(
 
 \item{q.max}{maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}}
 
-\item{center}{whether to de-mean the input \code{x} row-wise}
+\item{center}{whether to de-mean the input \code{x}}
 }
 \value{
 S3 object of class \code{factor.number}.
@@ -43,15 +43,8 @@ For further details, see references.
 }
 \examples{
 library(fnets)
-
 ## Alessi, Barigozzi, and Capasso method for restricted models
-set.seed(123)
-n <- 500
-p <- 50
-common <- sim.restricted(n, p)
-idio <- sim.var(n, p)
-x <- common$data * apply(idio$data, 1, sd) / apply(common$data, 1, sd) + idio$data
-
+x <- fnets::restricted
 abc <- factor.number(x, fm.restricted = TRUE)
 print(abc)
 plot(abc)
@@ -62,13 +55,7 @@ print(er)
 plot(er)
 
 ## Hallin and Liška method for unrestricted models
-set.seed(123)
-n <- 500
-p <- 50
-common <- sim.unrestricted(n, p)
-idio <- sim.var(n, p)
-x <- common$data * apply(idio$data, 1, sd) / apply(common$data, 1, sd) + idio$data
-
+x <- fnets::unrestricted
 hl <- factor.number(x, fm.restricted = FALSE)
 print(hl)
 plot(hl)

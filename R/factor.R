@@ -2,8 +2,8 @@
 #' @description Performs factor modelling under either restricted (static) or unrestricted (dynamic) factor models
 #' @details See Barigozzi, Cho and Owens (2022) for further details.
 #'
-#' @param x input time series matrix, with each row representing a variable and each column containing the observations at a given time
-#' @param center whether to de-mean the input \code{x} row-wise
+#' @param x input time series
+#' @param center whether to de-mean the input \code{x}
 #' @param fm.restricted whether to estimate a restricted factor model using static PCA
 #' @param q Either a string specifying the factor number selection method when \code{fm.restricted = TRUE}; possible values are:
 #' \itemize{
@@ -39,13 +39,10 @@
 #' @seealso \link[fnets]{print.fm}, \link[fnets]{predict.fm}
 #' @examples
 #' \donttest{
-#' set.seed(1234)
-#' n <- 500
-#' p <- 50
-#' common <- sim.restricted(n, p)
-#' x <- common$data + matrix(rnorm(n * p), nrow = p)
-#' out <- fnets.factor.model(x, fm.restricted = FALSE)
+#' x <- fnets::restricted
+#' out <- fnets.factor.model(x, fm.restricted = TRUE)
 #' }
+#' @importFrom stats as.ts
 #' @export
 fnets.factor.model <-
   function(x,
@@ -60,7 +57,7 @@ fnets.factor.model <-
              trunc.lags = 20,
              n.perm = 10
            )) {
-    x <- as.matrix(x)
+    x <- t(as.ts(x))
     p <- dim(x)[1]
     n <- dim(x)[2]
 
@@ -78,6 +75,7 @@ fnets.factor.model <-
     }
 
     args <- as.list(environment())
+    args$x <- t(args$x)
 
     common.args <- check.list.arg(common.args)
     ifelse(is.null(kern.bw),
@@ -353,12 +351,7 @@ static.pca <-
 #' \item{r}{ factor number}
 #' @seealso \link[fnets]{fnets.factor.model}
 #' @examples
-#' set.seed(123)
-#' n <- 500
-#' p <- 50
-#' common <- sim.restricted(n, p)
-#' x <- common$data + rnorm(n*p)
-#' out <- fnets.factor.model(x, fm.restricted = TRUE)
+#' out <- fnets.factor.model(restricted, fm.restricted = TRUE)
 #' pre <- predict(out)
 #' @export
 predict.fm <-
@@ -367,7 +360,7 @@ predict.fm <-
            fc.restricted = TRUE,
            r = c("ic", "er"),
            ...) {
-    x <- attr(object, "args")$x
+    x <- t(attr(object, "args")$x)
     n.ahead <- posint(n.ahead)
     out <-
       common.predict(
@@ -388,13 +381,7 @@ predict.fm <-
 #' @return NULL, printed to console
 #' @seealso \link[fnets]{fnets.factor.model}
 #' @examples
-#' set.seed(123)
-#' n <- 500
-#' p <- 50
-#' common <- sim.restricted(n, p)
-#' idio <- sim.var(n, p)
-#' x <- common$data + idio$data
-#' out <- fnets.factor.model(x, q = "ic")
+#' out <- fnets.factor.model(restricted, q = "ic")
 #' print(out)
 #' @export
 print.fm <- function(x,

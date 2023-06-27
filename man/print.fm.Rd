@@ -18,13 +18,7 @@ NULL, printed to console
 Prints a summary of a \code{fm} object
 }
 \examples{
-set.seed(123)
-n <- 500
-p <- 50
-common <- sim.restricted(n, p)
-idio <- sim.var(n, p)
-x <- common$data + idio$data
-out <- fnets.factor.model(x, q = "ic")
+out <- fnets.factor.model(restricted, q = "ic")
 print(out)
 }
 \seealso{
