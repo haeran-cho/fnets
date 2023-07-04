@@ -55,8 +55,7 @@ See Barigozzi, Cho and Owens (2022) for further details, and Cai, Liu and Zhou (
 }
 \examples{
 \donttest{
-x <- fnets::unrestricted
-out <- fnets(x, do.lrpc = FALSE, var.args = list(n.cores = 2))
+out <- fnets(data.unrestricted, do.lrpc = FALSE, var.args = list(n.cores = 2))
 plrpc <- par.lrpc(out, n.cores = 2)
 out$lrpc <- plrpc
 out$do.lrpc <- TRUE

@@ -9,9 +9,9 @@
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
 #'
-#' @format ## `unrestricted`
+#' @format ## `data.unrestricted`
 #' A data frame with 500 rows (observations) and 50 columns (series)
-"unrestricted"
+"data.unrestricted"
 
 
 #' Simulated data from the restricted factor-adjusted vector autoregression model
@@ -23,6 +23,6 @@
 #' idio <- sim.var(n, p)
 #' x <- common$data + idio$data
 #'
-#' @format ## `restricted`
+#' @format ## `data.restricted`
 #' A data frame with 500 rows (observations) and 50 columns (series)
-"restricted"
+"data.restricted"

@@ -24,7 +24,7 @@ fnets(
 )
 }
 \arguments{
-\item{x}{input time series}
+\item{x}{input time series each column representing a time series variable; it is coerced into a \link[stats]{ts} object}
 
 \item{center}{whether to de-mean the input \code{x}}
 
@@ -115,8 +115,7 @@ List arguments do not need to be specified with all list components; any missing
 }
 \examples{
 \donttest{
-x <- fnets::unrestricted
-out <- fnets(x,
+out <- fnets(data.unrestricted,
   do.threshold = TRUE,
   var.args = list(n.cores = 2)
 )

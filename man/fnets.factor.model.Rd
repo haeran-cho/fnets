@@ -16,7 +16,7 @@ fnets.factor.model(
 )
 }
 \arguments{
-\item{x}{input time series}
+\item{x}{input time series each column representing a time series variable; it is coerced into a \link[stats]{ts} object}
 
 \item{center}{whether to de-mean the input \code{x}}
 
@@ -61,8 +61,7 @@ See Barigozzi, Cho and Owens (2022) for further details.
 }
 \examples{
 \donttest{
-x <- fnets::restricted
-out <- fnets.factor.model(x, fm.restricted = TRUE)
+out <- fnets.factor.model(data.restricted, fm.restricted = TRUE)
 }
 }
 \references{

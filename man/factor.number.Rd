@@ -13,7 +13,7 @@ factor.number(
 )
 }
 \arguments{
-\item{x}{input time series}
+\item{x}{input time series each column representing a time series variable; it is coerced into a \link[stats]{ts} object}
 
 \item{fm.restricted}{whether to estimate the number of restricted or unrestricted factors}
 
@@ -44,19 +44,17 @@ For further details, see references.
 \examples{
 library(fnets)
 ## Alessi, Barigozzi, and Capasso method for restricted models
-x <- fnets::restricted
-abc <- factor.number(x, fm.restricted = TRUE)
+abc <- factor.number(data.restricted, fm.restricted = TRUE)
 print(abc)
 plot(abc)
 
 ## Eigenvalue ratio method
-er <- factor.number(x, method = "er", fm.restricted = TRUE)
+er <- factor.number(data.restricted, method = "er", fm.restricted = TRUE)
 print(er)
 plot(er)
 
 ## Hallin and Liška method for unrestricted models
-x <- fnets::unrestricted
-hl <- factor.number(x, fm.restricted = FALSE)
+hl <- factor.number(data.unrestricted, fm.restricted = FALSE)
 print(hl)
 plot(hl)
 }

@@ -78,8 +78,7 @@
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 #' @examples
 #' \donttest{
-#' x <- fnets::unrestricted
-#' out <- fnets(x,
+#' out <- fnets(data.unrestricted,
 #'   do.threshold = TRUE,
 #'   var.args = list(n.cores = 2)
 #' )
@@ -328,8 +327,7 @@ network <- function (object, ...) UseMethod("network", object)
 #' @seealso \link[fnets]{fnets}, \link[fnets]{plot.fnets}
 #' @examples
 #' \donttest{
-#' x <- fnets::unrestricted
-#' out <- fnets(x,
+#' out <- fnets(data.unrestricted,
 #'   do.threshold = TRUE,
 #'   var.args = list(n.cores = 2)
 #' )
@@ -407,8 +405,7 @@ network.fnets <- function(object,
 #' @seealso \link[fnets]{fnets}
 #' @examples
 #' \donttest{
-#' x <- fnets::unrestricted
-#' out <- fnets(x,
+#' out <- fnets(data.unrestricted,
 #'   do.threshold = TRUE,
 #'   var.args = list(n.cores = 2)
 #' )
@@ -550,8 +547,7 @@ plot.fnets <-
 #' \item{mean.x}{ \code{mean.x} argument from \code{object}}
 #' @seealso \link[fnets]{fnets}
 #' @examples
-#' x <- fnets::restricted
-#' out <- fnets(x, q = 2, do.lrpc = FALSE, var.args = list(n.cores = 2))
+#' out <- fnets(data.restricted, q = 2, do.lrpc = FALSE, var.args = list(n.cores = 2))
 #' pre.unr <- predict(out, fc.restricted = FALSE)
 #' pre.res <- predict(out, fc.restricted = TRUE)
 #' @importFrom stats as.ts
@@ -595,8 +591,7 @@ predict.fnets <-
 #' @return NULL, printed to console
 #' @seealso \link[fnets]{fnets}
 #' @examples \donttest{
-#' x <- fnets::restricted
-#' out <- fnets(x, q = 2,
+#' out <- fnets(data.restricted, q = 2,
 #' do.lrpc = FALSE, var.args = list(n.cores = 2))
 #' print(out)
 #' x <- sim.var(500, 50)$data

@@ -19,8 +19,7 @@ Prints a summary of a \code{fnets} object
 }
 \examples{
 \donttest{
-x <- fnets::restricted
-out <- fnets(x, q = 2,
+out <- fnets(data.restricted, q = 2,
 do.lrpc = FALSE, var.args = list(n.cores = 2))
 print(out)
 x <- sim.var(500, 50)$data

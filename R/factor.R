@@ -39,8 +39,7 @@
 #' @seealso \link[fnets]{print.fm}, \link[fnets]{predict.fm}
 #' @examples
 #' \donttest{
-#' x <- fnets::restricted
-#' out <- fnets.factor.model(x, fm.restricted = TRUE)
+#' out <- fnets.factor.model(data.restricted, fm.restricted = TRUE)
 #' }
 #' @importFrom stats as.ts
 #' @export
@@ -351,7 +350,7 @@ static.pca <-
 #' \item{r}{ factor number}
 #' @seealso \link[fnets]{fnets.factor.model}
 #' @examples
-#' out <- fnets.factor.model(restricted, fm.restricted = TRUE)
+#' out <- fnets.factor.model(data.restricted, fm.restricted = TRUE)
 #' pre <- predict(out)
 #' @export
 predict.fm <-
@@ -381,7 +380,7 @@ predict.fm <-
 #' @return NULL, printed to console
 #' @seealso \link[fnets]{fnets.factor.model}
 #' @examples
-#' out <- fnets.factor.model(restricted, q = "ic")
+#' out <- fnets.factor.model(data.restricted, q = "ic")
 #' print(out)
 #' @export
 print.fm <- function(x,

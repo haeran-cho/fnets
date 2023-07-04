@@ -44,9 +44,7 @@ Produces forecasts of the data for a given forecasting horizon by
 separately estimating the best linear predictors of common and idiosyncratic components
 }
 \examples{
-x <- fnets::restricted
-out <- fnets(x, q = 2,
-do.lrpc = FALSE, var.args = list(n.cores = 2))
+out <- fnets(data.restricted, q = 2, do.lrpc = FALSE, var.args = list(n.cores = 2))
 pre.unr <- predict(out, fc.restricted = FALSE)
 pre.res <- predict(out, fc.restricted = TRUE)
 }

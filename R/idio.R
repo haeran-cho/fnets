@@ -590,7 +590,7 @@ tuning_plot <- function(x, ...){
 #' \item{n.ahead}{ forecast horizon}
 #' @examples
 #' \dontrun{
-#' out <- fnets(unrestricted,
+#' out <- fnets(data.unrestricted,
 #' do.lrpc = FALSE, var.args = list(n.cores = 2))
 #' cpre <- common.predict(out)
 #' ipre <- idio.predict(out, cpre)

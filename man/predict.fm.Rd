@@ -33,7 +33,7 @@ Produces forecasts of the data input to \code{object} for a given forecasting ho
 estimating the best linear predictors of the common component
 }
 \examples{
-out <- fnets.factor.model(restricted, fm.restricted = TRUE)
+out <- fnets.factor.model(data.restricted, fm.restricted = TRUE)
 pre <- predict(out)
 }
 \seealso{

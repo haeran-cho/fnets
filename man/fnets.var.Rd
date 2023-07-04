@@ -19,7 +19,7 @@ fnets.var(
 )
 }
 \arguments{
-\item{x}{input time series}
+\item{x}{input time series each column representing a time series variable; it is coerced into a \link[stats]{ts} object}
 
 \item{center}{whether to de-mean the input \code{x}}
 

@@ -18,7 +18,7 @@ NULL, printed to console
 Prints a summary of a \code{fm} object
 }
 \examples{
-out <- fnets.factor.model(restricted, q = "ic")
+out <- fnets.factor.model(data.restricted, q = "ic")
 print(out)
 }
 \seealso{

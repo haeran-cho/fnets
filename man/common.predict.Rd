@@ -35,8 +35,7 @@ for a given forecasting horizon by estimating the best linear predictors
 }
 \examples{
 \dontrun{
-x <- fnets::unrestricted
-out <- fnets(x, q = NULL, var.order = 1, var.method = "lasso",
+out <- fnets(data.unrestricted, q = NULL, var.order = 1, var.method = "lasso",
 do.lrpc = FALSE, var.args = list(n.cores = 2))
 cpre <- common.predict(out)
 ipre <- idio.predict(out, cpre)

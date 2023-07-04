@@ -59,8 +59,7 @@ See Barigozzi, Cho and Owens (2022) for further details.
 }
 \examples{
 \donttest{
-x <- fnets::unrestricted
-out <- fnets(x,
+out <- fnets(data.unrestricted,
   do.threshold = TRUE,
   var.args = list(n.cores = 2)
 )

@@ -24,8 +24,7 @@
 #' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
 #' @examples
 #' \dontrun{
-#' x <- fnets::unrestricted
-#' out <- fnets(x, q = NULL, var.order = 1, var.method = "lasso",
+#' out <- fnets(data.unrestricted, q = NULL, var.order = 1, var.method = "lasso",
 #' do.lrpc = FALSE, var.args = list(n.cores = 2))
 #' cpre <- common.predict(out)
 #' ipre <- idio.predict(out, cpre)
