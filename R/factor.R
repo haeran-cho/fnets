@@ -2,7 +2,7 @@
 #' @description Performs factor modelling under either restricted (static) or unrestricted (dynamic) factor models
 #' @details See Barigozzi, Cho and Owens (2022) for further details.
 #'
-#' @param x input time series
+#' @param x input time series each column representing a time series variable; it is coerced into a \link[stats]{ts} object
 #' @param center whether to de-mean the input \code{x}
 #' @param fm.restricted whether to estimate a restricted factor model using static PCA
 #' @param q Either a string specifying the factor number selection method when \code{fm.restricted = TRUE}; possible values are:

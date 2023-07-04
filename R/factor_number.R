@@ -5,7 +5,7 @@
 #' and Alessi, Barigozzi and Capasso (2010) (when \code{fm.restricted = TRUE}) are implemented.
 #' The information criterion called by \code{ic.op = 5} (as an argument to \code{fnets} or \code{fnets.factor.model}) is recommended by default.
 #' @details For further details, see references.
-#' @param x input time series
+#' @param x input time series each column representing a time series variable; it is coerced into a \link[stats]{ts} object
 #' @param fm.restricted whether to estimate the number of restricted or unrestricted factors
 #' @param method A string specifying the factor number selection method; possible values are:
 #' \itemize{

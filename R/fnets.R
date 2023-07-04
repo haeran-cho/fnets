@@ -6,7 +6,7 @@
 #' @details See Barigozzi, Cho and Owens (2022) and Owens, Cho and Barigozzi (2022) for further details.
 #' List arguments do not need to be specified with all list components; any missing entries will be filled in with the default argument.
 #'
-#' @param x input time series
+#' @param x input time series each column representing a time series variable; it is coerced into a \link[stats]{ts} object
 #' @param center whether to de-mean the input \code{x}
 #' @param fm.restricted whether to estimate a restricted factor model using static PCA
 #' @param q Either the number of factors or a string specifying the factor number selection method; possible values are:
@@ -551,8 +551,7 @@ plot.fnets <-
 #' @seealso \link[fnets]{fnets}
 #' @examples
 #' x <- fnets::restricted
-#' out <- fnets(x, q = 2,
-#' do.lrpc = FALSE, var.args = list(n.cores = 2))
+#' out <- fnets(x, q = 2, do.lrpc = FALSE, var.args = list(n.cores = 2))
 #' pre.unr <- predict(out, fc.restricted = FALSE)
 #' pre.res <- predict(out, fc.restricted = TRUE)
 #' @importFrom stats as.ts
