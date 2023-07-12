@@ -6,17 +6,17 @@
 \title{Simulated data from the unrestricted factor-adjusted vector autoregression model}
 \format{
 ## `data.unrestricted`
-A data frame with 500 rows (observations) and 50 columns (series)
+A ts object with 500 rows (observations) and 50 columns (series)
 }
 \usage{
 data.unrestricted
 }
 \description{
-set.seed(123)
-n <- 500
-p <- 50
-common <- sim.unrestricted(n, p)
-idio <- sim.var(n, p)
-x <- common$data + idio$data
+\code{set.seed(123)} \cr
+\code{n <- 500} \cr
+\code{p <- 50} \cr
+\code{common <- sim.unrestricted(n, p)} \cr
+\code{idio <- sim.var(n, p)} \cr
+\code{x <- common$data + idio$data}
 }
 \keyword{datasets}

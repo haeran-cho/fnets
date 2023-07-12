@@ -26,14 +26,7 @@ See Liu, Zhang, and Liu (2021) for more information on the threshold selection p
 \examples{
 \dontrun{
 library(fnets)
-
-set.seed(123)
-n <- 500
-p <- 20
-common <- sim.unrestricted(n, p)
-idio <- sim.var(n, p)
-x <- common$data + idio$data
-out <- fnets(x,
+out <- fnets(data.unrestricted,
    var.args = list(n.cores = 2)
 )
 # Granger-causal network
