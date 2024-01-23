@@ -15,7 +15,7 @@
 
 \item{r}{number of static factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
 possible values are:
-\itemize{
+\describe{
    \item{\code{"ic"}}{ information criteria of Alessi, Barigozzi & Capasso (2010)}
    \item{\code{"er"}}{ eigenvalue ratio of Ahn & Horenstein (2013) }
 }}

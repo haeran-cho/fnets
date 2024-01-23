@@ -24,7 +24,7 @@ Produces a plot visualising three diagnostics for the thresholding procedure, wi
 (iii) |CUSUM_k|, the absolute scaled cumulative sums of \code{Diff_k}
 }
 \details{
-See Owens, Cho and Barigozzi (2022) for further details.
+See Owens, Cho and Barigozzi (2024+) for further details.
 }
 \examples{
 \dontrun{
@@ -43,9 +43,7 @@ th3 <- threshold(out$lrpc$lrpc)
 }
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-
-Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 }
 \seealso{
 \link[fnets]{threshold}

@@ -10,8 +10,8 @@ fnets.var.internal(
   method = c("lasso", "ds"),
   lambda = NULL,
   var.order = 1,
-  tuning.args = list(tuning = c("cv", "bic"), n.folds = 1, penalty = NULL, path.length
-    = 10),
+  tuning.args = list(tuning = c("cv", "bic"), n.folds = 1, penalty = NULL, path.length =
+    10),
   do.threshold = FALSE,
   n.iter = NULL,
   tol = 0,

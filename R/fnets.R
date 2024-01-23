@@ -3,14 +3,14 @@
 #' the function estimates the spectral density and autocovariance matrices of the factor-driven common component and the idiosyncratic VAR process,
 #' the impulse response functions and common shocks for the common component,
 #' and VAR parameters, innovation covariance matrix and long-run partial correlations for the idiosyncratic component.
-#' @details See Barigozzi, Cho and Owens (2022) and Owens, Cho and Barigozzi (2022) for further details.
+#' @details See Barigozzi, Cho and Owens (2024+) for further details.
 #' List arguments do not need to be specified with all list components; any missing entries will be filled in with the default argument.
 #'
 #' @param x input time series each column representing a time series variable; it is coerced into a \link[stats]{ts} object
 #' @param center whether to de-mean the input \code{x}
 #' @param fm.restricted whether to estimate a restricted factor model using static PCA
 #' @param q Either the number of factors or a string specifying the factor number selection method; possible values are:
-#' \itemize{
+#' \describe{
 #'    \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE}}
 #'    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013) when \code{fm.restricted = TRUE} or Avarucci et al. (2022) when \code{fm.restricted = FALSE}}
 #' }
@@ -18,7 +18,7 @@
 #' @param ic.op choice of the information criterion penalty, see \link[fnets]{factor.number} for further details
 #' @param kern.bw a positive integer specifying the kernel bandwidth for dynamic PCA; by default, it is set to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}.  When \code{fm.restricted = TRUE}, it is used to compute the number of lags for which autocovariance matrices are estimated
 #' @param common.args a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
-#' \itemize{
+#' \describe{
 #'    \item{\code{factor.var.order}}{ order of the blockwise VAR representation of the common component. If \code{factor.var.order = NULL}, it is selected blockwise by Schwarz criterion}
 #'    \item{\code{max.var.order}}{ maximum blockwise VAR order for the Schwarz criterion}
 #'    \item{\code{trunc.lags}}{ truncation lag for impulse response function estimation}
@@ -26,30 +26,25 @@
 #' }
 #' @param var.order order of the idiosyncratic VAR process; if a vector of integers is supplied, the order is chosen via \code{tuning}
 #' @param var.method a string specifying the method to be adopted for idiosyncratic VAR process estimation; possible values are:
-#' \itemize{
+#' \describe{
 #'        \item{\code{"lasso"}}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
 #'        \item{\code{"ds"}}{ Dantzig Selector-type constrained \code{l1}-minimisation}
 #' }
 #' @param var.args a list specifying the tuning parameters required for estimating the idiosyncratic VAR process. It contains:
-#' \itemize{
+#' \describe{
 #'    \item{\code{n.iter}}{ maximum number of descent steps, by default depends on \code{var.order}; applicable when \code{var.method = "lasso"}}
 #'    \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{var.method = "ds"}}
 #' }
 #' @param do.threshold whether to perform adaptive thresholding of all parameter estimators with \link[fnets]{threshold}
 #' @param do.lrpc whether to estimate the long-run partial correlation
 #' @param lrpc.adaptive whether to use the adaptive estimation procedure
-#' @param tuning.args a list specifying arguments for \code{tuning}
-#' for selecting the tuning parameters involved in VAR parameter and (long-run) partial correlation matrix estimation. It contains:
-#' \itemize{
-#'    \item{\code{tuning}} a string specifying the selection procedure for \code{var.order} and \code{lambda}; possible values are:
-#'    \itemize{
-#'       \item{\code{"cv"}}{ cross validation}
-#'       \item{\code{"bic"}}{ information criterion}
-#'    }
+#' @param tuning.args a list specifying arguments for selecting the tuning parameters involved in VAR parameter and (long-run) partial correlation matrix estimation. It contains:
+#' \describe{
+#'    \item{\code{tuning}}{a string specifying the selection procedure for \code{var.order} and \code{lambda}; possible values are:
+#'    \code{"cv"} for cross validation, and \code{"bic"} for information criterion}
 #'    \item{\code{n.folds}}{ if \code{tuning = "cv"}, positive integer number of folds}
 #'    \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, it is set to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}} by default
 #'    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
-
 #' }
 #' @return an S3 object of class \code{fnets}, which contains the following fields:
 #' \item{q}{ number of factors}
@@ -59,7 +54,7 @@
 #' a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})}
 #' \item{factors}{ if \code{fm.restricted = TRUE}, factor series; else, common shocks (an array of dimension \code{(q, n)})}
 #' \item{idio.var}{ a list containing the following fields:
-#' \itemize{
+#' \describe{
 #' \item{\code{beta}}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
 #' \item{\code{Gamma}}{ estimate of the innovation covariance matrix}
 #' \item{\code{lambda}}{ regularisation parameter}
@@ -73,9 +68,9 @@
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 #' @references Alessi, L., Barigozzi, M.,  & Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
 #' @references Avarucci, M., Cavicchioli, M., Forni, M., & Zaffaroni, P. (2022) The main business cycle shock(s): Frequency-band estimation of the number of dynamic factors.
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2024+) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. Journal of Business & Economic Statistics (to appear).
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 #' @examples
 #' \donttest{
 #' out <- fnets(data.unrestricted,
@@ -306,10 +301,9 @@ network <- function (object, ...) UseMethod("network", object)
 #' (ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
 #' (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
 #' When plotting the network, note that the edge weights may be negative since they correspond to the entries of the estimators of VAR parameters and (long-run) partial correlations.
-#' @details See Barigozzi, Cho and Owens (2022) for further details.
 #' @param object \code{fnets} object
 #' @param type a string specifying which of the above three networks (i)--(iii) to visualise; possible values are
-#' \itemize{
+#' \describe{
 #'    \item{\code{"granger"}}{ directed network representing Granger causal linkages}
 #'    \item{\code{"pc"}}{ undirected network representing contemporaneous linkages; available when \code{object$do.lrpc = TRUE}}
 #'    \item{\code{"lrpc"}}{ undirected network summarising Granger causal and contemporaneous linkages; available when \code{x$do.lrpc = TRUE}}
@@ -374,24 +368,23 @@ network.fnets <- function(object,
 #' @title Plotting the networks estimated by fnets
 #' @method plot fnets
 #' @description Plotting method for S3 objects of class \code{fnets}.
-#' When \code{display = "network"} or {"heatmap"}, it produces a plot visualising three networks underlying factor-adjusted VAR processes:
+#' When \code{display = "network"} or \code{display = "heatmap"}, it produces a plot visualising three networks underlying factor-adjusted VAR processes:
 #' (i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices summed across the lags,
 #' (ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
 #' (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
 #' Edge widths are determined by edge weights.
 #' When \code{display = "tuning"}, it produces up to two plots (when \code{do.larpc = TRUE}) visualising
 #' the outcome of CV or IC adopted for selecting the \code{l1}-regularisation parameters and the VAR order.
-#' @details See Barigozzi, Cho and Owens (2022) for further details.
 #' @param x \code{fnets} object
 #' @param type a string specifying which of the above three networks (i)--(iii) to visualise
 #' when \code{display = "network"} or \code{display = "heatmap"}; possible values are
-#' \itemize{
+#' \describe{
 #'    \item{\code{"granger"}}{ directed network representing Granger causal linkages}
 #'    \item{\code{"pc"}}{ undirected network representing contemporaneous linkages; available when \code{x$do.lrpc = TRUE}}
 #'    \item{\code{"lrpc"}}{ undirected network summarising Granger causal and contemporaneous linkages; available when \code{x$do.lrpc = TRUE}}
 #' }
 #' @param display a string specifying which plot to produce; possible values are
-#' \itemize{
+#' \describe{
 #'    \item{\code{"network"}}{ visualise the network as an \code{igraph} object, see \link[igraph]{plot.igraph}}
 #'    \item{\code{"heatmap"}}{ visualise the network as a heatmap, see \link[fields]{imagePlot}}
 #'    \item{\code{"tuning"}}{ visualise the outcome from CV or IC (specified by \code{tuning.args$tuning} of \link[fnets]{fnets})
@@ -535,7 +528,7 @@ plot.fnets <-
 #' @param fc.restricted whether to forecast using a restricted or unrestricted, blockwise VAR representation of the common component
 #' @param r number of static factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
 #'  possible values are:
-#' \itemize{
+#' \describe{
 #'    \item{\code{"ic"}}{ information criteria of Alessi, Barigozzi & Capasso (2010)}
 #'    \item{\code{"er"}}{ eigenvalue ratio of Ahn & Horenstein (2013)}
 #' }

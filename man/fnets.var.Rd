@@ -10,8 +10,8 @@ fnets.var(
   method = c("lasso", "ds"),
   lambda = NULL,
   var.order = 1,
-  tuning.args = list(tuning = c("cv", "bic"), n.folds = 1, penalty = NULL, path.length
-    = 10),
+  tuning.args = list(tuning = c("cv", "bic"), n.folds = 1, penalty = NULL, path.length =
+    10),
   do.threshold = FALSE,
   n.iter = NULL,
   tol = 0,
@@ -24,7 +24,7 @@ fnets.var(
 \item{center}{whether to de-mean the input \code{x}}
 
 \item{method}{a string specifying the method to be adopted for VAR process estimation; possible values are:
-\itemize{
+\describe{
    \item{\code{"lasso"}}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
    \item{\code{"ds"}}{ Dantzig Selector-type constrained \code{l1}-minimisation}
 }}
@@ -35,12 +35,9 @@ fnets.var(
 
 \item{tuning.args}{a list specifying arguments for \code{tuning}
 for selecting the regularisation parameter (and VAR order). It contains:
-\itemize{
-   \item{\code{tuning}} a string specifying the selection procedure for \code{var.order} and \code{lambda}; possible values are:
-   \itemize{
-      \item{\code{"cv"}}{ cross validation}
-      \item{\code{"bic"}}{ information criterion}
-   }
+\describe{
+   \item{\code{tuning}}{a string specifying the selection procedure for \code{var.order} and \code{lambda}; possible values are:
+   \code{"cv"} for cross validation, and \code{"bic"} for information criterion}
    \item{\code{n.folds}}{ if \code{tuning = "cv"}, positive integer number of folds}
    \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, it is set to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}} by default
    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
@@ -67,7 +64,7 @@ Estimates the VAR parameter matrices via \code{l1}-regularised Yule-Walker estim
 and innovation covariance matrix via constrained \code{l1}-minimisation.
 }
 \details{
-Further information can be found in Barigozzi, Cho and Owens (2022).
+Further information can be found in Barigozzi, Cho and Owens (2024+).
 }
 \examples{
 library(fnets)
@@ -83,7 +80,7 @@ fv <- fnets.var(x,
 )
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+Barigozzi, M., Cho, H. & Owens, D. (2024+) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. Journal of Business & Economic Statistics (to appear).
 
-Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 }

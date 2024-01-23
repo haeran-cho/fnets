@@ -17,7 +17,7 @@ common.predict(object, x, n.ahead = 1, fc.restricted = TRUE, r = c("ic", "er"))
 
 \item{r}{number of restricted factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
  possible values are:
-\itemize{
+\describe{
    \item{\code{"ic"}}{ information criteria of Alessi, Barigozzi & Capasso (2010))}
    \item{\code{"er"}}{ eigenvalue ratio of Ahn & Horenstein (2013)}
 }}
@@ -46,12 +46,12 @@ Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of fa
 
 Alessi, L., Barigozzi, M., and Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
 
-Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+Barigozzi, M., Cho, H. & Owens, D. (2024+) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. Journal of Business & Economic Statistics (to appear).
 
 Forni, M., Hallin, M., Lippi, M. & Reichlin, L. (2005) The generalized dynamic factor model: one-sided estimation and forecasting. Journal of the American Statistical Association, 100(471), 830--840.
 
 Forni, M., Hallin, M., Lippi, M. & Zaffaroni, P. (2017) Dynamic factor models with infinite-dimensional factor space: Asymptotic analysis. Journal of Econometrics, 199(1), 74--92.
 
-Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 }
 \keyword{internal}

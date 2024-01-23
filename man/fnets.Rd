@@ -19,8 +19,8 @@ fnets(
   do.threshold = FALSE,
   do.lrpc = TRUE,
   lrpc.adaptive = FALSE,
-  tuning.args = list(tuning = c("cv", "bic"), n.folds = 1, penalty = NULL, path.length
-    = 10)
+  tuning.args = list(tuning = c("cv", "bic"), n.folds = 1, penalty = NULL, path.length =
+    10)
 )
 }
 \arguments{
@@ -31,7 +31,7 @@ fnets(
 \item{fm.restricted}{whether to estimate a restricted factor model using static PCA}
 
 \item{q}{Either the number of factors or a string specifying the factor number selection method; possible values are:
-\itemize{
+\describe{
    \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE}}
    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013) when \code{fm.restricted = TRUE} or Avarucci et al. (2022) when \code{fm.restricted = FALSE}}
 }
@@ -42,7 +42,7 @@ see \link[fnets]{factor.number}.}
 \item{kern.bw}{a positive integer specifying the kernel bandwidth for dynamic PCA; by default, it is set to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}.  When \code{fm.restricted = TRUE}, it is used to compute the number of lags for which autocovariance matrices are estimated}
 
 \item{common.args}{a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
-\itemize{
+\describe{
    \item{\code{factor.var.order}}{ order of the blockwise VAR representation of the common component. If \code{factor.var.order = NULL}, it is selected blockwise by Schwarz criterion}
    \item{\code{max.var.order}}{ maximum blockwise VAR order for the Schwarz criterion}
    \item{\code{trunc.lags}}{ truncation lag for impulse response function estimation}
@@ -52,13 +52,13 @@ see \link[fnets]{factor.number}.}
 \item{var.order}{order of the idiosyncratic VAR process; if a vector of integers is supplied, the order is chosen via \code{tuning}}
 
 \item{var.method}{a string specifying the method to be adopted for idiosyncratic VAR process estimation; possible values are:
-\itemize{
+\describe{
        \item{\code{"lasso"}}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
        \item{\code{"ds"}}{ Dantzig Selector-type constrained \code{l1}-minimisation}
 }}
 
 \item{var.args}{a list specifying the tuning parameters required for estimating the idiosyncratic VAR process. It contains:
-\itemize{
+\describe{
    \item{\code{n.iter}}{ maximum number of descent steps, by default depends on \code{var.order}; applicable when \code{var.method = "lasso"}}
    \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{var.method = "ds"}}
 }}
@@ -69,14 +69,10 @@ see \link[fnets]{factor.number}.}
 
 \item{lrpc.adaptive}{whether to use the adaptive estimation procedure}
 
-\item{tuning.args}{a list specifying arguments for \code{tuning}
-for selecting the tuning parameters involved in VAR parameter and (long-run) partial correlation matrix estimation. It contains:
-\itemize{
-   \item{\code{tuning}} a string specifying the selection procedure for \code{var.order} and \code{lambda}; possible values are:
-   \itemize{
-      \item{\code{"cv"}}{ cross validation}
-      \item{\code{"bic"}}{ information criterion}
-   }
+\item{tuning.args}{a list specifying arguments for selecting the tuning parameters involved in VAR parameter and (long-run) partial correlation matrix estimation. It contains:
+\describe{
+   \item{\code{tuning}}{a string specifying the selection procedure for \code{var.order} and \code{lambda}; possible values are:
+   \code{"cv"} for cross validation, and \code{"bic"} for information criterion}
    \item{\code{n.folds}}{ if \code{tuning = "cv"}, positive integer number of folds}
    \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, it is set to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}} by default
    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
@@ -91,7 +87,7 @@ an S3 object of class \code{fnets}, which contains the following fields:
 a list containing estimators of the impulse response functions (as an array of dimension \code{(p, q, trunc.lags + 2)})}
 \item{factors}{ if \code{fm.restricted = TRUE}, factor series; else, common shocks (an array of dimension \code{(q, n)})}
 \item{idio.var}{ a list containing the following fields:
-\itemize{
+\describe{
 \item{\code{beta}}{ estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable}
 \item{\code{Gamma}}{ estimate of the innovation covariance matrix}
 \item{\code{lambda}}{ regularisation parameter}
@@ -110,7 +106,7 @@ the impulse response functions and common shocks for the common component,
 and VAR parameters, innovation covariance matrix and long-run partial correlations for the idiosyncratic component.
 }
 \details{
-See Barigozzi, Cho and Owens (2022) and Owens, Cho and Barigozzi (2022) for further details.
+See Barigozzi, Cho and Owens (2024+) for further details.
 List arguments do not need to be specified with all list components; any missing entries will be filled in with the default argument.
 }
 \examples{
@@ -131,11 +127,11 @@ Alessi, L., Barigozzi, M.,  & Capasso, M. (2010) Improved penalization for deter
 
 Avarucci, M., Cavicchioli, M., Forni, M., & Zaffaroni, P. (2022) The main business cycle shock(s): Frequency-band estimation of the number of dynamic factors.
 
-Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+Barigozzi, M., Cho, H. & Owens, D. (2024+) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. Journal of Business & Economic Statistics (to appear).
 
 Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 
-Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 }
 \seealso{
 \link[fnets]{predict.fnets}, \link[fnets]{plot.fnets}, \link[fnets]{print.fnets}

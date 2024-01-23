@@ -1,12 +1,12 @@
 #' @title Parametric estimation of long-run partial correlations of factor-adjusted VAR processes
 #' @description Returns a parametric estimate of long-run partial correlations of the VAR process
 #' from the VAR parameter estimates and the inverse of innovation covariance matrix obtained via constrained \code{l1}-minimisation.
-#' @details See Barigozzi, Cho and Owens (2022) for further details, and Cai, Liu and Zhou (2016) for further details on the adaptive estimation procedure.
+#' @details See Barigozzi, Cho and Owens (2024+) for further details, and Cai, Liu and Zhou (2016) for further details on the adaptive estimation procedure.
 #' @param object \code{fnets} object
 #' @param eta \code{l1}-regularisation parameter; if \code{eta = NULL}, it is selected by cross validation
 #' @param tuning.args a list specifying arguments for the cross validation procedure
 #' for selecting the tuning parameter involved in long-run partial correlation matrix estimation. It contains:
-#' \itemize{
+#' \describe{
 #'    \item{\code{n.folds}}{ positive integer number of folds}
 #'    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #' }
@@ -22,9 +22,9 @@
 #' \item{lrpc}{ estimated long-run partial correlation matrix}
 #' \item{eta}{ \code{l1}-regularisation parameter}
 #' \item{lrpc.adaptive}{ input argument }
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2024+) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. Journal of Business & Economic Statistics (to appear).
 #' @references Cai, T. T., Liu, W., & Zhou, H. H. (2016) Estimating sparse precision matrix: Optimal rates of convergence and adaptive estimation. The Annals of Statistics, 44(2), 455-488.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 #' @examples
 #' \donttest{
 #' out <- fnets(data.unrestricted, do.lrpc = FALSE, var.args = list(n.cores = 2))

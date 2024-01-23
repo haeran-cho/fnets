@@ -1,6 +1,6 @@
 #' @title Simulate data from an unrestricted factor model
 #' @description Simulate the common component following an unrestricted factor model that does not admit a restricted representation;
-#' see the model (C1) in the reference.
+#' see the model (C1) in Barigozzi, Cho and Owens (2024+)
 #' @param n sample size
 #' @param p dimension
 #' @param q number of unrestricted factors
@@ -8,8 +8,8 @@
 #' @return a list containing
 #' \item{data}{ \code{ts} object with \code{n} rows and \code{p} columns }
 #' \item{q}{ number of factors}
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2024+) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. Journal of Business & Economic Statistics (to appear).
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 #' @examples
 #' common <- sim.unrestricted(500, 50)
 #' @importFrom stats rnorm runif rt as.ts
@@ -48,8 +48,8 @@ sim.unrestricted <- function(n, p, q = 2, heavy = FALSE) {
 #' \item{data}{ \code{ts} object with \code{n} rows and \code{p} columns }
 #' \item{q}{ number of factors}
 #' \item{r}{ number of restricted factors}
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2024+) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. Journal of Business & Economic Statistics (to appear).
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 #' @examples
 #' common <- sim.restricted(500, 50)
 #' @importFrom stats rnorm runif rt as.ts
@@ -90,8 +90,8 @@ sim.restricted <- function(n, p, q = 2, heavy = FALSE) {
 #' \item{data}{ \code{ts} object with \code{n} rows and \code{p} columns }
 #' \item{A}{ transition matrix}
 #' \item{Gamma}{ innovation covariance matrix}
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2024+) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. Journal of Business & Economic Statistics (to appear).
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 #' @examples
 #' idio <- sim.var(500, 50)
 #' @importFrom MASS mvrnorm

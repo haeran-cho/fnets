@@ -19,14 +19,14 @@
 
 \item{type}{a string specifying which of the above three networks (i)--(iii) to visualise
 when \code{display = "network"} or \code{display = "heatmap"}; possible values are
-\itemize{
+\describe{
    \item{\code{"granger"}}{ directed network representing Granger causal linkages}
    \item{\code{"pc"}}{ undirected network representing contemporaneous linkages; available when \code{x$do.lrpc = TRUE}}
    \item{\code{"lrpc"}}{ undirected network summarising Granger causal and contemporaneous linkages; available when \code{x$do.lrpc = TRUE}}
 }}
 
 \item{display}{a string specifying which plot to produce; possible values are
-\itemize{
+\describe{
    \item{\code{"network"}}{ visualise the network as an \code{igraph} object, see \link[igraph]{plot.igraph}}
    \item{\code{"heatmap"}}{ visualise the network as a heatmap, see \link[fields]{imagePlot}}
    \item{\code{"tuning"}}{ visualise the outcome from CV or IC (specified by \code{tuning.args$tuning} of \link[fnets]{fnets})
@@ -46,16 +46,13 @@ A plot produced as per the input arguments
 }
 \description{
 Plotting method for S3 objects of class \code{fnets}.
-When \code{display = "network"} or {"heatmap"}, it produces a plot visualising three networks underlying factor-adjusted VAR processes:
+When \code{display = "network"} or \code{display = "heatmap"}, it produces a plot visualising three networks underlying factor-adjusted VAR processes:
 (i) directed network representing Granger causal linkages, as given by estimated VAR transition matrices summed across the lags,
 (ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
 (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
 Edge widths are determined by edge weights.
 When \code{display = "tuning"}, it produces up to two plots (when \code{do.larpc = TRUE}) visualising
 the outcome of CV or IC adopted for selecting the \code{l1}-regularisation parameters and the VAR order.
-}
-\details{
-See Barigozzi, Cho and Owens (2022) for further details.
 }
 \examples{
 \donttest{

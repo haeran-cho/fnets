@@ -17,7 +17,7 @@
 \item{object}{\code{fnets} object}
 
 \item{type}{a string specifying which of the above three networks (i)--(iii) to visualise; possible values are
-\itemize{
+\describe{
    \item{\code{"granger"}}{ directed network representing Granger causal linkages}
    \item{\code{"pc"}}{ undirected network representing contemporaneous linkages; available when \code{object$do.lrpc = TRUE}}
    \item{\code{"lrpc"}}{ undirected network summarising Granger causal and contemporaneous linkages; available when \code{x$do.lrpc = TRUE}}
@@ -46,9 +46,6 @@ Produces an igraph object for the three networks underlying factor-adjusted VAR 
 (ii) undirected network representing contemporaneous linkages after accounting for lead-lag dependence, as given by partial correlations of VAR innovations,
 (iii) undirected network summarising (i) and (ii) as given by long-run partial correlations of VAR processes.
 When plotting the network, note that the edge weights may be negative since they correspond to the entries of the estimators of VAR parameters and (long-run) partial correlations.
-}
-\details{
-See Barigozzi, Cho and Owens (2022) for further details.
 }
 \examples{
 \donttest{

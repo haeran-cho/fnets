@@ -1,12 +1,12 @@
 #' @title Factor model estimation
 #' @description Performs factor modelling under either restricted (static) or unrestricted (dynamic) factor models
-#' @details See Barigozzi, Cho and Owens (2022) for further details.
+#' @details See Barigozzi, Cho and Owens (2024+) for further details.
 #'
 #' @param x input time series each column representing a time series variable; it is coerced into a \link[stats]{ts} object
 #' @param center whether to de-mean the input \code{x}
 #' @param fm.restricted whether to estimate a restricted factor model using static PCA
 #' @param q Either a string specifying the factor number selection method when \code{fm.restricted = TRUE}; possible values are:
-#' \itemize{
+#' \describe{
 #'    \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE}}
 #'    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013) when \code{fm.restricted = TRUE} or Avarucci et al. (2022) when \code{fm.restricted = FALSE}}
 #' }
@@ -16,7 +16,7 @@
 #' by default, it is set to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}.
 #' When \code{fm.restricted = TRUE}, it is used to compute the number of lags for which autocovariance matrices are estimated
 #' @param common.args a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
-#' \itemize{
+#' \describe{
 #'    \item{\code{factor.var.order}}{ order of the blockwise VAR representation of the common component. If \code{factor.var.order = NULL}, it is selected blockwise by Schwarz criterion}
 #'    \item{\code{max.var.order}}{ maximum blockwise VAR order for the Schwarz criterion}
 #'    \item{\code{trunc.lags}}{ truncation lag for impulse response function estimation}
@@ -33,9 +33,9 @@
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 #' @references Alessi, L., Barigozzi, M.,  & Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
 #' @references Avarucci, M., Cavicchioli, M., Forni, M., & Zaffaroni, P. (2022) The main business cycle shock(s): Frequency-band estimation of the number of dynamic factors.
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2024+) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. Journal of Business & Economic Statistics (to appear).
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 #' @seealso \link[fnets]{print.fm}, \link[fnets]{predict.fm}
 #' @examples
 #' \donttest{
@@ -141,7 +141,7 @@ fnets.factor.model <-
 #' @param xx centred input time series matrix, with each row representing a variable
 #' @param q number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007)
 #' @param q.method A string specifying the factor number selection method; possible values are:
-#' \itemize{
+#' \describe{
 #'    \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE}}
 #'    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013)}
 #' }
@@ -339,7 +339,7 @@ static.pca <-
 #' @param fc.restricted if \code{fc.restricted = TRUE}, the forecast is generated under a restricted factor model
 #' @param r number of static factors, or a string specifying the factor number selection method when \code{fc.restricted = TRUE};
 #'possible values are:
-#' \itemize{
+#' \describe{
 #'    \item{\code{"ic"}}{ information criteria of Alessi, Barigozzi & Capasso (2010)}
 #'    \item{\code{"er"}}{ eigenvalue ratio of Ahn & Horenstein (2013) }
 #' }

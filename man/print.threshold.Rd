@@ -33,11 +33,6 @@ th2 <- threshold(out$lrpc$pc)
 th3 <- threshold(out$lrpc$lrpc)
 }
 }
-\references{
-Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-
-Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
-}
 \seealso{
 \link[fnets]{threshold}
 }

@@ -19,7 +19,7 @@ dyn.pca(
 \item{q}{number of factors. If \code{q = NULL}, the factor number is estimated by an information criterion-based approach of Hallin and Liška (2007)}
 
 \item{q.method}{A string specifying the factor number selection method; possible values are:
-\itemize{
+\describe{
    \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE}}
    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013)}
 }}

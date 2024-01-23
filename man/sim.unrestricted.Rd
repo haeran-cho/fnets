@@ -22,13 +22,13 @@ a list containing
 }
 \description{
 Simulate the common component following an unrestricted factor model that does not admit a restricted representation;
-see the model (C1) in the reference.
+see the model (C1) in Barigozzi, Cho and Owens (2024+)
 }
 \examples{
 common <- sim.unrestricted(500, 50)
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110
+Barigozzi, M., Cho, H. & Owens, D. (2024+) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. Journal of Business & Economic Statistics (to appear).
 
-Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 }

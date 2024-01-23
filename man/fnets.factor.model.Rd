@@ -23,7 +23,7 @@ fnets.factor.model(
 \item{fm.restricted}{whether to estimate a restricted factor model using static PCA}
 
 \item{q}{Either a string specifying the factor number selection method when \code{fm.restricted = TRUE}; possible values are:
-\itemize{
+\describe{
    \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE}}
    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013) when \code{fm.restricted = TRUE} or Avarucci et al. (2022) when \code{fm.restricted = FALSE}}
 }
@@ -36,7 +36,7 @@ by default, it is set to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}.
 When \code{fm.restricted = TRUE}, it is used to compute the number of lags for which autocovariance matrices are estimated}
 
 \item{common.args}{a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
-\itemize{
+\describe{
    \item{\code{factor.var.order}}{ order of the blockwise VAR representation of the common component. If \code{factor.var.order = NULL}, it is selected blockwise by Schwarz criterion}
    \item{\code{max.var.order}}{ maximum blockwise VAR order for the Schwarz criterion}
    \item{\code{trunc.lags}}{ truncation lag for impulse response function estimation}
@@ -57,7 +57,7 @@ a list containing estimators of the impulse response functions (as an array of d
 Performs factor modelling under either restricted (static) or unrestricted (dynamic) factor models
 }
 \details{
-See Barigozzi, Cho and Owens (2022) for further details.
+See Barigozzi, Cho and Owens (2024+) for further details.
 }
 \examples{
 \donttest{
@@ -71,11 +71,11 @@ Alessi, L., Barigozzi, M.,  & Capasso, M. (2010) Improved penalization for deter
 
 Avarucci, M., Cavicchioli, M., Forni, M., & Zaffaroni, P. (2022) The main business cycle shock(s): Frequency-band estimation of the number of dynamic factors.
 
-Barigozzi, M., Cho, H. & Owens, D. (2022) Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
+Barigozzi, M., Cho, H. & Owens, D. (2024+) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. Journal of Business & Economic Statistics (to appear).
 
 Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 
-Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 }
 \seealso{
 \link[fnets]{print.fm}, \link[fnets]{predict.fm}

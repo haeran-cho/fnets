@@ -1,11 +1,11 @@
 #' @title \code{l1}-regularised Yule-Walker estimation for VAR processes
 #' @description Estimates the VAR parameter matrices via \code{l1}-regularised Yule-Walker estimation
 #' and innovation covariance matrix via constrained \code{l1}-minimisation.
-#' @details Further information can be found in Barigozzi, Cho and Owens (2022).
+#' @details Further information can be found in Barigozzi, Cho and Owens (2024+).
 #' @param x input time series each column representing a time series variable; it is coerced into a \link[stats]{ts} object
 #' @param center whether to de-mean the input \code{x}
 #' @param method a string specifying the method to be adopted for VAR process estimation; possible values are:
-#' \itemize{
+#' \describe{
 #'    \item{\code{"lasso"}}{ Lasso-type \code{l1}-regularised \code{M}-estimation}
 #'    \item{\code{"ds"}}{ Dantzig Selector-type constrained \code{l1}-minimisation}
 #' }
@@ -13,12 +13,9 @@
 #' @param lambda \code{l1}-regularisation parameter; if \code{lambda = NULL}, \code{tuning} is employed to select the parameter
 #' @param tuning.args a list specifying arguments for \code{tuning}
 #' for selecting the regularisation parameter (and VAR order). It contains:
-#' \itemize{
-#'    \item{\code{tuning}} a string specifying the selection procedure for \code{var.order} and \code{lambda}; possible values are:
-#'    \itemize{
-#'       \item{\code{"cv"}}{ cross validation}
-#'       \item{\code{"bic"}}{ information criterion}
-#'    }
+#' \describe{
+#'    \item{\code{tuning}}{a string specifying the selection procedure for \code{var.order} and \code{lambda}; possible values are:
+#'    \code{"cv"} for cross validation, and \code{"bic"} for information criterion}
 #'    \item{\code{n.folds}}{ if \code{tuning = "cv"}, positive integer number of folds}
 #'    \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, it is set to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}} by default
 #'    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
@@ -36,8 +33,8 @@
 #' @example R/examples/var_ex.R
 #' @importFrom parallel detectCores
 #' @importFrom stats as.ts
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+#' @references Barigozzi, M., Cho, H. & Owens, D. (2024+) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. Journal of Business & Economic Statistics (to appear).
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 #' @export
 fnets.var <- function(x,
                       center = TRUE,
@@ -497,17 +494,15 @@ yw.ic <- function(xx,
   return(out)
 }
 
-
-
-
 #' @title Plotting output for tuning parameter selection in fnets
 #' @description Tuning plots for S3 objects of class \code{fnets}.
 #' Produces up to two plots visualising CV and IC procedures for selecting tuning parameters and the VAR order.
-#' @details See Barigozzi, Cho and Owens (2022) for further details.
+#' @details See Owens, Cho and Barigozzi (2024+) for further details.
 #' @param x \code{fnets} object
 #' @param ... additional arguments
 #' @return CV/IC plot for the VAR component, and CV plot for the lrpc component (when \code{x$do.lrpc = TRUE}).
 #' @seealso \link[fnets]{fnets}
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 #' @importFrom graphics par abline box axis legend matplot
 #' @keywords internal
 tuning_plot <- function(x, ...){
@@ -674,7 +669,7 @@ prox.func <- function(B, lambda, L, GG, gg) {
 #' @title Threshold the entries of the input matrix at a data-driven level
 #' @description Threshold the entries of the input matrix at a data-driven level.
 #' This can be used to perform edge selection for VAR parameter, inverse innovation covariance, and long-run partial correlation networks.
-#' @details See Liu, Zhang, and Liu (2021) for more information on the threshold selection process
+#' @details See Owens, Cho & Barigozzi (2024+) for more information on the threshold selection process
 #' @param mat input parameter matrix
 #' @param path.length number of candidate thresholds
 #' @return an S3 object of class \code{threshold}, which contains the following fields:
@@ -683,9 +678,7 @@ prox.func <- function(B, lambda, L, GG, gg) {
 #' @seealso \link[fnets]{plot.threshold}, \link[fnets]{print.threshold}
 #' @example R/examples/thresh_ex.R
 #' @importFrom graphics par
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network analysis for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-#' @references Liu, B., Zhang, X. & Liu, Y. (2021) Simultaneous Change Point Inference and Structure Recovery for High Dimensional Gaussian Graphical Models. Journal of Machine Learning Research, 22(274), 1--62.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 #' @export
 threshold <- function(mat,
                       path.length = 500) {
@@ -727,13 +720,12 @@ threshold <- function(mat,
 #' (i) Ratio_k, the ratio of the number of non-zero to zero entries in the matrix, as the threshold varies
 #' (ii) Diff_k, the first difference of \code{Ratio_k}
 #' (iii) |CUSUM_k|, the absolute scaled cumulative sums of \code{Diff_k}
-#' @details See Owens, Cho and Barigozzi (2022) for further details.
+#' @details See Owens, Cho and Barigozzi (2024+) for further details.
 #' @param x \code{threshold} object
 #' @param plots logical vector, which plots to use (Ratio, Diff, CUSUM respectively)
 #' @param ... additional arguments
 #' @return A network plot produced as per the input arguments
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. arXiv preprint arXiv:2301.11675.
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 #' @seealso \link[fnets]{threshold}
 #' @example R/examples/thresh_ex.R
 #' @export
@@ -767,8 +759,6 @@ plot.threshold <- function(x, plots = c(TRUE, FALSE, TRUE), ...){
 #' @param x \code{threshold} object
 #' @param ... not used
 #' @return NULL, printed to console
-#' @references Barigozzi, M., Cho, H. & Owens, D. (2022) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. arXiv preprint arXiv:2201.06110.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2022) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
 #' @seealso \link[fnets]{threshold}
 #' @example R/examples/thresh_ex.R
 #' @export
