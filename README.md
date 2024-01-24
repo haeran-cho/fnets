@@ -2,11 +2,11 @@
 
 Contains methods for network estimation and forecasting for high-dimensional time series under a factor-adjusted VAR model. See 
 
-> _fnets_: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling
+> _fnets_: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling, to appear in The R Journal
 
 by Dom Owens, Haeran Cho and Matteo Barigozzi [arXiv:2301.11675](https://arxiv.org/abs/2301.11675) accompanying the R package, and
 
-> _FNETS_: Factor-adjusted network estimation and forecasting for high-dimensional time series
+> _FNETS_: Factor-adjusted network estimation and forecasting for high-dimensional time series, to appear in the Journal of Business & Economic Statistics
 
 by Matteo Barigozzi, Haeran Cho and Dom Owens [arXiv:2201.06110](https://arxiv.org/abs/2201.06110) for details of the methodology.
 
