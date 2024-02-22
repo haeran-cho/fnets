@@ -305,7 +305,7 @@ static.pca <-
     Gamma_c <- Gamma_x <- array(0, dim = c(p, p, 2 * mm + 1))
     for (h in 0:(mm - 1)) {
       Gamma_x[, , h + 1] <-
-        xx[, 1:(mm - h)] %*% t(xx[, 1:(mm - h) + h]) / n
+        xx[, 1:(n - h)] %*% t(xx[, 1:(n - h) + h]) / n
       Gamma_c[, , h + 1] <- proj %*% Gamma_x[, , h + 1] %*% proj
       if(h != 0) {
         Gamma_x[, , 2 * mm + 1 - h + 1] <- t(Gamma_x[, , h + 1])
