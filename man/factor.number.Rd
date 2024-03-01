@@ -67,7 +67,7 @@ Avarucci, M., Cavicchioli, M., Forni, M., & Zaffaroni, P. (2022) The main busine
 
 Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
 
-Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
+Owens, D., Cho, H. & Barigozzi, M. (2024) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 }
 \seealso{
 \link[fnets]{plot.factor.number}, \link[fnets]{print.factor.number}

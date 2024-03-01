@@ -64,7 +64,7 @@ Estimates the VAR parameter matrices via \code{l1}-regularised Yule-Walker estim
 and innovation covariance matrix via constrained \code{l1}-minimisation.
 }
 \details{
-Further information can be found in Barigozzi, Cho and Owens (2024+).
+Further information can be found in Barigozzi, Cho and Owens (2024).
 }
 \examples{
 library(fnets)
@@ -80,7 +80,7 @@ fv <- fnets.var(x,
 )
 }
 \references{
-Barigozzi, M., Cho, H. & Owens, D. (2024+) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. Journal of Business & Economic Statistics (to appear).
+Barigozzi, M., Cho, H. & Owens, D. (2024) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. Journal of Business & Economic Statistics (to appear).
 
-Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
+Owens, D., Cho, H. & Barigozzi, M. (2024) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 }

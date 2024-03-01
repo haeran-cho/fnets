@@ -4,7 +4,14 @@
 \alias{hl.factor.number}
 \title{Factor number estimator of Hallin and Liška (2007)}
 \usage{
-hl.factor.number(x, q.max = NULL, mm = NULL, center = TRUE)
+hl.factor.number(
+  x,
+  q.max = NULL,
+  mm = NULL,
+  center = TRUE,
+  p.seq = NULL,
+  n.seq = NULL
+)
 }
 \arguments{
 \item{x}{input time series matrix, with each row representing a variable}
@@ -14,6 +21,10 @@ hl.factor.number(x, q.max = NULL, mm = NULL, center = TRUE)
 \item{mm}{a positive integer specifying the kernel bandwidth for dynamic PCA; by default, it is set to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}}
 
 \item{center}{whether to de-mean the input \code{x} row-wise}
+
+\item{p.seq}{user-supplied sequence of dimensionality; if \code{p.seq = NULL}, a default sequence is generated as recommended by Hallin & Liška (2007)}
+
+\item{n.seq}{user-supplied sequence of sample size; if \code{n.seq = NULL}, a default sequence is generated as recommended by Hallin & Liška (2007)}
 }
 \value{
 a list containing

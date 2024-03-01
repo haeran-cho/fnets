@@ -19,10 +19,10 @@ Tuning plots for S3 objects of class \code{fnets}.
 Produces up to two plots visualising CV and IC procedures for selecting tuning parameters and the VAR order.
 }
 \details{
-See Owens, Cho and Barigozzi (2024+) for further details.
+See Owens, Cho and Barigozzi (2024) for further details.
 }
 \references{
-Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
+Owens, D., Cho, H. & Barigozzi, M. (2024) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 }
 \seealso{
 \link[fnets]{fnets}

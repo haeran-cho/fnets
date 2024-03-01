@@ -4,7 +4,14 @@
 \alias{abc.factor.number}
 \title{Factor number estimator of Alessi, Barigozzi and Capasso (2010)}
 \usage{
-abc.factor.number(x, covx = NULL, q.max = NULL, center = TRUE)
+abc.factor.number(
+  x,
+  covx = NULL,
+  q.max = NULL,
+  center = TRUE,
+  p.seq = NULL,
+  n.seq = NULL
+)
 }
 \arguments{
 \item{x}{input time series matrix, with each row representing a variable}
@@ -14,6 +21,10 @@ abc.factor.number(x, covx = NULL, q.max = NULL, center = TRUE)
 \item{q.max}{maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}}
 
 \item{center}{whether to de-mean the input \code{x} row-wise}
+
+\item{p.seq}{user-supplied sequence of dimensionality; if \code{p.seq = NULL}, a default sequence is generated as recommended by Hallin & Liška (2007)}
+
+\item{n.seq}{user-supplied sequence of sample size; if \code{n.seq = NULL}, a default sequence is generated as recommended by Hallin & Liška (2007)}
 }
 \value{
 a list containing

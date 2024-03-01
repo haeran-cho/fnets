@@ -22,7 +22,7 @@
 #' @references Alessi, L., Barigozzi, M., and Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
 #' @references Avarucci, M., Cavicchioli, M., Forni, M., & Zaffaroni, P. (2022) The main business cycle shock(s): Frequency-band estimation of the number of dynamic factors.
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
-#' @references Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
+#' @references Owens, D., Cho, H. & Barigozzi, M. (2024) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 #' @importFrom stats var as.ts
 #' @export
 factor.number <-
@@ -91,6 +91,8 @@ factor.number <-
 #' @param q.max maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}
 #' @param mm a positive integer specifying the kernel bandwidth for dynamic PCA; by default, it is set to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}
 #' @param center whether to de-mean the input \code{x} row-wise
+#' @param p.seq user-supplied sequence of dimensionality; if \code{p.seq = NULL}, a default sequence is generated as recommended by Hallin & Liška (2007)
+#' @param n.seq user-supplied sequence of sample size; if \code{n.seq = NULL}, a default sequence is generated as recommended by Hallin & Liška (2007)
 #' @return a list containing
 #' \item{q.hat}{ a vector containing minimisers of the six information criteria}
 #' @references Hallin, M. & Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603--617.
@@ -101,7 +103,9 @@ hl.factor.number <-
   function(x,
            q.max = NULL,
            mm = NULL,
-           center = TRUE) {
+           center = TRUE,
+           p.seq = NULL,
+           n.seq = NULL) {
     p <- dim(x)[1]
     n <- dim(x)[2]
     if(is.null(q.max))
@@ -114,8 +118,8 @@ hl.factor.number <-
       mm <-  floor(4 * (n / log(n))^(1 / 3))
     w <- Bartlett.weights(((-mm):mm) / mm)
 
-    p.seq <- floor(3 * p / 4 + (1:10) * p / 40)
-    n.seq <- n - (9:0) * floor(n / 20)
+    if(is.null(p.seq)) p.seq <- floor(3 * p / 4 + (1:10) * p / 40)
+    if(is.null(n.seq)) n.seq <- n - (9:0) * floor(n / 20)
     const.seq <- seq(.001, 2, by = .01)
     IC <- array(0, dim = c(q.max + 1, length(const.seq), 10, 2 * 3))
 
@@ -194,6 +198,8 @@ hl.factor.number <-
 #' @param covx covariance of \code{x}
 #' @param q.max maximum number of factors; if \code{q.max = NULL}, a default value is selected as \code{min(50, floor(sqrt(min(dim(x)[2] - 1, dim(x)[1]))))}
 #' @param center whether to de-mean the input \code{x} row-wise
+#' @param p.seq user-supplied sequence of dimensionality; if \code{p.seq = NULL}, a default sequence is generated as recommended by Hallin & Liška (2007)
+#' @param n.seq user-supplied sequence of sample size; if \code{n.seq = NULL}, a default sequence is generated as recommended by Hallin & Liška (2007)
 #' @return a list containing
 #' \item{q.hat}{ the mimimiser of the chosen information criteria}
 #' @references Alessi, L., Barigozzi, M.,  & Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
@@ -203,7 +209,9 @@ abc.factor.number <-
   function(x,
            covx = NULL,
            q.max = NULL,
-           center = TRUE) {
+           center = TRUE,
+           p.seq = NULL,
+           n.seq = NULL) {
     p <- dim(x)[1]
     n <- dim(x)[2]
     ifelse(center, mean.x <- apply(x, 1, mean), mean.x <- rep(0, p))
@@ -215,8 +223,8 @@ abc.factor.number <-
     if(is.null(covx))
       covx <- xx %*% t(xx) / n
 
-    p.seq <- floor(3 * p / 4 + (1:10) * p / 40)
-    n.seq <- n - (9:0) * floor(n / 20)
+    if(is.null(p.seq)) p.seq <- floor(3 * p / 4 + (1:10) * p / 40)
+    if(is.null(n.seq)) n.seq <- n - (9:0) * floor(n / 20)
     const.seq <- seq(.001, 2, by = .01)
     IC <- array(0, dim = c(q.max + 1, length(const.seq), 10, 6))
 

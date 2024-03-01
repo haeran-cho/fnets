@@ -21,7 +21,7 @@ Threshold the entries of the input matrix at a data-driven level.
 This can be used to perform edge selection for VAR parameter, inverse innovation covariance, and long-run partial correlation networks.
 }
 \details{
-See Owens, Cho & Barigozzi (2024+) for more information on the threshold selection process
+See Owens, Cho & Barigozzi (2024) for more information on the threshold selection process
 }
 \examples{
 \dontrun{
@@ -40,7 +40,7 @@ th3 <- threshold(out$lrpc$lrpc)
 }
 }
 \references{
-Owens, D., Cho, H. & Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
+Owens, D., Cho, H. & Barigozzi, M. (2024) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
 }
 \seealso{
 \link[fnets]{plot.threshold}, \link[fnets]{print.threshold}
