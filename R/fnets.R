@@ -116,7 +116,6 @@ fnets <-
   p <- dim(x)[1]
   n <- dim(x)[2]
 
-
   var.args <- check.list.arg(var.args)
   common.args <- check.list.arg(common.args)
   tuning.args <- check.list.arg(tuning.args)
@@ -168,7 +167,7 @@ fnets <-
                             do.threshold = do.threshold,
                             n.iter = var.args$n.iter,
                             tol = var.args$tol,
-                            n.cores = var.args$n.cores)
+                            n.cores = var.args$n.cores, q = q)
   ive$mean.x <- mean.x
 
   out <- list(

@@ -82,23 +82,14 @@ fnets.factor.model <-
            kern.bw <- max(0, kern.bw))
     mm <- min(max(1, kern.bw), floor(n / 4) - 1)
 
-    #if(!is.null(q.method)) q.method <- match.arg(q.method, c("ic", "er"))
+    # if(!is.null(q.method)) q.method <- match.arg(q.method, c("ic", "er"))
     if(fm.restricted) {
-      if(isTRUE(q==0)){
-        spca <- list()
-      } else {
-        spca <-
-          static.pca(
-            xx,
-            q = q,
-            q.method = q.method,
-            ic.op = ic.op,
-            mm = mm
-          )
-        q <- spca$q
-      }
-      loadings <- spca$lam
-      factors <- spca$f
+      spca <- static.pca(xx, q = q, q.method = q.method, ic.op = ic.op, mm = mm)
+      q <- spca$q
+      if (q >= 1) {
+        loadings <- spca$lam
+        factors <- spca$f
+      } else loadings <- factors <- NULL
       spec <- NULL
       acv <- spca$acv
     } else {
@@ -121,6 +112,7 @@ fnets.factor.model <-
         factors <-  cve$u.est
       } else loadings <- factors <- NULL
     }
+
     out <- list(
       q = q,
       spec = spec,
@@ -129,7 +121,8 @@ fnets.factor.model <-
       acv = acv,
       mean.x = mean.x
     )
-    ifelse(fm.restricted,attr(out, "factor") <-"restricted",
+
+    ifelse(fm.restricted, attr(out, "factor") <- "restricted",
            attr(out, "factor") <- "unrestricted")
     attr(out, "class") <- "fm"
     attr(out, "args") <- args
@@ -169,9 +162,8 @@ dyn.pca <-
     n <- dim(xx)[2]
 
     q.method <- match.arg(q.method, c("ic", "er"))
-    if(is.null(ic.op))
-      ic.op <- 5
-    if(is.null(kern.bw)) kern.bw <-  floor(4 * (n / log(n))^(1/3))
+    if(is.null(ic.op)) ic.op <- 5
+    if(is.null(kern.bw)) kern.bw <- floor(4 * (n / log(n))^(1/3))
     mm <- min(max(1, kern.bw), floor(n / 4) - 1)
 
     len <- 2 * mm
@@ -195,9 +187,7 @@ dyn.pca <-
     Sigma_x <-
       aperm(apply(Gamma_xw, c(1, 2), fft), c(2, 3, 1)) / (2 * pi)
     sv <- list(1:(mm + 1))
-    if(q > 0)
-      for (ii in 1:(mm + 1))
-        sv[[ii]] <- svd(Sigma_x[, , ii], nu = q, nv = 0)
+    if(q > 0) for(ii in 1:(mm + 1)) sv[[ii]] <- svd(Sigma_x[, , ii], nu = q, nv = 0)
 
 
     if(flag){
@@ -250,7 +240,9 @@ dyn.pca <-
         acv = acv,
         kern.bw = kern.bw
       )
+
     if(q.method == "er" & flag) out$q.method.out <- q.method.out
+
     return(out)
   }
 
@@ -270,8 +262,7 @@ static.pca <-
     if(is.null(q.max)) q.max <- min(50, floor(sqrt(min(n - 1, p))))
     q.method <- match.arg(q.method, c("ic", "er"))
 
-    if(is.null(ic.op))
-      ic.op <- 5
+    if(is.null(ic.op)) ic.op <- 5
 
     if(is.null(mm)) mm <- floor(min(n, p) / log(max(n, p)))
 
@@ -283,9 +274,7 @@ static.pca <-
       if(q.method == "er") {
         q.method.out <- eig$values[1:q.max] / eig$values[1 + 1:q.max]
         q <- which.max(q.method.out)
-      }
-
-      if(q.method == "ic") {
+      } else if(q.method == "ic") {
         q.method.out <-
           abc.factor.number(
             xx,
@@ -303,7 +292,7 @@ static.pca <-
     proj <-
       eig$vectors[, 1:q, drop = FALSE] %*% t(eig$vectors[, 1:q, drop = FALSE])
     Gamma_c <- Gamma_x <- array(0, dim = c(p, p, 2 * mm + 1))
-    for (h in 0:(mm - 1)) {
+    for(h in 0:(mm - 1)) {
       Gamma_x[, , h + 1] <-
         xx[, 1:(n - h)] %*% t(xx[, 1:(n - h) + h]) / n
       Gamma_c[, , h + 1] <- proj %*% Gamma_x[, , h + 1] %*% proj
@@ -328,6 +317,7 @@ static.pca <-
       acv = acv,
       q.method.out = q.method.out
     ))
+
   }
 
 #' @title Forecasting for factor models
@@ -393,4 +383,5 @@ print.fm <- function(x,
   cat(paste("Factor number selection method: ", ifelse(is.null(args$q.method), "NA", args$q.method), "\n", sep = ""))
   if(!is.null(args$q.method)) if(args$q.method == "ic")
     cat(paste("Information criterion: ", ifelse(is.null(args$ic.op), "IC5", paste("IC", args$ic.op, sep = "")), "\n", sep = ""))
-}
+
+  }

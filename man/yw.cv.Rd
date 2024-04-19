@@ -12,6 +12,7 @@ yw.cv(
   n.folds = 1,
   path.length = 10,
   q = 0,
+  fm.restricted = TRUE,
   kern.bw = NULL,
   n.cores = 1
 )

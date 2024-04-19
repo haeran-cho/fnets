@@ -67,7 +67,7 @@ fnets.var <- function(x,
   args <- as.list(environment())
   args$x <- t(args$x)
 
-  ifelse(center,mean.x <- apply(x, 1, mean), mean.x <- rep(0, p))
+  ifelse(center, mean.x <- apply(x, 1, mean), mean.x <- rep(0, p))
   xx <- x - mean.x
   dpca <- dyn.pca(xx, q = 0)
   acv <- dpca$acv
@@ -106,7 +106,10 @@ fnets.var.internal <- function(xx,
                                do.threshold = FALSE,
                                n.iter = NULL,
                                tol = 0,
-                               n.cores = 1){
+                               n.cores = 1,
+                               q = 0,
+                               fm.restricted = TRUE){
+
   for (ii in 1:length(var.order)) var.order[ii] <- posint(var.order[ii])
 
   method <- match.arg(method, c("lasso", "ds"))
@@ -120,13 +123,12 @@ fnets.var.internal <- function(xx,
       var.order = var.order,
       n.folds = tuning.args$n.folds,
       path.length = tuning.args$path.length,
-      q = 0,
+      q = q,
+      fm.restricted = fm.restricted,
       kern.bw = NULL,
       n.cores = n.cores
     )
-  }
-
-  if(tuning == "bic") {
+  } else if(tuning == "bic") {
     icv <- yw.ic(
       xx,
       method = method,
@@ -134,7 +136,8 @@ fnets.var.internal <- function(xx,
       var.order = var.order,
       penalty = tuning.args$penalty,
       path.length = tuning.args$path.length,
-      q = 0,
+      q = q,
+      fm.restricted = fm.restricted,
       kern.bw = NULL
     )
   }
@@ -154,8 +157,7 @@ fnets.var.internal <- function(xx,
         n.iter = n.iter,
         tol = tol
       )
-  }
-  if(method == "ds")
+  } else if(method == "ds"){
     ive <-
     var.dantzig(
       GG,
@@ -164,9 +166,9 @@ fnets.var.internal <- function(xx,
       symmetric = "min",
       n.cores = n.cores
     )
+  }
   ive$var.order <- icv$order.min
-  if(do.threshold)
-    ive$beta <- threshold(ive$beta)$thr.mat
+  if(do.threshold) ive$beta <- threshold(ive$beta)$thr.mat
   attr(ive, "data") <- icv
   return(ive)
 }
@@ -304,6 +306,7 @@ yw.cv <- function(xx,
                   n.folds = 1,
                   path.length = 10,
                   q = 0,
+                  fm.restricted = TRUE,
                   kern.bw = NULL,
                   n.cores = 1) {
   n <- ncol(xx)
@@ -328,16 +331,13 @@ yw.cv <- function(xx,
     train.ind <- 1:ceiling(length(ind.list[[fold]]) * .5)
     train.x <- xx[, ind.list[[fold]][train.ind]]
     test.x <- xx[, ind.list[[fold]][-train.ind]]
-    train.acv <-
-      dyn.pca(train.x,
-              q = q,
-              kern.bw = kern.bw,
-              mm = max(var.order))$acv$Gamma_i
-    test.acv <-
-      dyn.pca(test.x,
-              q = q,
-              kern.bw = kern.bw,
-              mm = max(var.order))$acv$Gamma_i
+    if(fm.restricted){
+      train.acv <- static.pca(train.x, q = q, mm = max(var.order))$acv$Gamma_i
+      test.acv <- static.pca(test.x, q = q, mm = max(var.order))$acv$Gamma_i
+    } else{
+      train.acv <- dyn.pca(train.x, q = q, kern.bw = kern.bw, mm = max(var.order))$acv$Gamma_i
+      test.acv <- dyn.pca(test.x, q = q, kern.bw = kern.bw, mm = max(var.order))$acv$Gamma_i
+    }
 
     for (jj in 1:length(var.order)) {
       mg <- make.gg(train.acv, var.order[jj])
@@ -347,16 +347,17 @@ yw.cv <- function(xx,
       test.gg <- mg$gg
       test.GG <- mg$GG
       for (ii in 1:path.length) {
-        if(method == "ds")
+        if(method == "ds"){
           train.beta <-
             var.dantzig(GG, gg, lambda = lambda.path[ii], n.cores = n.cores)$beta
-        if(method == "lasso")
+        } else if(method == "lasso"){
           train.beta <-
             var.lasso(GG, gg, lambda = lambda.path[ii])$beta
+        }
         beta.gg <- t(train.beta) %*% test.gg
         cv.err.mat[ii, jj] <- cv.err.mat[ii, jj] +
           sum(diag(
-            test.acv[, , 1] - beta.gg - t(beta.gg) + t(train.beta) %*% test.GG %*% (train.beta)
+            test.acv[,, 1] - beta.gg - t(beta.gg) + t(train.beta) %*% test.GG %*% (train.beta)
           ))
       }
     }
@@ -366,8 +367,6 @@ yw.cv <- function(xx,
     min(lambda.path[apply(cv.err.mat, 1, min) == min(apply(cv.err.mat, 1, min))])
   order.min <-
     min(var.order[apply(cv.err.mat, 2, min) == min(apply(cv.err.mat, 2, min))])
-
-
 
   out <-
     list(
@@ -428,6 +427,7 @@ yw.ic <- function(xx,
                   penalty = NULL,
                   path.length = 10,
                   q = 0,
+                  fm.restricted = TRUE,
                   kern.bw = NULL) {
   n <- ncol(xx)
   p <- nrow(xx)
@@ -447,12 +447,9 @@ yw.ic <- function(xx,
   dimnames(ic.err.mat)[[1]] <- lambda.path
   dimnames(ic.err.mat)[[2]] <- var.order
 
-
-  acv <-
-    dyn.pca(xx,
-            q = q,
-            kern.bw = kern.bw,
-            mm = max(var.order))$acv$Gamma_i
+  if(fm.restricted){
+    acv <- static.pca(xx, q = q, mm = max(var.order))$acv$Gamma_i
+  } else acv <- dyn.pca(xx, q = q, kern.bw = kern.bw, mm = max(var.order))$acv$Gamma_i
 
   for (jj in 1:length(var.order)) {
     mg <- make.gg(acv, var.order[jj])
@@ -461,13 +458,14 @@ yw.ic <- function(xx,
     test.gg <- mg$gg
     test.GG <- mg$GG
     for (ii in 1:path.length) {
-      if(method == "ds")
+      if(method == "ds"){
         beta <- var.dantzig(GG, gg, lambda = lambda.path[ii])$beta
-      if(method == "lasso")
+      } else if(method == "lasso"){
         beta <- var.lasso(GG, gg, lambda = lambda.path[ii])$beta
+      }
       beta <- threshold(beta)$thr.mat
       sparsity <- sum(beta[, 1] != 0)
-      ifelse(sparsity == 0,pen <- 0,
+      ifelse(sparsity == 0, pen <- 0,
              pen <-2 * penalty * (logfactorial(var.order[jj] * p) - log(sparsity) - log(var.order[jj] * p - sparsity)))
 
       ic.err.mat[ii, jj] <-
@@ -482,7 +480,6 @@ yw.ic <- function(xx,
   order.min <-
     min(var.order[apply(ic.err.mat, 2, min) == min(apply(ic.err.mat, 2, min))])
 
-
   out <-
     list(
       lambda = lambda.min,
@@ -491,6 +488,7 @@ yw.ic <- function(xx,
       lambda.path = lambda.path,
       var.order = var.order
     )
+
   return(out)
 }
 

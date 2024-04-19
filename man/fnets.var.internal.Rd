@@ -15,7 +15,9 @@ fnets.var.internal(
   do.threshold = FALSE,
   n.iter = NULL,
   tol = 0,
-  n.cores = 1
+  n.cores = 1,
+  q = 0,
+  fm.restricted = TRUE
 )
 }
 \description{

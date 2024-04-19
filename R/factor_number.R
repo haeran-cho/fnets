@@ -49,9 +49,7 @@ factor.number <-
         q <- pca$q
       }
       out <- q
-    }
-
-    if(method == "ic"){
+    } else if(method == "ic"){
       if(!fm.restricted) {
        temp <- hl.factor.number(
           x = x,

@@ -12,6 +12,7 @@ yw.ic(
   penalty = NULL,
   path.length = 10,
   q = 0,
+  fm.restricted = TRUE,
   kern.bw = NULL
 )
 }
