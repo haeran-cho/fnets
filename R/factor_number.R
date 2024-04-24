@@ -107,7 +107,7 @@ hl.factor.number <-
     p <- dim(x)[1]
     n <- dim(x)[2]
     if(is.null(q.max))
-      q.max <- min(50, floor(sqrt(min(n - 1, p))))
+      q.max <- min(20, floor(sqrt(min(n - 1, p))))
 
     ifelse(center, mean.x <- apply(x, 1, mean), mean.x <- rep(0, p))
     xx <- x - mean.x
@@ -119,9 +119,9 @@ hl.factor.number <-
     if(is.null(p.seq)) p.seq <- floor(3 * p / 4 + (1:10) * p / 40)
     if(is.null(n.seq)) n.seq <- n - (9:0) * floor(n / 20)
     const.seq <- seq(.001, 2, by = .01)
-    IC <- array(0, dim = c(q.max + 1, length(const.seq), 10, 2 * 3))
+    IC <- array(Inf, dim = c(q.max + 1, length(const.seq), 10, 2 * 3))
 
-    for (kk in 1:10) {
+    for (kk in 1:min(length(n.seq), length(p.seq))) {
       nn <- n.seq[kk]
       pp <- p.seq[kk]
       pen <- c((1 / mm^2 + sqrt(mm / nn) + 1 / pp) * log(min(pp, mm^2, sqrt(nn / mm))),
@@ -137,23 +137,23 @@ hl.factor.number <-
       Sigma_x <-
         aperm(apply(Gamma_x, c(1, 2), fft), c(2, 3, 1)) / (2 * pi)
 
-      tmp <- rep(0, q.max + 1)
+      tmp <- rep(0, min(q.max, pp - 1) + 1)
       for (ii in 1:(mm + 1)) {
-        ifelse(kk == length(n.seq),nu <- q.max, nu <- 0)
-        sv <- svd(Sigma_x[,, ii], nu = nu, nv = 0)
+        sv <- svd(Sigma_x[,, ii], nu = 0, nv = 0)
         dd <- sum(sv$d)
         tmp[1] <- tmp[1] + dd / pp / (2 * mm + 1)
-        for (jj in 1:q.max) {
+        for (jj in 1:(length(tmp) - 1)) {
           dd <- dd - sv$d[jj]
           tmp[jj + 1] <- tmp[jj + 1] + dd / pp / (2 * mm + 1)
         }
-        for (jj in 1:length(const.seq)) {
-          for (ic.op in 1:3) {
-            IC[, jj, kk, 3 * 0 + ic.op] <-
-              tmp + (0:q.max) * const.seq[jj] * pen[ic.op]
-            IC[, jj, kk, 3 * 1 + ic.op] <-
-              log(tmp) + (0:q.max) * const.seq[jj] * pen[ic.op]
-          }
+      }
+
+      for (jj in 1:length(const.seq)) {
+        for (ic.op in 1:3) {
+          IC[1:length(tmp), jj, kk, 3 * 0 + ic.op] <-
+            tmp + (1:length(tmp) - 1) * const.seq[jj] * pen[ic.op]
+          IC[1:length(tmp), jj, kk, 3 * 1 + ic.op] <-
+            log(tmp) + (1:length(tmp) - 1) * const.seq[jj] * pen[ic.op]
         }
       }
     }
@@ -175,14 +175,11 @@ hl.factor.number <-
         }
       }
     }
-
-
-
     out <-
       list(
         q.hat = q.hat
       )
-    attr(out, "data") <- list(Sc=Sc, const.seq=const.seq, q.mat=q.mat)
+    attr(out, "data") <- list(Sc = Sc, const.seq = const.seq, q.mat = q.mat)
     return(out)
   }
 
@@ -210,6 +207,7 @@ abc.factor.number <-
            center = TRUE,
            p.seq = NULL,
            n.seq = NULL) {
+
     p <- dim(x)[1]
     n <- dim(x)[2]
     ifelse(center, mean.x <- apply(x, 1, mean), mean.x <- rep(0, p))
@@ -224,30 +222,26 @@ abc.factor.number <-
     if(is.null(p.seq)) p.seq <- floor(3 * p / 4 + (1:10) * p / 40)
     if(is.null(n.seq)) n.seq <- n - (9:0) * floor(n / 20)
     const.seq <- seq(.001, 2, by = .01)
-    IC <- array(0, dim = c(q.max + 1, length(const.seq), 10, 6))
+    IC <- array(Inf, dim = c(q.max + 1, length(const.seq), 10, 6))
 
-    for (kk in 1:10) {
+    for(kk in 1:min(length(n.seq), length(p.seq))) {
       nn <- n.seq[kk]
       pp <- p.seq[kk]
       pen <- c((nn + pp) / (nn * pp) * log(nn * pp / (nn + pp)),
                (nn + pp) / (nn * pp) * log(min(nn, pp)),
                log(min(nn, pp)) / min(nn, pp))
 
-      tmp <- rep(0, q.max + 1)
       ifelse(kk == length(n.seq), nu <- q.max, nu <- 0)
       sv <- svd(covx[1:pp, 1:pp], nu = nu, nv = 0)
       dd <- sum(sv$d)
-      tmp[1] <- tmp[1] + dd / pp
-      for (jj in 1:q.max) {
-        dd <- dd - sv$d[jj]
-        tmp[jj + 1] <- tmp[jj + 1] + dd / pp
-      }
+      tmp <- rev(cumsum(rev(sv$d))) / pp
+      if(pp > q.max) tmp <- tmp[1:(q.max + 1)]
       for (jj in 1:length(const.seq)) {
         for (ic.op in 1:3) {
-          IC[, jj, kk, ic.op] <-
-            tmp + (0:q.max) * const.seq[jj] * pen[ic.op]
-          IC[, jj, kk, 3 * 1 + ic.op] <-
-            log(tmp) + (0:q.max) * const.seq[jj] * pen[ic.op]
+          IC[1:length(tmp), jj, kk, ic.op] <-
+            tmp + (1:length(tmp) - 1) * const.seq[jj] * pen[ic.op]
+          IC[1:length(tmp), jj, kk, 3 * 1 + ic.op] <-
+            log(tmp) + (1:length(tmp) - 1) * const.seq[jj] * pen[ic.op]
         }
       }
     }
@@ -270,9 +264,8 @@ abc.factor.number <-
       }
     }
 
-
     out <- list(q.hat = q.hat, sv = sv)
-    attr(out, "data") <- list(Sc=Sc, const.seq=const.seq, q.mat=q.mat)
+    attr(out, "data") <- list(Sc = Sc, const.seq = const.seq, q.mat = q.mat)
     return(out)
   }
 
