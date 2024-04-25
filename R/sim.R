@@ -31,7 +31,7 @@ sim.unrestricted <- function(n, p, q = 2, heavy = FALSE) {
         alpha[ii, jj] * as.numeric(var.to.vma(as.matrix(a[ii, jj]), trunc.lags))
       for (tt in 1:n)
         chi[ii, tt] <-
-          chi[ii, tt] + coeffs %*% uu[(tt + trunc.lags):tt, jj]
+          chi[ii, tt] + coeffs %*% uu[(tt + trunc.lags):tt, jj, drop = FALSE]
     }
   }
   return(list(data = as.ts(t(chi)), q = q))
@@ -71,12 +71,12 @@ sim.restricted <- function(n, p, q = 2, heavy = FALSE) {
   f[, 1] <- uu[, 1]
   for (tt in 2:(n + burnin))
     f[, tt] <- D %*% f[, tt - 1] + uu[, tt]
-  f <- f[,-(1:(burnin - lags))]
+  f <- f[,-(1:(burnin - lags)), drop = FALSE]
 
   loadings <- matrix(rnorm(p * r, 0, 1), nrow = p)
   chi <- matrix(0, p, n)
   for (ii in 0:lags)
-    chi <- chi + loadings[, ii * q + 1:q] %*% f[, 1:n + lags - ii]
+    chi <- chi + loadings[, ii * q + 1:q, drop = FALSE] %*% f[, 1:n + lags - ii]
   return(list(data = as.ts(t(chi)), q = q, r = r))
 }
 

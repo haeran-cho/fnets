@@ -189,7 +189,6 @@ dyn.pca <-
     sv <- list(1:(mm + 1))
     if(q > 0) for(ii in 1:(mm + 1)) sv[[ii]] <- svd(Sigma_x[, , ii], nu = q, nv = 0)
 
-
     if(flag){
       if(q.method == "er") {
         eigs <- rep(0, q + 1)

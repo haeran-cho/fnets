@@ -209,7 +209,7 @@ common.restricted.predict <-
       if(r.method == "ic") {
         abc <- abc.factor.number(xx, covx = Gamma_x[,, 1], q.max = max.r)
         r  <- max(q, abc$q.hat[5])
-        sv <- abc$sv
+        sv <- svd(Gamma_x[, , 1], nu = max.r, nv = 0)
       }
       else if(r.method == "er") {
         sv <- svd(Gamma_x[, , 1], nu = max.r, nv = 0)
@@ -218,8 +218,7 @@ common.restricted.predict <-
     } else
       sv <- svd(Gamma_x[, , 1], nu = max.r, nv = 0)
 
-    is <-
-      sv$u[, 1:r, drop = FALSE] %*% t(sv$u[, 1:r, drop = FALSE]) %*% xx
+    is <- sv$u[, 1:r, drop = FALSE] %*% t(sv$u[, 1:r, drop = FALSE]) %*% xx
     if(n.ahead >= 1) {
       fc <- matrix(0, nrow = p, ncol = n.ahead)
       proj.x <-

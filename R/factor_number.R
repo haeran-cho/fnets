@@ -118,7 +118,7 @@ hl.factor.number <-
 
     if(is.null(p.seq)) p.seq <- floor(3 * p / 4 + (1:10) * p / 40)
     if(is.null(n.seq)) n.seq <- n - (9:0) * floor(n / 20)
-    const.seq <- seq(.001, 2, by = .01)
+    const.seq <- seq(.001, 3, by = .01)
     IC <- array(Inf, dim = c(q.max + 1, length(const.seq), 10, 2 * 3))
 
     for (kk in 1:min(length(n.seq), length(p.seq))) {
@@ -175,10 +175,7 @@ hl.factor.number <-
         }
       }
     }
-    out <-
-      list(
-        q.hat = q.hat
-      )
+    out <- list(q.hat = q.hat)
     attr(out, "data") <- list(Sc = Sc, const.seq = const.seq, q.mat = q.mat)
     return(out)
   }
@@ -221,7 +218,7 @@ abc.factor.number <-
 
     if(is.null(p.seq)) p.seq <- floor(3 * p / 4 + (1:10) * p / 40)
     if(is.null(n.seq)) n.seq <- n - (9:0) * floor(n / 20)
-    const.seq <- seq(.001, 2, by = .01)
+    const.seq <- seq(.01, 3, by = 0.01)
     IC <- array(Inf, dim = c(q.max + 1, length(const.seq), 10, 6))
 
     for(kk in 1:min(length(n.seq), length(p.seq))) {
@@ -231,9 +228,7 @@ abc.factor.number <-
                (nn + pp) / (nn * pp) * log(min(nn, pp)),
                log(min(nn, pp)) / min(nn, pp))
 
-      ifelse(kk == length(n.seq), nu <- q.max, nu <- 0)
-      sv <- svd(covx[1:pp, 1:pp], nu = nu, nv = 0)
-      dd <- sum(sv$d)
+      sv <- svd(covx[1:pp, 1:pp], nu = 0, nv = 0)
       tmp <- rev(cumsum(rev(sv$d))) / pp
       if(pp > q.max) tmp <- tmp[1:(q.max + 1)]
       for (jj in 1:length(const.seq)) {
@@ -257,14 +252,14 @@ abc.factor.number <-
         if(sum(ss[-length(const.seq)] != 0 & ss[-1] == 0)) {
           q.hat[ii] <-
             q.mat[which(ss[-length(const.seq)] != 0 &
-                          ss[-1] == 0)[1] + 1, 10, ii] - 1
+                          ss[-1] == 0)[1] + 1, dim(q.mat)[2], ii] - 1
         } else {
           q.hat[ii] <- min(q.mat[max(which(ss == 0)), , ii]) - 1
         }
       }
     }
 
-    out <- list(q.hat = q.hat, sv = sv)
+    out <- list(q.hat = q.hat)
     attr(out, "data") <- list(Sc = Sc, const.seq = const.seq, q.mat = q.mat)
     return(out)
   }
