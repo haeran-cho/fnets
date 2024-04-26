@@ -155,11 +155,13 @@ dyn.pca <-
   function(xx,
            q = NULL,
            q.method = c("ic", "er"),
+           q.max = NULL,
            ic.op = 5,
            kern.bw = NULL,
            mm = NULL) {
     p <- dim(xx)[1]
     n <- dim(xx)[2]
+    if(is.null(q.max)) q.max <- min(50, floor(sqrt(min(n - 1, p))))
 
     q.method <- match.arg(q.method, c("ic", "er"))
     if(is.null(ic.op)) ic.op <- 5
@@ -171,7 +173,7 @@ dyn.pca <-
 
     ## dynamic pca
     if(is.null(q)) {
-      q <- min(50, floor(sqrt(min(n - 1, p))))
+      q <- min(50, floor(sqrt(min(n - 1, p))), q.max)
       flag <- TRUE
     } else flag <- FALSE
     q <- as.integer(q)
@@ -263,7 +265,7 @@ static.pca <-
 
     if(is.null(ic.op)) ic.op <- 5
 
-    if(is.null(mm)) mm <- floor(min(n, p) / log(max(n, p)))
+    if(is.null(mm)) mm <- max(1, floor(min(n, p) / log(max(n, p))))
 
     covx <- xx %*% t(xx) / n
     eig <- eigen(covx, symmetric = TRUE)

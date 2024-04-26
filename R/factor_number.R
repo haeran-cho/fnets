@@ -28,7 +28,7 @@
 factor.number <-
   function(x,
            fm.restricted = FALSE,
-           method = c("ic","er"),
+           method = c("ic", "er"),
            q.max = NULL,
            center = TRUE) {
     x <- t(as.ts(x))
@@ -42,10 +42,10 @@ factor.number <-
       ifelse(center, mean.x <- apply(x, 1, mean), mean.x <- rep(0, p))
       xx <- x - mean.x
       if(!fm.restricted){
-        pca <- dyn.pca(xx, q.method = "er")
+        pca <- dyn.pca(xx, q.max = q.max, q.method = "er")
         q <- pca$q
       } else {
-        pca <- static.pca(xx, q.method = "er")
+        pca <- static.pca(xx, q.max = q.max, q.method = "er")
         q <- pca$q
       }
       out <- q
