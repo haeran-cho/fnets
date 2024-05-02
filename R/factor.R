@@ -86,7 +86,7 @@ fnets.factor.model <-
     if(fm.restricted) {
       spca <- static.pca(xx, q = q, q.method = q.method, ic.op = ic.op, mm = mm)
       q <- spca$q
-      if (q >= 1) {
+      if(q >= 1) {
         loadings <- spca$lam
         factors <- spca$f
       } else loadings <- factors <- NULL
@@ -97,17 +97,16 @@ fnets.factor.model <-
       q <- dpca$q
       spec <- dpca$spec
       acv <- dpca$acv
-      ## common VAR estimation
-      cve <- common.irf.estimation(
-        xx,
-        Gamma_c = acv$Gamma_c,
-        q = q,
-        factor.var.order = common.args$factor.var.order,
-        max.var.order = common.args$max.var.order,
-        trunc.lags = common.args$trunc.lags,
-        n.perm = common.args$n.perm
-      )
-      if (q >= 1) {
+      if(q >= 1) {
+        cve <- common.irf.estimation(
+          xx,
+          Gamma_c = acv$Gamma_c,
+          q = q,
+          factor.var.order = common.args$factor.var.order,
+          max.var.order = common.args$max.var.order,
+          trunc.lags = common.args$trunc.lags,
+          n.perm = common.args$n.perm
+        )
         loadings <- cve$irf.est
         factors <-  cve$u.est
       } else loadings <- factors <- NULL
@@ -159,6 +158,7 @@ dyn.pca <-
            ic.op = 5,
            kern.bw = NULL,
            mm = NULL) {
+
     p <- dim(xx)[1]
     n <- dim(xx)[2]
     if(is.null(q.max)) q.max <- min(50, floor(sqrt(min(n - 1, p))))
@@ -171,14 +171,13 @@ dyn.pca <-
     len <- 2 * mm
     w <- Bartlett.weights(((-mm):mm) / mm)
 
-    ## dynamic pca
     if(is.null(q)) {
       q <- min(50, floor(sqrt(min(n - 1, p))), q.max)
       flag <- TRUE
     } else flag <- FALSE
     q <- as.integer(q)
     Gamma_x <- Gamma_xw <- array(0, dim = c(p, p, 2 * mm + 1))
-    for (h in 0:(mm - 1)) {
+    for(h in 0:(mm - 1)) {
       Gamma_x[, , h + 1] <- xx[, 1:(n - h)] %*% t(xx[, 1:(n - h) + h]) / n
       Gamma_xw[, , h + 1] <- Gamma_x[, , h + 1] * w[h + mm + 1]
       if(h != 0) {
@@ -186,15 +185,14 @@ dyn.pca <-
         Gamma_xw[, , 2 * mm + 1 - h + 1] <- t(Gamma_xw[, , h + 1])
       }
     }
-    Sigma_x <-
-      aperm(apply(Gamma_xw, c(1, 2), fft), c(2, 3, 1)) / (2 * pi)
+    Sigma_x <- aperm(apply(Gamma_xw, c(1, 2), fft), c(2, 3, 1)) / (2 * pi)
     sv <- list(1:(mm + 1))
     if(q > 0) for(ii in 1:(mm + 1)) sv[[ii]] <- svd(Sigma_x[, , ii], nu = q, nv = 0)
 
     if(flag){
       if(q.method == "er") {
         eigs <- rep(0, q + 1)
-        for (ii in 1:(mm + 1)){
+        for(ii in 1:(mm + 1)){
           eigs <- eigs + sv[[ii]]$d[0:q + 1]
         }
         q.method.out <- eigs[1:q] / eigs[1 + 1:q]
@@ -209,7 +207,7 @@ dyn.pca <-
 
     Gamma_c <- Gamma_i <- Sigma_c <- Sigma_i <- Sigma_x * 0
     if(q >= 1) {
-      for (ii in 1:(mm + 1)) {
+      for(ii in 1:(mm + 1)) {
         Sigma_c[, , ii] <-
           sv[[ii]]$u[, 1:q, drop = FALSE] %*% diag(sv[[ii]]$d[1:q], q) %*% Conj(t(sv[[ii]]$u[, 1:q, drop = FALSE]))
         if(ii > 1) {
@@ -223,24 +221,10 @@ dyn.pca <-
     Sigma_i <- Sigma_x - Sigma_c
     Gamma_i <- Gamma_x - Gamma_c
 
-    spec <-
-      list(Sigma_x = Sigma_x,
-           Sigma_c = Sigma_c,
-           Sigma_i = Sigma_i)
-    acv <-
-      list(
-        Gamma_x = Gamma_x,
-        Gamma_c = Re(Gamma_c),
-        Gamma_i = Re(Gamma_i)
-      )
+    spec <- list(Sigma_x = Sigma_x, Sigma_c = Sigma_c, Sigma_i = Sigma_i)
+    acv <- list(Gamma_x = Gamma_x, Gamma_c = Re(Gamma_c), Gamma_i = Re(Gamma_i))
 
-    out <-
-      list(
-        q = q,
-        spec = spec,
-        acv = acv,
-        kern.bw = kern.bw
-      )
+    out <- list(q = q, spec = spec, acv = acv, kern.bw = kern.bw)
 
     if(q.method == "er" & flag) out$q.method.out <- q.method.out
 
@@ -267,8 +251,9 @@ static.pca <-
 
     if(is.null(mm)) mm <- max(1, floor(min(n, p) / log(max(n, p))))
 
-    covx <- xx %*% t(xx) / n
-    eig <- eigen(covx, symmetric = TRUE)
+    Gamma_x <- array(0, dim = c(p, p, 2 * mm + 1))
+    Gamma_x[,, 1] <- xx %*% t(xx) / n
+    eig <- eigen(Gamma_x[,, 1], symmetric = TRUE)
 
     q.method.out <- 0
     if(is.null(q)) {
@@ -287,37 +272,25 @@ static.pca <-
       }
     }
 
-    lam <- eig$vectors[, 1:q, drop = FALSE] * sqrt(p)
-    f <- t(xx) %*% (eig$vectors[, 1:q, drop = FALSE]) / sqrt(p)
+    if(q >= 1){
+      proj <- eig$vectors[, 1:q, drop = FALSE] %*% t(eig$vectors[, 1:q, drop = FALSE])
+      lam <- eig$vectors[, 1:q, drop = FALSE] * sqrt(p)
+      f <- t(xx) %*% (eig$vectors[, 1:q, drop = FALSE]) / sqrt(p)
+    } else lam <- f <- NULL
 
-    proj <-
-      eig$vectors[, 1:q, drop = FALSE] %*% t(eig$vectors[, 1:q, drop = FALSE])
-    Gamma_c <- Gamma_x <- array(0, dim = c(p, p, 2 * mm + 1))
+    Gamma_c <- Gamma_x * 0
     for(h in 0:(mm - 1)) {
-      Gamma_x[, , h + 1] <-
-        xx[, 1:(n - h)] %*% t(xx[, 1:(n - h) + h]) / n
-      Gamma_c[, , h + 1] <- proj %*% Gamma_x[, , h + 1] %*% proj
+      if(h >= 1) Gamma_x[, , h + 1] <- xx[, 1:(n - h)] %*% t(xx[, 1:(n - h) + h]) / n
+      if(q >= 1) Gamma_c[, , h + 1] <- proj %*% Gamma_x[, , h + 1] %*% proj
       if(h != 0) {
         Gamma_x[, , 2 * mm + 1 - h + 1] <- t(Gamma_x[, , h + 1])
         Gamma_c[, , 2 * mm + 1 - h + 1] <- t(Gamma_c[, , h + 1])
       }
     }
+    acv <- list(Gamma_x = Gamma_x, Gamma_c = Gamma_c, Gamma_i = Gamma_x - Gamma_c)
 
-    Gamma_i <- Gamma_x - Gamma_c
-    acv <-
-      list(
-        Gamma_x = Gamma_x,
-        Gamma_c = Gamma_c,
-        Gamma_i = Gamma_i
-      )
-
-    return(list(
-      q = q,
-      lam = lam,
-      f = f,
-      acv = acv,
-      q.method.out = q.method.out
-    ))
+    out <- list(q = q, lam = lam, f = f, acv = acv, q.method.out = q.method.out)
+    return(out)
 
   }
 

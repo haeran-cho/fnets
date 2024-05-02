@@ -112,6 +112,7 @@ fnets <-
              penalty = NULL,
              path.length = 10
            )) {
+
   x <- t(as.ts(x))
   p <- dim(x)[1]
   n <- dim(x)[2]
@@ -228,7 +229,7 @@ plot_internal <- function(x,
     if(type == "granger") {
       ifelse(is.var, beta <- x$beta, beta <- x$idio.var$beta)
       d <- dim(beta)[1] /p
-      for (ll in 1:d)
+      for(ll in 1:d)
         A <- A + t(beta)[, (ll - 1) * p + 1:p]
     }
 
@@ -251,7 +252,7 @@ plot_internal <- function(x,
     if(!is.na(groups[1])) {
       grps <- perm <- c()
       K <- length(unique(groups))
-      for (ii in 1:K) {
+      for(ii in 1:K) {
         permii <- which(groups == unique(groups)[ii])
         perm <- c(perm, permii)
         grps <- c(grps, rep(ii, length(permii)))
@@ -492,7 +493,7 @@ plot.fnets <-
         if(!is.na(names[1]) || (!is.na(groups[1]) & !all(groups==1)) ) {
           if(is.na(names[1]))
             names <- groups[perm]
-          for (ii in 1:p)
+          for(ii in 1:p)
             mtext(
               text = names[ii],
               at = (ii - 1) / (p - 1),
@@ -501,7 +502,7 @@ plot.fnets <-
               cex = .8,
               col = grp.col[ii]
             )
-          for (ii in 1:p)
+          for(ii in 1:p)
             mtext(
               text = names[ii],
               at = (ii - 1) / (p - 1),
@@ -553,7 +554,7 @@ predict.fnets <-
            ...) {
   if(is.null(newdata)) {
     newdata <- attr(object, "args")$x
-  } else if (object$q >= 1) {
+  } else if(object$q >= 1) {
     stop("To produce forecasts when a common component is present, estimate a model on the new data. \n")
   }
   newdata <- as.ts(newdata)
