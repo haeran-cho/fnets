@@ -11,7 +11,9 @@
 #'    \item{\code{"er"}}{ eigenvalue ratio of Ahn and Horenstein (2013) when \code{fm.restricted = TRUE} or Avarucci et al. (2022) when \code{fm.restricted = FALSE}}
 #' }
 #' or the number of unrestricted factors, see \link[fnets]{factor.number}
-#' @param ic.op choice of the information criterion penalty, see \link[fnets]{hl.factor.number} or \link[fnets]{abc.factor.number} for further details
+#' @param ic.op choice of the information criterion penalty. Currently the three options from Hallin and Liška (2007) (\code{ic.op = 1, 2} or \code{3}) and
+#' their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
+#' with \code{ic.op = 5} recommended as a default choice based on numerical experiments
 #' @param kern.bw a positive integer specifying the kernel bandwidth for dynamic PCA;
 #' by default, it is set to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}.
 #' When \code{fm.restricted = TRUE}, it is used to compute the number of lags for which autocovariance matrices are estimated
@@ -48,7 +50,7 @@ fnets.factor.model <-
            center = TRUE,
            fm.restricted = FALSE,
            q = c("ic", "er"),
-           ic.op = NULL,
+           ic.op = 5,
            kern.bw = NULL,
            common.args = list(
              factor.var.order = NULL,
@@ -56,6 +58,7 @@ fnets.factor.model <-
              trunc.lags = 20,
              n.perm = 10
            )) {
+
     x <- t(as.ts(x))
     p <- dim(x)[1]
     n <- dim(x)[2]
@@ -93,7 +96,7 @@ fnets.factor.model <-
       spec <- NULL
       acv <- spca$acv
     } else {
-      dpca <- dyn.pca(xx, q, q.method, ic.op, kern.bw, mm)
+      dpca <- dyn.pca(xx, q = q, q.method = q.method, ic.op = ic.op, kern.bw = kern.bw, mm = mm)
       q <- dpca$q
       spec <- dpca$spec
       acv <- dpca$acv
@@ -166,7 +169,7 @@ dyn.pca <-
     q.method <- match.arg(q.method, c("ic", "er"))
     if(is.null(ic.op)) ic.op <- 5
     if(is.null(kern.bw)) kern.bw <- floor(4 * (n / log(n))^(1/3))
-    mm <- min(max(1, kern.bw), floor(n / 4) - 1)
+    if(is.null(mm)) mm <- min(max(1, kern.bw), floor(n / 4) - 1)
 
     len <- 2 * mm
     w <- Bartlett.weights(((-mm):mm) / mm)
@@ -187,7 +190,7 @@ dyn.pca <-
     }
     Sigma_x <- aperm(apply(Gamma_xw, c(1, 2), fft), c(2, 3, 1)) / (2 * pi)
     sv <- list(1:(mm + 1))
-    if(q > 0) for(ii in 1:(mm + 1)) sv[[ii]] <- svd(Sigma_x[, , ii], nu = q, nv = 0)
+    if(q >= 1) for(ii in 1:(mm + 1)) sv[[ii]] <- svd(Sigma_x[, , ii], nu = q, nv = 0)
 
     if(flag){
       if(q.method == "er") {
@@ -218,11 +221,9 @@ dyn.pca <-
         aperm(apply(Sigma_c, c(1, 2), fft, inverse = TRUE), c(2, 3, 1)) * (2 * pi) / (2 * mm + 1)
       Gamma_c <- Re(Gamma_c)
     }
-    Sigma_i <- Sigma_x - Sigma_c
-    Gamma_i <- Gamma_x - Gamma_c
 
-    spec <- list(Sigma_x = Sigma_x, Sigma_c = Sigma_c, Sigma_i = Sigma_i)
-    acv <- list(Gamma_x = Gamma_x, Gamma_c = Re(Gamma_c), Gamma_i = Re(Gamma_i))
+    spec <- list(Sigma_x = Sigma_x, Sigma_c = Sigma_c, Sigma_i = Sigma_x - Sigma_c)
+    acv <- list(Gamma_x = Gamma_x, Gamma_c = Re(Gamma_c), Gamma_i = Re(Gamma_x - Gamma_c))
 
     out <- list(q = q, spec = spec, acv = acv, kern.bw = kern.bw)
 
@@ -264,7 +265,7 @@ static.pca <-
         q.method.out <-
           abc.factor.number(
             xx,
-            covx = covx,
+            covx = Gamma_x[,, 1],
             q.max = q.max,
             center = FALSE
           )

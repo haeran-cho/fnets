@@ -8,6 +8,7 @@ dyn.pca(
   xx,
   q = NULL,
   q.method = c("ic", "er"),
+  q.max = NULL,
   ic.op = 5,
   kern.bw = NULL,
   mm = NULL

@@ -31,6 +31,7 @@ factor.number <-
            method = c("ic", "er"),
            q.max = NULL,
            center = TRUE) {
+
     x <- t(as.ts(x))
     covx <- NULL
     p <- dim(x)[1]
@@ -77,7 +78,7 @@ factor.number <-
       attr(out, "data") <- data
     }
     return(out)
-  }
+}
 
 #' @title Factor number estimator of Hallin and Liška (2007)
 #' @description Estimates the number of factors by minimising an information criterion over sub-samples of the data.

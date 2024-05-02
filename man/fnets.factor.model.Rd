@@ -9,7 +9,7 @@ fnets.factor.model(
   center = TRUE,
   fm.restricted = FALSE,
   q = c("ic", "er"),
-  ic.op = NULL,
+  ic.op = 5,
   kern.bw = NULL,
   common.args = list(factor.var.order = NULL, max.var.order = NULL, trunc.lags = 20,
     n.perm = 10)
@@ -29,7 +29,9 @@ fnets.factor.model(
 }
 or the number of unrestricted factors, see \link[fnets]{factor.number}}
 
-\item{ic.op}{choice of the information criterion penalty, see \link[fnets]{hl.factor.number} or \link[fnets]{abc.factor.number} for further details}
+\item{ic.op}{choice of the information criterion penalty. Currently the three options from Hallin and Liška (2007) (\code{ic.op = 1, 2} or \code{3}) and
+their variations with logarithm taken on the cost (\code{ic.op = 4, 5} or \code{6}) are implemented,
+with \code{ic.op = 5} recommended as a default choice based on numerical experiments}
 
 \item{kern.bw}{a positive integer specifying the kernel bandwidth for dynamic PCA;
 by default, it is set to \code{floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))}.
