@@ -10,7 +10,7 @@
 #'    \item{\code{"ds"}}{ Dantzig Selector-type constrained \code{l1}-minimisation}
 #' }
 #' @param var.order order of the VAR process; if a vector of integers is supplied, the order is chosen via \code{tuning}
-#' @param lambda \code{l1}-regularisation parameter; if \code{lambda = NULL}, \code{tuning} is employed to select the parameter
+#' @param lambda \code{l1}-regularisation parameter. If \code{lambda = NULL}, \code{tuning} is employed to select the parameter; currently supports the case with \code{length(var.order) = 1} only
 #' @param tuning.args a list specifying arguments for \code{tuning}
 #' for selecting the regularisation parameter (and VAR order). It contains:
 #' \describe{
@@ -142,7 +142,7 @@ fnets.var.internal <- function(xx,
         kern.bw = NULL
       )
     }
-  } else icv <- list(lambda = lambda)
+  } else icv <- list(lambda = lambda, order.min = var.order)
 
   mg <- make.gg(acv$Gamma_i, icv$order.min)
   gg <- mg$gg
@@ -364,7 +364,7 @@ yw.cv <- function(xx,
       }
     }
   }
-  # cv.err.mat[cv.err.mat < 0] <- Inf
+  # cv.err.mat[cv.err.mat < - 10] <- Inf
   lambda.min <-
     min(lambda.path[apply(cv.err.mat, 1, min) == min(apply(cv.err.mat, 1, min))])
   order.min <-

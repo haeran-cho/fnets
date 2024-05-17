@@ -32,7 +32,7 @@
 #' }
 #' @param var.args a list specifying the tuning parameters required for estimating the idiosyncratic VAR process. It contains:
 #' \describe{
-#'    \item{\code{lambda}}{user-specified lambda; if \code{lambda = NULL}, it is chosen using the set \code{tuning} method specified in \code{tuning.args}}
+#'    \item{\code{lambda}}{user-specified lambda; if \code{lambda = NULL}, it is chosen using the set \code{tuning} method specified in \code{tuning.args}; currently works only when \code{length(var.order) = 1}}
 #'    \item{\code{n.iter}}{ maximum number of descent steps, by default depends on \code{var.order}; applicable when \code{var.method = "lasso"}}
 #'    \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{var.method = "ds"}}
 #' }
