@@ -8,7 +8,7 @@
 #'
 #' @param x input time series each column representing a time series variable; it is coerced into a \link[stats]{ts} object
 #' @param center whether to de-mean the input \code{x}
-#' @param fm.restricted whether to estimate a restricted factor model using static PCA
+#' @param fm.restricted boolean; whether to estimate a restricted factor model using static PCA
 #' @param q Either the number of factors or a string specifying the factor number selection method; possible values are:
 #' \describe{
 #'    \item{\code{"ic"}}{ information criteria-based methods of Alessi, Barigozzi & Capasso (2010) when \code{fm.restricted = TRUE} or Hallin and Liška (2007) when \code{fm.restricted = FALSE}}
@@ -32,12 +32,13 @@
 #' }
 #' @param var.args a list specifying the tuning parameters required for estimating the idiosyncratic VAR process. It contains:
 #' \describe{
+#'    \item{\code{lambda}}{user-specified lambda; if \code{lambda = NULL}, it is chosen using the set \code{tuning} method specified in \code{tuning.args}}
 #'    \item{\code{n.iter}}{ maximum number of descent steps, by default depends on \code{var.order}; applicable when \code{var.method = "lasso"}}
 #'    \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{var.method = "ds"}}
 #' }
-#' @param do.threshold whether to perform adaptive thresholding of all parameter estimators with \link[fnets]{threshold}
-#' @param do.lrpc whether to estimate the long-run partial correlation
-#' @param lrpc.adaptive whether to use the adaptive estimation procedure
+#' @param do.threshold boolean; whether to perform adaptive thresholding of all parameter estimators with \link[fnets]{threshold}
+#' @param do.lrpc boolean; whether to estimate the long-run partial correlation matrix or not
+#' @param lrpc.adaptive boolean; whether to use the adaptive estimation procedure
 #' @param tuning.args a list specifying arguments for selecting the tuning parameters involved in VAR parameter and (long-run) partial correlation matrix estimation. It contains:
 #' \describe{
 #'    \item{\code{tuning}}{a string specifying the selection procedure for \code{var.order} and \code{lambda}; possible values are:
@@ -100,11 +101,12 @@ fnets <-
            var.order = 1,
            var.method = c("lasso", "ds"),
            var.args = list(
+             lambda = NULL,
              n.iter = NULL,
              n.cores = 1
            ),
            do.threshold = FALSE,
-           do.lrpc = TRUE,
+           do.lrpc = FALSE,
            lrpc.adaptive = FALSE,
            tuning.args = list(
              tuning = c("cv", "bic"),
@@ -160,9 +162,8 @@ fnets <-
   factors <- fm$factors
   acv <- fm$acv
 
-  ## idio estimation
-  ive <- fnets.var.internal(xx, acv, method = c("lasso", "ds"),
-                            lambda = NULL,
+  ive <- fnets.var.internal(xx, acv, method = var.method,
+                            lambda = var.args$lambda,
                             var.order = var.order,
                             tuning.args = tuning.args,
                             do.threshold = do.threshold,
@@ -188,22 +189,27 @@ fnets <-
   attr(out, "args") <- args
 
   ## lrpc estimation
-  ifelse(do.lrpc,
-         out$lrpc <-
-           par.lrpc(
-             out,
-             eta = NULL,
-             tuning.args = tuning.args,
-             do.threshold = do.threshold,
-             lrpc.adaptive = lrpc.adaptive,
-             n.cores = var.args$n.cores
-           ),
-         out$lrpc <- NA)
+  if(do.lrpc){
+    if(!fm.restricted){
+      out$lrpc <-
+        par.lrpc(
+          out,
+          eta = NULL,
+          tuning.args = tuning.args,
+          do.threshold = do.threshold,
+          lrpc.adaptive = lrpc.adaptive,
+          n.cores = var.args$n.cores
+        )
+    } else{
+      warning("Long-run partial correlation estimation is supported for when fm.restricted = FALSE only")
+      out$lrpc <- NA
+    }
+  } else out$lrpc <- NA
 
   attr(out, "class") <- "fnets"
-  #tuning data
   attr(out, "data") <- attr(ive, "data")
   return(out)
+
 }
 
 #' @title internal function for \code{plot.fnets} and \code{network}

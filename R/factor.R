@@ -180,17 +180,17 @@ dyn.pca <-
     } else flag <- FALSE
     q <- as.integer(q)
     Gamma_x <- Gamma_xw <- array(0, dim = c(p, p, 2 * mm + 1))
-    for(h in 0:(mm - 1)) {
-      Gamma_x[, , h + 1] <- xx[, 1:(n - h)] %*% t(xx[, 1:(n - h) + h]) / n
-      Gamma_xw[, , h + 1] <- Gamma_x[, , h + 1] * w[h + mm + 1]
+    for(h in 0:mm) {
+      Gamma_x[,, h + 1] <- xx[, 1:(n - h)] %*% t(xx[, 1:(n - h) + h]) / n
+      Gamma_xw[,, h + 1] <- Gamma_x[,, h + 1] * w[h + mm + 1]
       if(h != 0) {
-        Gamma_x[, , 2 * mm + 1 - h + 1] <- t(Gamma_x[, , h + 1])
-        Gamma_xw[, , 2 * mm + 1 - h + 1] <- t(Gamma_xw[, , h + 1])
+        Gamma_x[,, 2 * mm + 1 - h + 1] <- t(Gamma_x[,, h + 1])
+        Gamma_xw[,, 2 * mm + 1 - h + 1] <- t(Gamma_xw[,, h + 1])
       }
     }
     Sigma_x <- aperm(apply(Gamma_xw, c(1, 2), fft), c(2, 3, 1)) / (2 * pi)
     sv <- list(1:(mm + 1))
-    if(q >= 1) for(ii in 1:(mm + 1)) sv[[ii]] <- svd(Sigma_x[, , ii], nu = q, nv = 0)
+    if(q >= 1) for(ii in 1:(mm + 1)) sv[[ii]] <- svd(Sigma_x[,, ii], nu = q, nv = 0)
 
     if(flag){
       if(q.method == "er") {
@@ -211,10 +211,10 @@ dyn.pca <-
     Gamma_c <- Gamma_i <- Sigma_c <- Sigma_i <- Sigma_x * 0
     if(q >= 1) {
       for(ii in 1:(mm + 1)) {
-        Sigma_c[, , ii] <-
+        Sigma_c[,, ii] <-
           sv[[ii]]$u[, 1:q, drop = FALSE] %*% diag(sv[[ii]]$d[1:q], q) %*% Conj(t(sv[[ii]]$u[, 1:q, drop = FALSE]))
         if(ii > 1) {
-          Sigma_c[, , 2 * mm + 1 - (ii - 1) + 1] <- Conj(Sigma_c[, , ii])
+          Sigma_c[,, 2 * mm + 1 - (ii - 1) + 1] <- Conj(Sigma_c[,, ii])
         }
       }
       Gamma_c <-
@@ -230,7 +230,7 @@ dyn.pca <-
     if(q.method == "er" & flag) out$q.method.out <- q.method.out
 
     return(out)
-  }
+}
 
 #' @title Static PCA
 #' @keywords internal
@@ -252,9 +252,8 @@ static.pca <-
 
     if(is.null(mm)) mm <- max(1, floor(min(n, p) / log(max(n, p))))
 
-    Gamma_x <- array(0, dim = c(p, p, 2 * mm + 1))
-    Gamma_x[,, 1] <- xx %*% t(xx) / n
-    eig <- eigen(Gamma_x[,, 1], symmetric = TRUE)
+    covx <- xx %*% t(xx) / n
+    eig <- eigen(covx, symmetric = TRUE)
 
     q.method.out <- 0
     if(is.null(q)) {
@@ -265,7 +264,7 @@ static.pca <-
         q.method.out <-
           abc.factor.number(
             xx,
-            covx = Gamma_x[,, 1],
+            covx = covx,
             q.max = q.max,
             center = FALSE
           )
@@ -279,13 +278,13 @@ static.pca <-
       f <- t(xx) %*% (eig$vectors[, 1:q, drop = FALSE]) / sqrt(p)
     } else lam <- f <- NULL
 
-    Gamma_c <- Gamma_x * 0
-    for(h in 0:(mm - 1)) {
-      if(h >= 1) Gamma_x[, , h + 1] <- xx[, 1:(n - h)] %*% t(xx[, 1:(n - h) + h]) / n
-      if(q >= 1) Gamma_c[, , h + 1] <- proj %*% Gamma_x[, , h + 1] %*% proj
+    Gamma_c <- Gamma_x <- array(0, dim = c(p, p, 2 * mm + 1))
+    for(h in 0:mm) {
+      ifelse(h == 0, Gamma_x[,, h + 1] <- covx, Gamma_x[,, h + 1] <- xx[, 1:(n - h)] %*% t(xx[, 1:(n - h) + h]) / n)
+      if(q >= 1) Gamma_c[,, h + 1] <- proj %*% Gamma_x[,, h + 1] %*% proj
       if(h != 0) {
-        Gamma_x[, , 2 * mm + 1 - h + 1] <- t(Gamma_x[, , h + 1])
-        Gamma_c[, , 2 * mm + 1 - h + 1] <- t(Gamma_c[, , h + 1])
+        Gamma_x[,, 2 * mm + 1 - h + 1] <- t(Gamma_x[,, h + 1])
+        Gamma_c[,, 2 * mm + 1 - h + 1] <- t(Gamma_c[,, h + 1])
       }
     }
     acv <- list(Gamma_x = Gamma_x, Gamma_c = Gamma_c, Gamma_i = Gamma_x - Gamma_c)

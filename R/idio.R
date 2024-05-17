@@ -115,39 +115,41 @@ fnets.var.internal <- function(xx,
   method <- match.arg(method, c("lasso", "ds"))
   tuning <- match.arg(tuning.args$tuning, c("cv", "bic"))
 
-  if(tuning == "cv") {
-    icv <- yw.cv(
-      xx,
-      method = method,
-      lambda.max = NULL,
-      var.order = var.order,
-      n.folds = tuning.args$n.folds,
-      path.length = tuning.args$path.length,
-      q = q,
-      fm.restricted = fm.restricted,
-      kern.bw = NULL,
-      n.cores = n.cores
-    )
-  } else if(tuning == "bic") {
-    icv <- yw.ic(
-      xx,
-      method = method,
-      lambda.max = NULL,
-      var.order = var.order,
-      penalty = tuning.args$penalty,
-      path.length = tuning.args$path.length,
-      q = q,
-      fm.restricted = fm.restricted,
-      kern.bw = NULL
-    )
-  }
+  if(is.null(lambda)){
+    if(tuning == "cv") {
+      icv <- yw.cv(
+        xx,
+        method = method,
+        lambda.max = NULL,
+        var.order = var.order,
+        n.folds = tuning.args$n.folds,
+        path.length = tuning.args$path.length,
+        q = q,
+        fm.restricted = fm.restricted,
+        kern.bw = NULL,
+        n.cores = n.cores
+      )
+    } else if(tuning == "bic") {
+      icv <- yw.ic(
+        xx,
+        method = method,
+        lambda.max = NULL,
+        var.order = var.order,
+        penalty = tuning.args$penalty,
+        path.length = tuning.args$path.length,
+        q = q,
+        fm.restricted = fm.restricted,
+        kern.bw = NULL
+      )
+    }
+  } else icv <- list(lambda = lambda)
 
   mg <- make.gg(acv$Gamma_i, icv$order.min)
   gg <- mg$gg
   GG <- mg$GG
 
   if(method == "lasso"){
-    if(is.null(n.iter)) n.iter <- icv$order.min*100
+    if(is.null(n.iter)) n.iter <- icv$order.min * 100
     ive <-
       var.lasso(
         GG,
@@ -362,7 +364,7 @@ yw.cv <- function(xx,
       }
     }
   }
-  cv.err.mat[cv.err.mat < 0] <- Inf
+  # cv.err.mat[cv.err.mat < 0] <- Inf
   lambda.min <-
     min(lambda.path[apply(cv.err.mat, 1, min) == min(apply(cv.err.mat, 1, min))])
   order.min <-
@@ -457,6 +459,7 @@ yw.ic <- function(xx,
     GG <- mg$GG
     test.gg <- mg$gg
     test.GG <- mg$GG
+
     for (ii in 1:path.length) {
       if(method == "ds"){
         beta <- var.dantzig(GG, gg, lambda = lambda.path[ii])$beta
@@ -466,7 +469,7 @@ yw.ic <- function(xx,
       beta <- threshold(beta)$thr.mat
       sparsity <- sum(beta[, 1] != 0)
       ifelse(sparsity == 0, pen <- 0,
-             pen <-2 * penalty * (logfactorial(var.order[jj] * p) - log(sparsity) - log(var.order[jj] * p - sparsity)))
+             pen <- 2 * penalty * (logfactorial(var.order[jj] * p) - log(sparsity) - log(var.order[jj] * p - sparsity)))
 
       ic.err.mat[ii, jj] <-
         ic.err.mat[ii, jj] + n / 2 * log(2 * f.func.mat(GG, gg, beta)[1]) + sparsity * log(n) + pen

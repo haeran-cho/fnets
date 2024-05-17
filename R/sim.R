@@ -1,6 +1,6 @@
 #' @title Simulate data from an unrestricted factor model
-#' @description Simulate the common component following an unrestricted factor model that does not admit a restricted representation;
-#' see the model (C1) in Barigozzi, Cho and Owens (2024)
+#' @description Simulate a common component following the generalised dynamic factor model that does not admit a restricted (static) representation;
+#' see the model (C1) in the reference
 #' @param n sample size
 #' @param p dimension
 #' @param q number of unrestricted factors
@@ -25,11 +25,11 @@ sim.unrestricted <- function(n, p, q = 2, heavy = FALSE) {
 
   a <- matrix(runif(p * q,-1, 1), ncol = q)
   alpha <- matrix(runif(p * q,-.8, .8), ncol = q)
-  for (ii in 1:p) {
-    for (jj in 1:q) {
+  for(ii in 1:p) {
+    for(jj in 1:q) {
       coeffs <-
         alpha[ii, jj] * as.numeric(var.to.vma(as.matrix(a[ii, jj]), trunc.lags))
-      for (tt in 1:n)
+      for(tt in 1:n)
         chi[ii, tt] <-
           chi[ii, tt] + coeffs %*% uu[(tt + trunc.lags):tt, jj, drop = FALSE]
     }
@@ -38,7 +38,7 @@ sim.unrestricted <- function(n, p, q = 2, heavy = FALSE) {
 }
 
 #' @title Simulate data from a restricted factor model
-#' @description Simulate the common component following an unrestricted factor model that admits a restricted representation;
+#' @description Simulate a factor-driven component that admits a restricted (static) representation;
 #' see the model (C2) in the reference.
 #' @param n sample size
 #' @param p dimension
@@ -69,15 +69,16 @@ sim.restricted <- function(n, p, q = 2, heavy = FALSE) {
 
   f <- matrix(0, nrow = q, ncol = n + burnin)
   f[, 1] <- uu[, 1]
-  for (tt in 2:(n + burnin))
+  for(tt in 2:(n + burnin))
     f[, tt] <- D %*% f[, tt - 1] + uu[, tt]
   f <- f[,-(1:(burnin - lags)), drop = FALSE]
 
   loadings <- matrix(rnorm(p * r, 0, 1), nrow = p)
   chi <- matrix(0, p, n)
-  for (ii in 0:lags)
+  for(ii in 0:lags)
     chi <- chi + loadings[, ii * q + 1:q, drop = FALSE] %*% f[, 1:n + lags - ii]
   return(list(data = as.ts(t(chi)), q = q, r = r))
+
 }
 
 #' @title Simulate a VAR(1) process
@@ -116,7 +117,7 @@ sim.var <- function(n,
   A[which(index == 1)] <- .275
   A <- A / norm(A, "2")
 
-  for (tt in 2:(n + burnin))
+  for(tt in 2:(n + burnin))
     xi[, tt] <- xi[, tt] + A %*% xi[, tt - 1]
   xi <- xi[,-(1:burnin)]
 
