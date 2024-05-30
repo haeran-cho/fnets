@@ -19,10 +19,10 @@ install.packages("fnets")
 ```
 
 
-To install from GitHub:
+To install the latest version from GitHub:
 
 ```
-devtools::install_github("https://github.com/Dom-Owens-UoB/fnets")
+devtools::install_github("https://github.com/haeran-cho/fnets")
 ```
 
 ## Usage
