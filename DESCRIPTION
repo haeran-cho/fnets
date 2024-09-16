@@ -7,8 +7,8 @@ Authors@R: c(
     person("Haeran", "Cho", email = "haeran.cho@bristol.ac.uk", role = c("cre", "aut")),
     person("Dom", "Owens", email = "dom.owens@bristol.ac.uk", role = "aut"))
 Maintainer: Haeran Cho <haeran.cho@bristol.ac.uk>
-BugReports:	https://github.com/haeran-cho/fnets/issues
-URL:	https://github.com/haeran-cho/fnets/
+BugReports: https://github.com/haeran-cho/fnets/issues
+URL: https://github.com/haeran-cho/fnets/
 Description: Implements methods for network estimation and forecasting of high-dimensional time series 
     exhibiting strong serial and cross-sectional correlations under a factor-adjusted vector autoregressive model.
     See Barigozzi, Cho and Owens (2024) <doi:10.1080/07350015.2023.2257270> for further descriptions of FNETS methodology and 
@@ -22,7 +22,8 @@ Imports:
     MASS,
     fields,
     igraph,
-    RColorBrewer
+    RColorBrewer,
+    glmnet
 Encoding: UTF-8
 LazyData: true
 License: GPL (>= 3)

@@ -162,14 +162,25 @@ fnets <-
   factors <- fm$factors
   acv <- fm$acv
 
-  ive <- fnets.var.internal(xx, acv, method = var.method,
-                            lambda = var.args$lambda,
-                            var.order = var.order,
-                            tuning.args = tuning.args,
-                            do.threshold = do.threshold,
-                            n.iter = var.args$n.iter,
-                            tol = var.args$tol,
-                            n.cores = var.args$n.cores, q = q)
+  if(fm.restricted && q>0){
+    message("For a static factor model, cv.glmnet is used")
+    xx_i = t(xx) - ( fm$factors %*% t(fm$loadings) )
+    ive = fnets.glmnet(xx = xx_i,
+                       lambda = var.args$lambda,
+                       var.order = var.order,
+                       tuning.args = tuning.args,
+                       n.cores = var.args$n.cores,
+                       q = q)
+  } else {
+    ive <- fnets.var.internal(xx, acv, method = var.method,
+                              lambda = var.args$lambda,
+                              var.order = var.order,
+                              tuning.args = tuning.args,
+                              do.threshold = do.threshold,
+                              n.iter = var.args$n.iter,
+                              tol = var.args$tol,
+                              n.cores = var.args$n.cores, q = q)
+  }
   ive$mean.x <- mean.x
 
   out <- list(

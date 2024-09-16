@@ -79,7 +79,8 @@ fnets.var <- function(x,
                             do.threshold = do.threshold,
                             n.iter = n.iter,
                             tol = tol,
-                            n.cores = n.cores)
+                            n.cores = n.cores,
+                            fm.restricted = fm.restricted)
   ive$mean.x <- mean.x
   args$do.lrpc <- ive$do.lrpc <- FALSE
   ive$q <- 0
@@ -769,3 +770,51 @@ print.threshold <- function(x,
   cat(paste("Threshold: ", x$threshold, "\n", sep = ""))
   cat(paste("Non-zero entries: ", sum(x$thr.mat != 0), "/", prod(dim(x$thr.mat)), "\n", sep = ""))
 }
+
+
+
+#' @title Implementing cv.glmnet for VAR estimation
+#' @importFrom parallel makePSOCKcluster stopCluster detectCores
+#' @importFrom doParallel registerDoParallel
+#' @importFrom foreach foreach %dopar%
+#' @importFrom lpSolve lp
+#' @keywords internal
+fnets.glmnet = function(xx,
+                        lambda = NULL,
+                        var.order = 1,
+                        tuning.args = list(
+                          tuning = c("cv", "bic"),
+                          n.folds = 1,
+                          penalty = NULL,
+                          path.length = 10
+                        ),
+                        n.cores = 1,
+                        q = q){
+
+  if(n.cores > 1){
+    cl <- parallel::makePSOCKcluster(n.cores)
+    doParallel::registerDoParallel(cl)
+    parallel_g  = TRUE
+  } else {
+    parallel_g  = FALSE
+  }
+
+  yy = as.vector(xx[n:(var.order + 1),])
+  xxs = NULL
+  for(i in 1:var.order){
+    xxs = cbind(xxs, xx[(n-i):(var.order - i + 1),])
+  }
+  xxs = as(Matrix(kronecker(diag(1, p), xxs), sparse = T), "dgCMatrix")
+
+  if(is.null(lambda)){
+    glmnf = glmnet::cv.glmnet(y = yy, x = xxs, intercept = FALSE, standardize = FALSE, parallel = parallel_g)
+  } else {
+    glmnf = glmnet::glmnet(y = yy, x = xxs, lambda = lambda, standardize = FALSE, parallel = parallel_g)
+  }
+  out <- list(beta = matrix(coef(glmnf, s = glmnf$lambda.min)[-1], nrow = p, ncol = p, byrow = T),
+              Gamma = NULL,
+              lambda = glmnf$lambda.min)
+}
+
+
+

@@ -22,7 +22,7 @@ a list containing
 \item{r}{ number of restricted factors}
 }
 \description{
-Simulate the common component following an unrestricted factor model that admits a restricted representation;
+Simulate a factor-driven component that admits a restricted (static) representation;
 see the model (C2) in the reference.
 }
 \examples{

@@ -15,9 +15,9 @@ fnets(
     n.perm = 10),
   var.order = 1,
   var.method = c("lasso", "ds"),
-  var.args = list(n.iter = NULL, n.cores = 1),
+  var.args = list(lambda = NULL, n.iter = NULL, n.cores = 1),
   do.threshold = FALSE,
-  do.lrpc = TRUE,
+  do.lrpc = FALSE,
   lrpc.adaptive = FALSE,
   tuning.args = list(tuning = c("cv", "bic"), n.folds = 1, penalty = NULL, path.length =
     10)
@@ -28,7 +28,7 @@ fnets(
 
 \item{center}{whether to de-mean the input \code{x}}
 
-\item{fm.restricted}{whether to estimate a restricted factor model using static PCA}
+\item{fm.restricted}{boolean; whether to estimate a restricted factor model using static PCA}
 
 \item{q}{Either the number of factors or a string specifying the factor number selection method; possible values are:
 \describe{
@@ -59,15 +59,16 @@ see \link[fnets]{factor.number}.}
 
 \item{var.args}{a list specifying the tuning parameters required for estimating the idiosyncratic VAR process. It contains:
 \describe{
+   \item{\code{lambda}}{user-specified lambda; if \code{lambda = NULL}, it is chosen using the set \code{tuning} method specified in \code{tuning.args}; currently works only when \code{length(var.order) = 1}}
    \item{\code{n.iter}}{ maximum number of descent steps, by default depends on \code{var.order}; applicable when \code{var.method = "lasso"}}
    \item{\code{n.cores}}{ number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{var.method = "ds"}}
 }}
 
-\item{do.threshold}{whether to perform adaptive thresholding of all parameter estimators with \link[fnets]{threshold}}
+\item{do.threshold}{boolean; whether to perform adaptive thresholding of all parameter estimators with \link[fnets]{threshold}}
 
-\item{do.lrpc}{whether to estimate the long-run partial correlation}
+\item{do.lrpc}{boolean; whether to estimate the long-run partial correlation matrix or not}
 
-\item{lrpc.adaptive}{whether to use the adaptive estimation procedure}
+\item{lrpc.adaptive}{boolean; whether to use the adaptive estimation procedure}
 
 \item{tuning.args}{a list specifying arguments for selecting the tuning parameters involved in VAR parameter and (long-run) partial correlation matrix estimation. It contains:
 \describe{
