@@ -179,7 +179,8 @@ fnets <-
                               do.threshold = do.threshold,
                               n.iter = var.args$n.iter,
                               tol = var.args$tol,
-                              n.cores = var.args$n.cores, q = q)
+                              n.cores = var.args$n.cores, q = q,
+                              fm.restricted = fm.restricted)
   }
   ive$mean.x <- mean.x
 

@@ -2,6 +2,7 @@
 #' @description Estimates the VAR parameter matrices via \code{l1}-regularised Yule-Walker estimation
 #' and innovation covariance matrix via constrained \code{l1}-minimisation.
 #' @details Further information can be found in Barigozzi, Cho and Owens (2024).
+#' @inheritParams fnets
 #' @param x input time series each column representing a time series variable; it is coerced into a \link[stats]{ts} object
 #' @param center whether to de-mean the input \code{x}
 #' @param method a string specifying the method to be adopted for VAR process estimation; possible values are:
@@ -50,7 +51,8 @@ fnets.var <- function(x,
                       do.threshold = FALSE,
                       n.iter = NULL,
                       tol = 0,
-                      n.cores = 1) {
+                      n.cores = 1,
+                      fm.restricted = TRUE) {
   x <- t(as.ts(x))
   p <- dim(x)[1]
   n <- dim(x)[2]
@@ -776,8 +778,6 @@ print.threshold <- function(x,
 #' @title Implementing cv.glmnet for VAR estimation
 #' @importFrom parallel makePSOCKcluster stopCluster detectCores
 #' @importFrom doParallel registerDoParallel
-#' @importFrom foreach foreach %dopar%
-#' @importFrom lpSolve lp
 #' @keywords internal
 fnets.glmnet = function(xx,
                         lambda = NULL,
@@ -790,6 +790,9 @@ fnets.glmnet = function(xx,
                         ),
                         n.cores = 1,
                         q = q){
+
+  n <- dim(xx)[1]
+  p <- dim(xx)[2]
 
   if(n.cores > 1){
     cl <- parallel::makePSOCKcluster(n.cores)
@@ -804,14 +807,14 @@ fnets.glmnet = function(xx,
   for(i in 1:var.order){
     xxs = cbind(xxs, xx[(n-i):(var.order - i + 1),])
   }
-  xxs = as(Matrix(kronecker(diag(1, p), xxs), sparse = T), "dgCMatrix")
+  xxs = methods::as(Matrix::Matrix(kronecker(diag(1, p), xxs), sparse = T), "dgCMatrix")
 
   if(is.null(lambda)){
     glmnf = glmnet::cv.glmnet(y = yy, x = xxs, intercept = FALSE, standardize = FALSE, parallel = parallel_g)
   } else {
     glmnf = glmnet::glmnet(y = yy, x = xxs, lambda = lambda, standardize = FALSE, parallel = parallel_g)
   }
-  out <- list(beta = matrix(coef(glmnf, s = glmnf$lambda.min)[-1], nrow = p, ncol = p, byrow = T),
+  out <- list(beta = matrix(glmnet::coef.glmnet(glmnf, s = glmnf$lambda.min)[-1], nrow = p, ncol = p, byrow = T),
               Gamma = NULL,
               lambda = glmnf$lambda.min)
 }
