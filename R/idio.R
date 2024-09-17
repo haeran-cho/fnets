@@ -794,6 +794,13 @@ fnets.glmnet = function(xx,
   n <- dim(xx)[1]
   p <- dim(xx)[2]
 
+  yy = as.vector(xx[n:(var.order + 1),])
+  xxs = NULL
+  for(i in 1:var.order){
+    xxs = cbind(xxs, xx[(n-i):(var.order - i + 1),])
+  }
+  xxs = methods::as(Matrix::Matrix(kronecker(diag(1, p), xxs), sparse = T), "dgCMatrix")
+
   if(n.cores > 1){
     cl <- parallel::makePSOCKcluster(n.cores)
     doParallel::registerDoParallel(cl)
@@ -802,18 +809,16 @@ fnets.glmnet = function(xx,
     parallel_g  = FALSE
   }
 
-  yy = as.vector(xx[n:(var.order + 1),])
-  xxs = NULL
-  for(i in 1:var.order){
-    xxs = cbind(xxs, xx[(n-i):(var.order - i + 1),])
-  }
-  xxs = methods::as(Matrix::Matrix(kronecker(diag(1, p), xxs), sparse = T), "dgCMatrix")
-
   if(is.null(lambda)){
     glmnf = glmnet::cv.glmnet(y = yy, x = xxs, intercept = FALSE, standardize = FALSE, parallel = parallel_g)
   } else {
     glmnf = glmnet::glmnet(y = yy, x = xxs, lambda = lambda, standardize = FALSE, parallel = parallel_g)
   }
+
+  if(n.cores > 1){
+    parallel::stopCluster(cl)
+  }
+
   out <- list(beta = matrix(glmnet::coef.glmnet(glmnf, s = glmnf$lambda.min)[-1], nrow = p, ncol = p, byrow = T),
               Gamma = NULL,
               lambda = glmnf$lambda.min)
