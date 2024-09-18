@@ -1,7 +1,7 @@
 Package: fnets
 Type: Package
 Title: Factor-Adjusted Network Estimation and Forecasting for High-Dimensional Time Series
-Version: 0.1.9
+Version: 0.2.0
 Authors@R: c(
     person("Matteo", "Barigozzi", email = "matteo.barigozzi@unibo.it", role = "aut"),
     person("Haeran", "Cho", email = "haeran.cho@bristol.ac.uk", role = c("cre", "aut")),
@@ -26,7 +26,8 @@ Imports:
     glmnet,
     methods,
     Matrix,
-    Rcpp
+    Rcpp,
+    plyr
 Encoding: UTF-8
 LazyData: true
 License: GPL (>= 3)

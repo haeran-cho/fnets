@@ -20,7 +20,9 @@ fnets(
   do.lrpc = FALSE,
   lrpc.adaptive = FALSE,
   tuning.args = list(tuning = c("cv", "bic"), n.folds = 1, penalty = NULL, path.length =
-    10)
+    10),
+  robust = FALSE,
+  robust.standardise = FALSE
 )
 }
 \arguments{
@@ -78,6 +80,10 @@ see \link[fnets]{factor.number}.}
    \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, it is set to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}} by default
    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 }}
+
+\item{robust}{boolean; whether to truncate the data or not.}
+
+\item{robust.standardise}{boolean; whether to scale up the truncation parameter for each series by the MAD of the corresponding series or not.}
 }
 \value{
 an S3 object of class \code{fnets}, which contains the following fields:

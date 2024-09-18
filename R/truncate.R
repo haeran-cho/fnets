@@ -27,22 +27,24 @@ truncateAndComputeCovariance_lag <- function(data, tau, lag = 0) {
 }
 
 
-#' @title internal function that carries out data truncation
+#' @title Truncate data, with truncation parameter chosen by cross-validation.
+#' @param data Input time series each column representing a time series variable.
 #' @param n_tau An integer that determines the number of taus to use in grid used for cross-validation
 #' @param lag This is an integer argument that is used when the \code{cv_trunc} function is used for (auto)covariance estimation, of particular lag.
 #'  The lag determines which (auto)covariance matrix is used in tuning.
-#' @param cv_lag an integer vector denoting any group structure of the vertices
-#' @param standardise an integer vector denoting any group structure of the vertices
-#' @keywords internal
-cv_trunc = function(data, n_tau = 60, lag = 0, cv_lag= F, standardise = T){
+#' @param cv_lag An integer argument, that is used when the \code{cv_trunc} function is used with data modeled as a factor-adjusted VAR.
+#' The integer determines up to what lag auto-covariance matrix is used in the cv-measure.
+#'  In implementation, this will be set as default to be the VAR order. When \code{cv_lag = 0}, only the (auto)covariance matrix, of lag determined
+#'  by the \code{lag} argument, is used.
+#' @param standardise boolean; whether to scale up the truncation parameter for each series by the MAD of the corresponding series.
+#' @export
+cv_trunc = function(data, n_tau = 60, lag = 0, cv_lag = 0, standardise = T){
 
-  if(!cv_lag){
+  if(cv_lag==0){
     tau_scores = cross_val(data, n_tau, lag, standardise = standardise)
   }else{
-    # default set to getting cv error using up to lag 1, if cv_lag = T
-    tau_scores = cross_val_lag(data, n_tau, lag = 1, standardise = standardise)
+    tau_scores = cross_val_lag(data, n_tau, lag = cv_lag, standardise = standardise)
   }
-  # tau_scores = cross_val(data, n_tau, lag, trim, trim_d, trim_all, max = max)
   min_tau = as.numeric(names(which.min(tau_scores[[1]])))
 
   if(standardise){
@@ -62,7 +64,6 @@ cv_trunc = function(data, n_tau = 60, lag = 0, cv_lag= F, standardise = T){
 }
 
 #' @title internal function that carries out cross validation to choose tuning parameter for data truncation
-#' @description
 #' @keywords internal
 cross_val = function(data, n_tau = 60, lag, standardise = T){
 
@@ -90,7 +91,6 @@ cross_val = function(data, n_tau = 60, lag, standardise = T){
 }
 
 #' @title internal function that carries out cross validation to choose tuning parameter for data truncation
-#' @description
 #' @keywords internal
 cross_val_lag = function(data, n_tau, lag, standardise = standardise){
 
@@ -121,5 +121,52 @@ cross_val_lag = function(data, n_tau, lag, standardise = standardise){
 
   return(list(scores_per_tau, tau_l$tau_values[[2]]))
 }
+
+
+
+
+
+#' @title internal function for \code{cv_trunc}
+#' @keywords internal
+mad_variables = function(data){
+  mad_data = vector(length = ncol(data))
+  for(i in 1:ncol(data)){
+    mad_data[i] = stats::mad(data[,i])
+  }
+  return(mad_data)
+}
+
+#' @title internal function for \code{cv_trunc}
+#' @keywords internal
+tau_grid_fun = function(data, n_steps){
+
+  max_dat = max(abs(data))
+  median_dat = stats::median(abs(data))
+  tau_grid = seq(median_dat, max_dat, length.out = n_steps)
+  tau_grid_quant = sapply(tau_grid, function(x){stats::ecdf(abs(data))(x)})
+
+  return(list(tau_grid, tau_grid_quant))
+}
+
+#' @title internal function for \code{cv_trunc}
+#' @keywords internal
+tau_grid_stand_fun = function(data, n_steps, standardise){
+  if(standardise){
+    mad_data = mad_variables(data)
+    tau_values = tau_grid_fun( t(t(data)/mad_data), n_steps = n_steps)
+    mad_data_mat = matrix(mad_data, nrow = length(tau_values[[1]]), ncol = length(mad_data), byrow = T)
+    tau_grid = mad_data_mat * tau_values[[1]]
+  } else {
+    # just a matrix of 1s no scaling
+    mad_data_mat = matrix(1, nrow = n_steps, ncol = ncol(data), byrow = T)
+    tau_values = tau_grid_fun(data, n_steps = n_steps)
+    tau_grid = mad_data_mat * tau_values[[1]]
+  }
+
+  return(list(tau_values = tau_values, tau_grid = tau_grid))
+}
+
+
+
 
 
