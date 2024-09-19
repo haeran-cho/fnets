@@ -4,7 +4,7 @@
 \alias{sim.restricted}
 \title{Simulate data from a restricted factor model}
 \usage{
-sim.restricted(n, p, q = 2, heavy = FALSE)
+sim.restricted(n, p, q = 2, heavy = FALSE, df = 5, lags = 1)
 }
 \arguments{
 \item{n}{sample size}
@@ -14,6 +14,10 @@ sim.restricted(n, p, q = 2, heavy = FALSE)
 \item{q}{number of unrestricted factors; number of restricted factors is given by \code{2 * q}}
 
 \item{heavy}{if \code{heavy = FALSE}, common shocks are generated from \code{rnorm} whereas if \code{heavy = TRUE}, from \code{rt} with \code{df = 5} and then scaled by \code{sqrt(3 / 5)}}
+
+\item{df}{if \code{heavy = TRUE}, common shocks are generated from \code{rt} with degrees of freedom given by \code{df}}
+
+\item{lags}{number of lags of common shocks used in the Factor vector}
 }
 \value{
 a list containing

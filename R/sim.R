@@ -44,6 +44,8 @@ sim.unrestricted <- function(n, p, q = 2, heavy = FALSE) {
 #' @param p dimension
 #' @param q number of unrestricted factors; number of restricted factors is given by \code{2 * q}
 #' @param heavy if \code{heavy = FALSE}, common shocks are generated from \code{rnorm} whereas if \code{heavy = TRUE}, from \code{rt} with \code{df = 5} and then scaled by \code{sqrt(3 / 5)}
+#' @param df if \code{heavy = TRUE}, common shocks are generated from \code{rt} with degrees of freedom given by \code{df}
+#' @param lags number of lags of common shocks used in the Factor vector
 #' @return a list containing
 #' \item{data}{ \code{ts} object with \code{n} rows and \code{p} columns }
 #' \item{q}{ number of factors}
@@ -54,15 +56,15 @@ sim.unrestricted <- function(n, p, q = 2, heavy = FALSE) {
 #' common <- sim.restricted(500, 50)
 #' @importFrom stats rnorm runif rt as.ts
 #' @export
-sim.restricted <- function(n, p, q = 2, heavy = FALSE) {
+sim.restricted <- function(n, p, q = 2, heavy = FALSE, df = 5, lags = 1) {
   n <- posint(n)
   p <- posint(p)
   q <- posint(q)
-  lags <- 1
+  lags <- lags
   r <- q * (lags + 1)
   burnin <- 100
   ifelse(!heavy, uu <- matrix(rnorm((n + burnin) * q), nrow = q),
-    uu <- matrix(rt((n + burnin) * q, df = 5), nrow = q) * sqrt(3 / 5))
+    uu <- matrix(rt((n + burnin) * q, df = df), nrow = q) * sqrt(df-2 / df))
   D0 <- matrix(runif(q^2, 0, .3), nrow = q)
   diag(D0) <- runif(q, .5, .8)
   D <- 0.7 * D0 / norm(D0, type = "2")
@@ -86,7 +88,8 @@ sim.restricted <- function(n, p, q = 2, heavy = FALSE) {
 #' @param n sample size
 #' @param p dimension
 #' @param Gamma innovation covariance matrix; ignored if \code{heavy = TRUE}
-#' @param heavy if \code{heavy = FALSE}, common shocks are generated from \code{rnorm} whereas if \code{heavy = TRUE}, from \code{rt} with \code{df = 5} and then scaled by \code{sqrt(3 / 5)}
+#' @param heavy if \code{heavy = FALSE}, innovation errors are generated from \code{rnorm} whereas if \code{heavy = TRUE}, from \code{rt} with \code{df = 5} and then scaled by \code{sqrt(3 / 5)}
+#' @param df if \code{heavy = TRUE}, innovation errors are generated from \code{rt} with degrees of freedom given by \code{df}
 #' @return a list containing
 #' \item{data}{ \code{ts} object with \code{n} rows and \code{p} columns }
 #' \item{A}{ transition matrix}
@@ -101,7 +104,8 @@ sim.restricted <- function(n, p, q = 2, heavy = FALSE) {
 sim.var <- function(n,
                     p,
                     Gamma = diag(1, p),
-                    heavy = FALSE) {
+                    heavy = FALSE,
+                    df = 5) {
   n <- posint(n)
   p <- posint(p)
   burnin <- 100
@@ -110,7 +114,7 @@ sim.var <- function(n,
   ifelse(!heavy,
     ifelse(identical(Gamma, diag(1, p)), xi <- matrix(rnorm((n + burnin) * p), nrow = p),
            xi <- t(MASS::mvrnorm(n + burnin, mu = rep(0, p), Sigma = Gamma))),
-    xi <- matrix(rt((n + burnin) * p, df = 5), nrow = p) * sqrt(3 / 5))
+    xi <- matrix(rt((n + burnin) * p, df = df), nrow = p) * sqrt(df-2 / df))
 
   A <- matrix(0, p, p)
   index <- sample(c(0, 1), p^2, TRUE, prob = c(1 - prob, prob))
