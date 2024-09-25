@@ -4,7 +4,7 @@
 \alias{sim.var}
 \title{Simulate a VAR(1) process}
 \usage{
-sim.var(n, p, Gamma = diag(1, p), heavy = FALSE)
+sim.var(n, p, Gamma = diag(1, p), heavy = FALSE, df = 5)
 }
 \arguments{
 \item{n}{sample size}
@@ -13,7 +13,9 @@ sim.var(n, p, Gamma = diag(1, p), heavy = FALSE)
 
 \item{Gamma}{innovation covariance matrix; ignored if \code{heavy = TRUE}}
 
-\item{heavy}{if \code{heavy = FALSE}, common shocks are generated from \code{rnorm} whereas if \code{heavy = TRUE}, from \code{rt} with \code{df = 5} and then scaled by \code{sqrt(3 / 5)}}
+\item{heavy}{if \code{heavy = FALSE}, innovation errors are generated from \code{rnorm} whereas if \code{heavy = TRUE}, from \code{rt} with \code{df = 5} and then scaled by \code{sqrt(3 / 5)}}
+
+\item{df}{if \code{heavy = TRUE}, innovation errors are generated from \code{rt} with degrees of freedom given by \code{df}}
 }
 \value{
 a list containing

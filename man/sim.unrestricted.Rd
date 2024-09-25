@@ -21,8 +21,8 @@ a list containing
 \item{q}{ number of factors}
 }
 \description{
-Simulate the common component following an unrestricted factor model that does not admit a restricted representation;
-see the model (C1) in Barigozzi, Cho and Owens (2024)
+Simulate a common component following the generalised dynamic factor model that does not admit a restricted (static) representation;
+see the model (C1) in the reference
 }
 \examples{
 common <- sim.unrestricted(500, 50)

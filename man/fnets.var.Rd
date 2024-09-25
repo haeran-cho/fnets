@@ -15,7 +15,8 @@ fnets.var(
   do.threshold = FALSE,
   n.iter = NULL,
   tol = 0,
-  n.cores = 1
+  n.cores = 1,
+  fm.restricted = TRUE
 )
 }
 \arguments{
@@ -29,7 +30,7 @@ fnets.var(
    \item{\code{"ds"}}{ Dantzig Selector-type constrained \code{l1}-minimisation}
 }}
 
-\item{lambda}{\code{l1}-regularisation parameter; if \code{lambda = NULL}, \code{tuning} is employed to select the parameter}
+\item{lambda}{\code{l1}-regularisation parameter. If \code{lambda = NULL}, \code{tuning} is employed to select the parameter; currently supports the case with \code{length(var.order) = 1} only}
 
 \item{var.order}{order of the VAR process; if a vector of integers is supplied, the order is chosen via \code{tuning}}
 
@@ -50,6 +51,8 @@ for selecting the regularisation parameter (and VAR order). It contains:
 \item{tol}{numerical tolerance for increases in the loss function; applicable when \code{method = "lasso"}}
 
 \item{n.cores}{number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{method = "ds"}}
+
+\item{fm.restricted}{boolean; whether to estimate a restricted factor model using static PCA}
 }
 \value{
 a list which contains the following fields:

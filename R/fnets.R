@@ -47,6 +47,9 @@
 #'    \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, it is set to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}} by default
 #'    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #' }
+#' @param robust boolean; whether to truncate the data or not.
+#' @param robust.standardise boolean; whether to scale up the truncation parameter for each series by the MAD of the corresponding series or not.
+#'
 #' @return an S3 object of class \code{fnets}, which contains the following fields:
 #' \item{q}{ number of factors}
 #' \item{spec}{ if \code{fm.restricted = FALSE} a list containing estimates of the spectral density matrices for \code{x}, common and idiosyncratic components}
@@ -113,7 +116,9 @@ fnets <-
              n.folds = 1,
              penalty = NULL,
              path.length = 10
-           )) {
+           ),
+           robust = FALSE,
+           robust.standardise = FALSE) {
 
   x <- t(as.ts(x))
   p <- dim(x)[1]
@@ -140,6 +145,10 @@ fnets <-
   ifelse(center, mean.x <- apply(x, 1, mean), mean.x <- rep(0, p))
   xx <- x - mean.x
 
+  if(robust){
+    xx = t(cv_trunc(data = t(xx), cv_lag = var.order, standardise = robust.standardise))
+  }
+
   if(!fm.restricted & is.null(kern.bw))
     kern.bw <-  floor(4 * (n / log(n))^(1/3))
 
@@ -162,14 +171,26 @@ fnets <-
   factors <- fm$factors
   acv <- fm$acv
 
-  ive <- fnets.var.internal(xx, acv, method = var.method,
-                            lambda = var.args$lambda,
-                            var.order = var.order,
-                            tuning.args = tuning.args,
-                            do.threshold = do.threshold,
-                            n.iter = var.args$n.iter,
-                            tol = var.args$tol,
-                            n.cores = var.args$n.cores, q = q)
+  if(fm.restricted && q>0){
+    message("For a static factor model, cv.glmnet is used")
+    xx_i = t(xx) - ( fm$factors %*% t(fm$loadings) )
+    ive = fnets.glmnet(xx = xx_i,
+                       lambda = var.args$lambda,
+                       var.order = var.order,
+                       tuning.args = tuning.args,
+                       n.cores = var.args$n.cores,
+                       q = q)
+  } else {
+    ive <- fnets.var.internal(xx, acv, method = var.method,
+                              lambda = var.args$lambda,
+                              var.order = var.order,
+                              tuning.args = tuning.args,
+                              do.threshold = do.threshold,
+                              n.iter = var.args$n.iter,
+                              tol = var.args$tol,
+                              n.cores = var.args$n.cores, q = q,
+                              fm.restricted = fm.restricted)
+  }
   ive$mean.x <- mean.x
 
   out <- list(
@@ -246,7 +267,6 @@ plot_internal <- function(x,
         A <- x$lrpc$pc
       }
     }
-
     if(type == "lrpc") {
       if(!x$do.lrpc & is.null(x$lrpc$lrpc)) {
         stop("Long-run partial correlation matrix is undetected")
