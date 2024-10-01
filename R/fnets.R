@@ -171,9 +171,13 @@ fnets <-
   factors <- fm$factors
   acv <- fm$acv
 
-  if(fm.restricted && q>0){
+  if(fm.restricted && q>=0){
     message("For a static factor model, cv.glmnet is used")
-    xx_i = t(xx) - ( fm$factors %*% t(fm$loadings) )
+    if(q>0){
+      xx_i = t(xx) - ( fm$factors %*% t(fm$loadings) )
+    } else {
+      xx_i = t(xx)
+    }
     ive = fnets.glmnet(xx = xx_i,
                        lambda = var.args$lambda,
                        var.order = var.order,

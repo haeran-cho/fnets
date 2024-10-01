@@ -819,7 +819,7 @@ fnets.glmnet = function(xx,
     parallel::stopCluster(cl)
   }
 
-  out <- list(beta = matrix(glmnet::coef.glmnet(glmnf, s = glmnf$lambda.min)[-1], nrow = p, ncol = p, byrow = T),
+    out <- list(beta = t(matrix(glmnet::coef.glmnet(glmnf, s = glmnf$lambda.min)[-1], nrow = p, ncol = p*var.order, byrow = T)),
               Gamma = NULL,
               lambda = glmnf$lambda.min)
 }
