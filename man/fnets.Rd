@@ -22,7 +22,7 @@ fnets(
   tuning.args = list(tuning = c("cv", "bic"), n.folds = 1, penalty = NULL, path.length =
     10),
   robust = FALSE,
-  robust.standardise = FALSE
+  robust.standardise = TRUE
 )
 }
 \arguments{

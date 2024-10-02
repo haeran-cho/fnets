@@ -423,6 +423,7 @@ network.fnets <- function(object,
 #' @param names a character vector containing the names of the network vertices
 #' @param groups an integer vector denoting any group structure of the network vertices
 #' @param group.colours a vector denoting colours corresponding to \code{groups}
+#' @param scale_lim an integer that sets the scale for the heatmap. This is useful when you want to compare two heatmaps.
 #' @param ... additional arguments
 #' @return A plot produced as per the input arguments
 #' @seealso \link[fnets]{fnets}

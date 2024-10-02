@@ -11,6 +11,7 @@
   names = NA,
   groups = NA,
   group.colours = NA,
+  scale_lim = NULL,
   ...
 )
 }
@@ -38,6 +39,8 @@ when \code{display = "network"} or \code{display = "heatmap"}; possible values a
 \item{groups}{an integer vector denoting any group structure of the network vertices}
 
 \item{group.colours}{a vector denoting colours corresponding to \code{groups}}
+
+\item{scale_lim}{an integer that sets the scale for the heatmap. This is useful when you want to compare two heatmaps.}
 
 \item{...}{additional arguments}
 }
