@@ -118,7 +118,7 @@ fnets <-
              path.length = 10
            ),
            robust = FALSE,
-           robust.standardise = FALSE) {
+           robust.standardise = TRUE) {
 
   x <- t(as.ts(x))
   p <- dim(x)[1]
@@ -171,7 +171,7 @@ fnets <-
   factors <- fm$factors
   acv <- fm$acv
 
-  if(fm.restricted && q>=0){
+  if(fm.restricted){
     message("For a static factor model, cv.glmnet is used")
     if(q>0){
       xx_i = t(xx) - ( fm$factors %*% t(fm$loadings) )
@@ -450,6 +450,7 @@ plot.fnets <-
              names = NA,
              groups = NA,
              group.colours = NA,
+             scale_lim = NULL,
              ...) {
       oldpar <- par(no.readonly = TRUE)
       on.exit(par(oldpar))
@@ -510,8 +511,11 @@ plot.fnets <-
           diag(A) <- 0
           mv <- 1.01
         }
-        breaks <- seq(-mv, mv, length.out = 12)
-
+        if(is.null(scale_lim)){
+          breaks <- seq(-mv, mv, length.out = 12)
+        } else {
+          breaks <- seq(-scale_lim, scale_lim, length.out = 12)
+        }
         fields::imagePlot(
           A,
           axes = FALSE,
