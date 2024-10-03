@@ -133,13 +133,17 @@ mad_variables = function(data){
   for(i in 1:ncol(data)){
     mad_data[i] = stats::mad(data[,i])
   }
+  if(any(mad_data == 0)){
+    for(i in 1:ncol(data)){
+      mad_data[i] = stats::sd(data[,i])
+    }
+  }
   return(mad_data)
 }
 
 #' @title internal function for \code{cv_trunc}
 #' @keywords internal
 tau_grid_fun = function(data, n_steps){
-
   max_dat = max(abs(data))
   median_dat = stats::median(abs(data))
   tau_grid = seq(median_dat, max_dat, length.out = n_steps)
