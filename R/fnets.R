@@ -146,9 +146,9 @@ fnets <-
   xx <- x - mean.x
 
   if(robust){
-    xx = t(cv_trunc(data = t(xx), cv_lag = var.order, standardise = robust.standardise))
+    trunc_dat = cv_trunc(data = t(xx), cv_lag = var.order, standardise = robust.standardise)
+    xx = t(trunc_dat$data)
   }
-
   if(!fm.restricted & is.null(kern.bw))
     kern.bw <-  floor(4 * (n / log(n))^(1/3))
 
@@ -209,7 +209,9 @@ fnets <-
     do.lrpc = do.lrpc,
     kern.bw = kern.bw
   )
-
+  if(robust){
+    attr(out, "truncation") <- list("tau" = trunc_dat$tau, "standardised_tau" = trunc_dat$tau_standardised)
+  }
   attr(out, "factor") <- ifelse(fm.restricted, "restricted", "unrestricted")
   attr(out, "args") <- args
 
@@ -452,18 +454,23 @@ plot.fnets <-
              groups = NA,
              group.colours = NA,
              scale_lim = NULL,
+             main = NULL,
              ...) {
       oldpar <- par(no.readonly = TRUE)
       on.exit(par(oldpar))
       type <- match.arg(type, c("granger", "pc", "lrpc"))
       display <- match.arg(display, c("network", "heatmap", "tuning"))
 
-      if(type == "granger"){
-        nm <- "Granger causal"
-      } else if(type == "pc"){
-        nm <- "Partial correlation"
-      } else if(type == "lrpc"){
-        nm <- "Long-run partial correlation"
+      if(is.null(main)){
+        if(type == "granger"){
+          nm <- "Granger causal"
+        } else if(type == "pc"){
+          nm <- "Partial correlation"
+        } else if(type == "lrpc"){
+          nm <- "Long-run partial correlation"
+        }
+      } else {
+       nm = main
       }
       nm <- paste(nm, display, sep = " ")
 

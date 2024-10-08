@@ -59,7 +59,7 @@ cv_trunc = function(data, n_tau = 60, lag = 0, cv_lag = 0, standardise = TRUE){
     data[i,] = ifelse(abs(x) > abs(tau_s), sign(x)*tau_s, x)
   }
 
-  return(data)
+  return(list(data = data, tau = min_tau, tau_standardised = tau_s))
 
 }
 
