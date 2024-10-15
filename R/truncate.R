@@ -40,6 +40,8 @@ truncateAndComputeCovariance_lag <- function(data, tau, lag = 0) {
 #' @export
 cv_trunc = function(data, n_tau = 60, lag = 0, cv_lag = 0, standardise = TRUE){
 
+  data = as.matrix(data)
+
   if(cv_lag==0){
     tau_scores = cross_val(data, n_tau, lag, standardise = standardise)
   }else{
@@ -66,13 +68,15 @@ cv_trunc = function(data, n_tau = 60, lag = 0, cv_lag = 0, standardise = TRUE){
 #' @title internal function that carries out cross validation to choose tuning parameter for data truncation
 #' @keywords internal
 cross_val = function(data, n_tau = 60, lag, standardise = TRUE){
-
   # get tau grid, standardised or not
   tau_l = tau_grid_stand_fun(data = data, n_steps = n_tau, standardise = standardise)
-  # split data
+
   n = nrow(data)
-  half_1 = data[1:(n/2),]
-  half_2 = data[((n/2) + 1):n,]
+  p = ncol(data)
+
+  # split data
+  half_1 = data[1:(n/2), , drop = FALSE]
+  half_2 = data[((n/2) + 1):n, , drop = FALSE]
 
   half_1_trunc = plyr::alply(tau_l$tau_grid, 1, truncateAndComputeCovariance_lag, data = half_1, lag = lag)
   half_2_trunc = plyr::alply(tau_l$tau_grid, 1, truncateAndComputeCovariance_lag, data = half_2, lag = lag)
