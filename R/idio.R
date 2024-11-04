@@ -51,8 +51,7 @@ fnets.var <- function(x,
                       do.threshold = FALSE,
                       n.iter = NULL,
                       tol = 0,
-                      n.cores = 1,
-                      fm.restricted = TRUE) {
+                      n.cores = 1) {
   x <- t(as.ts(x))
   p <- dim(x)[1]
   n <- dim(x)[2]
@@ -82,7 +81,7 @@ fnets.var <- function(x,
                             n.iter = n.iter,
                             tol = tol,
                             n.cores = n.cores,
-                            fm.restricted = fm.restricted)
+                            fm.restricted = TRUE)
   ive$mean.x <- mean.x
   args$do.lrpc <- ive$do.lrpc <- FALSE
   ive$q <- 0
