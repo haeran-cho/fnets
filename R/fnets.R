@@ -118,7 +118,7 @@ fnets <-
              path.length = 10
            ),
            robust = FALSE,
-           robust.standardise = FALSE) {
+           robust.standardise = TRUE) {
 
   x <- t(as.ts(x))
   p <- dim(x)[1]
@@ -146,9 +146,9 @@ fnets <-
   xx <- x - mean.x
 
   if(robust){
-    xx = t(cv_trunc(data = t(xx), cv_lag = var.order, standardise = robust.standardise))
+    trunc_dat = cv_trunc(data = t(xx), cv_lag = var.order, standardise = robust.standardise)
+    xx = t(trunc_dat$data)
   }
-
   if(!fm.restricted & is.null(kern.bw))
     kern.bw <-  floor(4 * (n / log(n))^(1/3))
 
@@ -171,9 +171,13 @@ fnets <-
   factors <- fm$factors
   acv <- fm$acv
 
-  if(fm.restricted && q>0){
+  if(fm.restricted){
     message("For a static factor model, cv.glmnet is used")
-    xx_i = t(xx) - ( fm$factors %*% t(fm$loadings) )
+    if(q>0){
+      xx_i = t(xx) - ( fm$factors %*% t(fm$loadings) )
+    } else {
+      xx_i = t(xx)
+    }
     ive = fnets.glmnet(xx = xx_i,
                        lambda = var.args$lambda,
                        var.order = var.order,
@@ -205,7 +209,9 @@ fnets <-
     do.lrpc = do.lrpc,
     kern.bw = kern.bw
   )
-
+  if(robust){
+    attr(out, "truncation") <- list("tau" = trunc_dat$tau, "standardised_tau" = trunc_dat$tau_standardised)
+  }
   attr(out, "factor") <- ifelse(fm.restricted, "restricted", "unrestricted")
   attr(out, "args") <- args
 
@@ -419,6 +425,7 @@ network.fnets <- function(object,
 #' @param names a character vector containing the names of the network vertices
 #' @param groups an integer vector denoting any group structure of the network vertices
 #' @param group.colours a vector denoting colours corresponding to \code{groups}
+#' @param scale_lim an integer that sets the scale for the heatmap. This is useful when you want to compare two heatmaps.
 #' @param ... additional arguments
 #' @return A plot produced as per the input arguments
 #' @seealso \link[fnets]{fnets}
@@ -446,18 +453,24 @@ plot.fnets <-
              names = NA,
              groups = NA,
              group.colours = NA,
+             scale_lim = NULL,
+             main = NULL,
              ...) {
       oldpar <- par(no.readonly = TRUE)
       on.exit(par(oldpar))
       type <- match.arg(type, c("granger", "pc", "lrpc"))
       display <- match.arg(display, c("network", "heatmap", "tuning"))
 
-      if(type == "granger"){
-        nm <- "Granger causal"
-      } else if(type == "pc"){
-        nm <- "Partial correlation"
-      } else if(type == "lrpc"){
-        nm <- "Long-run partial correlation"
+      if(is.null(main)){
+        if(type == "granger"){
+          nm <- "Granger causal"
+        } else if(type == "pc"){
+          nm <- "Partial correlation"
+        } else if(type == "lrpc"){
+          nm <- "Long-run partial correlation"
+        }
+      } else {
+       nm = main
       }
       nm <- paste(nm, display, sep = " ")
 
@@ -506,8 +519,11 @@ plot.fnets <-
           diag(A) <- 0
           mv <- 1.01
         }
-        breaks <- seq(-mv, mv, length.out = 12)
-
+        if(is.null(scale_lim)){
+          breaks <- seq(-mv, mv, length.out = 12)
+        } else {
+          breaks <- seq(-scale_lim, scale_lim, length.out = 12)
+        }
         fields::imagePlot(
           A,
           axes = FALSE,

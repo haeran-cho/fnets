@@ -4,7 +4,7 @@
 \alias{cross_val}
 \title{internal function that carries out cross validation to choose tuning parameter for data truncation}
 \usage{
-cross_val(data, n_tau = 60, lag, standardise = T)
+cross_val(data, n_tau = 60, lag, standardise = TRUE)
 }
 \description{
 internal function that carries out cross validation to choose tuning parameter for data truncation

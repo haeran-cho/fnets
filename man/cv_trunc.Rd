@@ -4,7 +4,7 @@
 \alias{cv_trunc}
 \title{Truncate data, with truncation parameter chosen by cross-validation.}
 \usage{
-cv_trunc(data, n_tau = 60, lag = 0, cv_lag = 0, standardise = T)
+cv_trunc(data, n_tau = 60, lag = 0, cv_lag = 0, standardise = TRUE)
 }
 \arguments{
 \item{data}{Input time series each column representing a time series variable.}
