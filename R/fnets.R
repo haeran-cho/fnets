@@ -148,6 +148,7 @@ fnets <-
   if(robust){
     trunc_dat = cv_trunc(data = t(xx), cv_lag = var.order, standardise = robust.standardise)
     xx = t(trunc_dat$data)
+    args$x = t(xx + mean.x)
   }
   if(!fm.restricted & is.null(kern.bw))
     kern.bw <-  floor(4 * (n / log(n))^(1/3))
