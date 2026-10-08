@@ -12,6 +12,7 @@
   groups = NA,
   group.colours = NA,
   scale_lim = NULL,
+  main = NULL,
   ...
 )
 }

@@ -15,8 +15,7 @@ fnets.var(
   do.threshold = FALSE,
   n.iter = NULL,
   tol = 0,
-  n.cores = 1,
-  fm.restricted = TRUE
+  n.cores = 1
 )
 }
 \arguments{
@@ -51,8 +50,6 @@ for selecting the regularisation parameter (and VAR order). It contains:
 \item{tol}{numerical tolerance for increases in the loss function; applicable when \code{method = "lasso"}}
 
 \item{n.cores}{number of cores to use for parallel computing, see \link[parallel]{makePSOCKcluster}; applicable when \code{method = "ds"}}
-
-\item{fm.restricted}{boolean; whether to estimate a restricted factor model using static PCA}
 }
 \value{
 a list which contains the following fields:
