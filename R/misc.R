@@ -49,14 +49,15 @@ check.list.arg <- function(arg) {
         tol = 0,
         n.cores = min(parallel::detectCores() - 1, 3)
       )
-  if(arg.name == "tuning.args")
-    default <-
-      list(
-        tuning = c("cv", "bic"),
-        n.folds = 1,
-        penalty = NULL,
-        path.length = 10
-      )
+  if (arg.name == "tuning.args")
+    default <- list(
+      tuning = c("cv", "bic"),
+      cv.method = c("standard", "rolling"),
+      n.folds = 10,
+      n.blocks = 5,
+      penalty = NULL,
+      path.length = 10
+    )
   if(arg.name == "common.args")
     default <-
       list(
