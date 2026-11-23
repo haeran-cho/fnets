@@ -238,6 +238,12 @@ fnets <-
 
   attr(out, "class") <- "fnets"
   attr(out, "data") <- attr(ive, "data")
+
+
+  attr(out, "forecast.origin") <- t(
+    (x - mean.x)[, (n - var.order + 1):n, drop = FALSE]
+  )
+
   return(out)
 
 }
@@ -613,7 +619,7 @@ predict.fnets <-
   ipre <- idio.predict(object, t(newdata), cpre, n.ahead)
 
   out <- list(
-    forecast = cpre$fc + ipre$fc,
+    forecast = sweep(cpre$fc + ipre$fc, 2, object$mean.x, "+"),
     common.pred = cpre,
     idio.pred = ipre,
     mean.x = object$mean.x

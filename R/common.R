@@ -45,6 +45,9 @@ common.predict <-
     } else
       r.method <- NULL
 
+    origin <- attr(object, "forecast.origin")
+    x_n <- if (is.null(origin)) NULL else as.numeric(tail(origin, 1))
+
     pre <- list(is = 0 * t(x), fc = matrix(0, nrow = n.ahead, ncol = p))
     if(attr(object, "factor") == "unrestricted") {
       if(object$q < 1) {
@@ -56,6 +59,7 @@ common.predict <-
           pre <-
             common.restricted.predict(
               xx = xx,
+              x_n = x_n,
               Gamma_x = object$acv$Gamma_x,
               Gamma_c = object$acv$Gamma_c,
               q = object$q,
@@ -80,6 +84,7 @@ common.predict <-
       pre <-
         common.restricted.predict(
           xx = xx,
+          x_n = x_n,
           Gamma_x = object$acv$Gamma_x,
           Gamma_c = object$acv$Gamma_c,
           q = object$q,
@@ -188,6 +193,7 @@ common.irf.estimation <-
 #' @importFrom stats as.ts
 common.restricted.predict <-
   function(xx,
+           x_n = NULL,
            Gamma_x,
            Gamma_c,
            q,
@@ -221,10 +227,15 @@ common.restricted.predict <-
     is <- sv$u[, 1:r, drop = FALSE] %*% t(sv$u[, 1:r, drop = FALSE]) %*% xx
     if(n.ahead >= 1) {
       fc <- matrix(0, nrow = p, ncol = n.ahead)
+      if (is.null(x_n)){ x_n <- xx[, n]}
+
       proj.x <-
-        t(t(sv$u[, 1:r, drop = FALSE]) / sv$d[1:r]) %*% t(sv$u[, 1:r, drop = FALSE]) %*% xx[, n]
-      for (hh in 1:n.ahead)
+        t(t(sv$u[, 1:r, drop = FALSE]) / sv$d[1:r]) %*%
+        t(sv$u[, 1:r, drop = FALSE]) %*% x_n
+
+      for (hh in 1:n.ahead){
         fc[, hh] <- t(Gamma_c[, , hh + 1]) %*% proj.x
+      }
     } else {
       fc <- NA
     }

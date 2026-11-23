@@ -607,19 +607,35 @@ idio.predict <- function(object, x, cpre, n.ahead = 1) {
   A <- t(beta)
 
   is <- xx - t(cpre$is)
-  if(n.ahead >= 1) {
+
+  # Use original, centred observations for forecast initialisation
+  origin <- attr(object, "forecast.origin")
+
+  is_fc <- is
+
+  if (!is.null(origin)) {
+    idx <- (n - nrow(origin) + 1):n
+    is_fc[, idx] <- t(origin - cpre$is[idx, , drop = FALSE])
+  }
+
+  if (n.ahead >= 1) {
     fc <- matrix(0, nrow = p, ncol = n.ahead)
     for (ii in 1:n.ahead) {
-      for (ll in 1:d)
+      for (ll in 1:d) {
         fc[, ii] <-
-          fc[, ii] + A[, p * (ll - 1) + 1:p] %*% is[, n + ii - ll]
-      is <- cbind(is, fc[, ii])
+          fc[, ii] + A[, p * (ll - 1) + 1:p] %*% is_fc[, n + ii - ll]
+      }
+      is_fc <- cbind(is_fc, fc[, ii])
     }
   } else {
     fc <- NA
   }
 
-  out <- list(is = as.ts(t(is[, 1:n])), fc = as.ts(t(fc)), n.ahead = n.ahead)
+  out <- list(
+    is = as.ts(t(is)),
+    fc = as.ts(t(fc)),
+    n.ahead = n.ahead
+  )
   return(out)
 }
 
