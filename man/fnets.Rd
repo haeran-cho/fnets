@@ -19,10 +19,11 @@ fnets(
   do.threshold = FALSE,
   do.lrpc = FALSE,
   lrpc.adaptive = FALSE,
-  tuning.args = list(tuning = c("cv", "bic"), n.folds = 1, penalty = NULL, path.length =
-    10),
+  tuning.args = list(tuning = c("cv", "bic"), cv.method = c("standard", "rolling"),
+    n.folds = 10, n.blocks = 5, penalty = NULL, path.length = 10),
   robust = FALSE,
-  robust.standardise = TRUE
+  robust.standardise = TRUE,
+  robust.args = list(tuning = c("cv", "lepski"), LepskiC = 0.072)
 )
 }
 \arguments{
@@ -81,9 +82,25 @@ see \link[fnets]{factor.number}.}
    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 }}
 
-\item{robust}{boolean; whether to truncate the data or not.}
+\item{robust}{boolean; whether to perform element-wise data
+truncation prior to factor and VAR parameter estimation.}
 
-\item{robust.standardise}{boolean; whether to scale up the truncation parameter for each series by the MAD of the corresponding series or not.}
+\item{robust.standardise}{boolean; whether to scale up the
+truncation parameter for each series by the MAD of the
+corresponding series.}
+
+\item{robust.args}{a list specifying the arguments required
+for selecting the truncation parameter when \code{robust = TRUE}.
+It contains:
+\describe{
+   \item{\code{tuning}}{a string specifying the method used to
+   select the truncation parameter; possible values are
+   \code{"cv"} for cross-validation and \code{"lepski"} for
+   Lepski's method. By default, \code{"cv"} is used.}
+   \item{\code{LepskiC}}{a positive constant used in the
+   Lepski selection criterion. Applicable when
+   \code{tuning = "lepski"}. The default value is 0.072.}
+}}
 }
 \value{
 an S3 object of class \code{fnets}, which contains the following fields:
@@ -105,6 +122,11 @@ a list containing estimators of the impulse response functions (as an array of d
 \item{var.method}{ input parameter}
 \item{do.lrpc}{ input parameter}
 \item{kern.bw}{ input parameter}
+
+When \code{robust = TRUE}, the attribute \code{"truncation"}
+contains the selected truncation parameter, the series-specific
+truncation parameters on the original scale, and the truncation
+parameter selection method.
 }
 \description{
 Under a factor-adjusted vector autoregressive (VAR) model,

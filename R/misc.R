@@ -274,3 +274,68 @@ rolling.cv.glmnet <- function(yy,
 
 
 
+
+
+
+#' @title Internal function for checking robust arguments
+#' @description Checks the list of arguments used for selecting
+#' the truncation parameter and fills in missing entries
+#' with their default values.
+#' @param robust.args A list specifying the arguments used
+#' for truncation parameter selection.
+#' @return A list containing the validated arguments.
+#' @keywords internal
+check.robust.args <- function(robust.args) {
+
+  if (!is.list(robust.args)) {
+    stop("robust.args must be a list")
+  }
+
+  # Check argument names
+
+  if (length(robust.args) > 0L) {
+
+    if (is.null(names(robust.args)) ||
+        anyNA(names(robust.args)) ||
+        any(!names(robust.args) %in% c("tuning", "LepskiC")) ||
+        anyDuplicated(names(robust.args))) {
+
+      stop("Invalid argument names in robust.args")
+
+    }
+
+  }
+
+  # Fill in missing arguments
+
+  if (is.null(robust.args$tuning)) {
+    robust.args$tuning <- "cv"
+  }
+
+  if (is.null(robust.args$LepskiC)) {
+    robust.args$LepskiC <- 0.072
+  }
+
+  # Check the tuning method
+
+  robust.args$tuning <- match.arg(
+    robust.args$tuning,
+    c("cv", "lepski")
+  )
+
+  # Check the Lepski constant
+
+  if (!is.numeric(robust.args$LepskiC) ||
+      length(robust.args$LepskiC) != 1L ||
+      !is.finite(robust.args$LepskiC) ||
+      robust.args$LepskiC <= 0) {
+
+    stop("LepskiC must be a positive finite number")
+
+  }
+
+  return(robust.args)
+}
+
+
+

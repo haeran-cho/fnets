@@ -47,8 +47,23 @@
 #'    \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, it is set to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}} by default
 #'    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #' }
-#' @param robust boolean; whether to truncate the data or not.
-#' @param robust.standardise boolean; whether to scale up the truncation parameter for each series by the MAD of the corresponding series or not.
+#' @param robust boolean; whether to perform element-wise data
+#' truncation prior to factor and VAR parameter estimation.
+#' @param robust.standardise boolean; whether to scale up the
+#' truncation parameter for each series by the MAD of the
+#' corresponding series.
+#' @param robust.args a list specifying the arguments required
+#' for selecting the truncation parameter when \code{robust = TRUE}.
+#' It contains:
+#' \describe{
+#'    \item{\code{tuning}}{a string specifying the method used to
+#'    select the truncation parameter; possible values are
+#'    \code{"cv"} for cross-validation and \code{"lepski"} for
+#'    Lepski's method. By default, \code{"cv"} is used.}
+#'    \item{\code{LepskiC}}{a positive constant used in the
+#'    Lepski selection criterion. Applicable when
+#'    \code{tuning = "lepski"}. The default value is 0.072.}
+#' }
 #'
 #' @return an S3 object of class \code{fnets}, which contains the following fields:
 #' \item{q}{ number of factors}
@@ -69,6 +84,12 @@
 #' \item{var.method}{ input parameter}
 #' \item{do.lrpc}{ input parameter}
 #' \item{kern.bw}{ input parameter}
+#'
+#' When \code{robust = TRUE}, the attribute \code{"truncation"}
+#' contains the selected truncation parameter, the series-specific
+#' truncation parameters on the original scale, and the truncation
+#' parameter selection method.
+#'
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 #' @references Alessi, L., Barigozzi, M.,  & Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
 #' @references Avarucci, M., Cavicchioli, M., Forni, M., & Zaffaroni, P. (2022) The main business cycle shock(s): Frequency-band estimation of the number of dynamic factors.
@@ -120,7 +141,11 @@ fnets <-
              path.length = 10
            ),
            robust = FALSE,
-           robust.standardise = TRUE) {
+           robust.standardise = TRUE,
+           robust.args = list(
+             tuning = c("cv", "lepski"),
+             LepskiC = 0.072
+           )) {
 
   x <- t(as.ts(x))
   p <- dim(x)[1]
@@ -129,6 +154,7 @@ fnets <-
   var.args <- check.list.arg(var.args)
   common.args <- check.list.arg(common.args)
   tuning.args <- check.list.arg(tuning.args)
+  robust.args <- check.robust.args(robust.args)
 
   if(!is.numeric(q)) {
     q.method <- match.arg(q, c("ic", "er"))
@@ -140,6 +166,7 @@ fnets <-
 
   var.method <- match.arg(var.method, c("lasso", "ds"))
   tuning <- match.arg(tuning.args$tuning, c("cv", "bic"))
+  robust.tuning <- robust.args$tuning
 
   args <- as.list(environment())
   args$x <- t(args$x)
@@ -147,10 +174,34 @@ fnets <-
   ifelse(center, mean.x <- apply(x, 1, mean), mean.x <- rep(0, p))
   xx <- x - mean.x
 
-  if(robust){
-    trunc_dat = cv_trunc(data = t(xx), cv_lag = var.order, standardise = robust.standardise)
-    xx = t(trunc_dat$data)
-    args$x = t(xx + mean.x)
+  if (robust) {
+
+    if (length(var.order) != 1L) {
+      stop("Data truncation currently requires a single VAR order")
+    }
+
+    if (robust.tuning == "cv") {
+
+      trunc_dat <- cv_trunc(
+        data = t(xx),
+        cv_lag = var.order,
+        standardise = robust.standardise
+      )
+
+    } else if (robust.tuning == "lepski") {
+
+      trunc_dat <- lepski_trunc(
+        data = t(xx),
+        lag = var.order,
+        C = robust.args$LepskiC,
+        standardise = robust.standardise
+      )
+
+    }
+
+    xx <- t(trunc_dat$data)
+    args$x <- t(xx + mean.x)
+
   }
   if(!fm.restricted & is.null(kern.bw))
     kern.bw <-  floor(4 * (n / log(n))^(1/3))
@@ -212,8 +263,20 @@ fnets <-
     do.lrpc = do.lrpc,
     kern.bw = kern.bw
   )
-  if(robust){
-    attr(out, "truncation") <- list("tau" = trunc_dat$tau, "standardised_tau" = trunc_dat$tau_standardised)
+  if (robust) {
+
+    attr(out, "truncation") <- list(
+      tau = trunc_dat$tau,
+      standardised_tau = trunc_dat$tau_standardised,
+      tuning = robust.tuning
+    )
+
+    if (robust.tuning == "lepski") {
+
+      attr(out, "truncation")$LepskiC <- robust.args$LepskiC
+
+    }
+
   }
   attr(out, "factor") <- ifelse(fm.restricted, "restricted", "unrestricted")
   attr(out, "args") <- args

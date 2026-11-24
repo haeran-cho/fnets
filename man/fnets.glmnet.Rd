@@ -8,8 +8,8 @@ fnets.glmnet(
   xx,
   lambda = NULL,
   var.order = 1,
-  tuning.args = list(tuning = c("cv", "bic"), n.folds = 1, penalty = NULL, path.length =
-    10),
+  tuning.args = list(tuning = c("cv", "bic"), cv.method = c("standard", "rolling"),
+    n.folds = 10, n.blocks = 5, penalty = NULL, path.length = 10),
   n.cores = 1,
   q = q
 )

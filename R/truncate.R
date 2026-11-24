@@ -177,4 +177,281 @@ tau_grid_stand_fun = function(data, n_steps, standardise){
 
 
 
+#' @title Internal function for constructing the Lepski grid
+#' @description Constructs a geometric grid of candidate truncation
+#' parameters, with endpoints determined by the median and maximum
+#' of the absolute observations.
+#' @param data A numeric matrix, with each column representing a
+#' time series variable.
+#' @return A numeric vector of candidate truncation parameters
+#' in increasing order.
+#' @keywords internal
+lepski_grid_fun <- function(data) {
 
+  abs_data <- abs(data)
+
+  tau_min <- stats::median(abs_data)
+  tau_max <- max(abs_data)
+
+  if (tau_max == 0) {
+    stop("Cannot construct Lepski grid for all-zero data")
+  }
+
+  # Ensure a strictly positive lower endpoint
+  if (tau_min == 0) {
+    tau_min <- stats::median(abs_data[abs_data > 0])
+  }
+
+  # Number of candidate truncation parameters
+  J <- ceiling(log2(tau_max / tau_min)) + 1L
+
+  # Construct the geometric grid
+  tau_grid <- tau_min * 2^(seq_len(J) - 1L)
+
+  return(tau_grid)
+}
+
+
+
+#' @title Internal function for Lepski-based truncation parameter selection
+#' @description Selects the truncation parameter using Lepski's method,
+#' by comparing truncated sample (auto)covariance matrices obtained
+#' over a geometric grid of candidate truncation parameters.
+#' @param data A numeric matrix, with each column representing a
+#' time series variable.
+#' @param lag A non-negative integer specifying the maximum lag
+#' of the autocovariance matrices used in the selection criterion.
+#' @param C A positive constant used in the Lepski selection criterion.
+#' @return A list containing the selected truncation parameter,
+#' its grid index, the truncated data, the candidate grid,
+#' the Lepski tolerances, the pairwise differences between
+#' (auto)covariance estimators and the selected (auto)covariance matrices.
+#' @keywords internal
+lepski_tau <- function(data, lag = 1, C = 0.072) {
+
+  data <- as.matrix(data)
+  storage.mode(data) <- "double"
+
+  n <- nrow(data)
+  p <- ncol(data)
+
+  stopifnot(
+    all(is.finite(data)),
+    p > 1,
+    length(lag) == 1L,
+    is.finite(lag),
+    lag >= 0,
+    lag == floor(lag),
+    n > lag,
+    length(C) == 1L,
+    is.finite(C),
+    C > 0
+  )
+
+  # STEP 1: Generate candidate truncation parameters
+
+  tau_grid <- lepski_grid_fun(data)
+
+  J <- length(tau_grid)
+
+  # STEP 2: Calculate truncated covariance and autocovariance
+  # matrices for each candidate tau and each lag 0,...,lag
+
+  Gamma_hat <- lapply(tau_grid, function(tau) {
+
+    lapply(0:lag, function(h) {
+
+      truncateAndComputeCovariance_lag(
+        data = data,
+        tau = rep(tau, p),
+        lag = h
+      )
+
+    })
+
+  })
+
+  # STEP 3: Calculate the Lepski tolerance R(tau)
+
+  R_tau <- tau_grid^2 * log(n)^2 * log(p) / n
+
+  # STEP 4: Calculate the maximum element-wise difference
+  # between each pair of estimators, across all lags
+
+  differences <- matrix(0, nrow = J, ncol = J)
+
+  for (j in seq_len(J - 1L)) {
+
+    for (l in (j + 1L):J) {
+
+      differences[j, l] <- max(
+        vapply(seq_len(lag + 1L), function(h) {
+
+          max(abs(
+            Gamma_hat[[j]][[h]] -
+              Gamma_hat[[l]][[h]]
+          ))
+
+        }, numeric(1))
+      )
+
+    }
+
+  }
+
+  # STEP 5: Select the smallest j satisfying the Lepski
+  # criterion for every larger candidate l
+
+  j_hat <- J
+
+  for (j in seq_len(J - 1L)) {
+
+    larger_indices <- (j + 1L):J
+
+    if (all(
+      differences[j, larger_indices] <=
+      C * R_tau[larger_indices]
+    )) {
+
+      j_hat <- j
+      break
+
+    }
+
+  }
+
+  tau_hat <- tau_grid[j_hat]
+
+  # STEP 6: Truncate the data using the selected tau
+
+  data_truncated <- pmax(pmin(data, tau_hat), -tau_hat)
+
+  return(list(
+    tau = tau_hat,
+    j_hat = j_hat,
+    data = data_truncated,
+    tau_grid = tau_grid,
+    R_tau = R_tau,
+    differences = differences,
+    Gamma_hat = Gamma_hat[[j_hat]]
+  ))
+}
+
+
+
+
+
+
+#' @title Truncate data, with truncation parameter chosen by Lepski's method
+#' @description Performs element-wise data truncation, with the truncation
+#' parameter selected using Lepski's method based on comparisons of
+#' truncated sample (auto)covariance matrices.
+#' @param data Input time series, with each column representing a
+#' time series variable.
+#' @param lag A non-negative integer specifying the maximum lag
+#' of the autocovariance matrices used in the Lepski criterion.
+#' @param C A positive constant used in the Lepski selection criterion.
+#' The default value is 0.072.
+#' @param standardise Boolean; whether to scale up the truncation
+#' parameter for each series by the MAD of the corresponding series.
+#' @details The candidate truncation parameters are constructed on a
+#' geometric grid, with successive candidates differing by a factor of two.
+#' The lower and upper endpoints are determined by the median and maximum
+#' of the absolute observations, respectively.
+#'
+#' When \code{standardise = TRUE}, the Lepski selection procedure is
+#' applied to the MAD-standardised data, and the selected truncation
+#' parameter is rescaled for each time series.
+#'
+#' The smallest candidate truncation parameter for which the corresponding
+#' (auto)covariance estimators are sufficiently close to those obtained
+#' using all larger candidate values is selected.
+#' @return A list containing:
+#' \item{data}{The truncated data on the original scale.}
+#' \item{tau}{The selected truncation parameter.}
+#' \item{tau_standardised}{A vector of series-specific truncation
+#' parameters on the original scale.}
+#' \item{j_hat}{The index of the selected truncation parameter.}
+#' \item{tau_grid}{The grid of candidate truncation parameters.}
+#' \item{R_tau}{The Lepski tolerances associated with the candidate
+#' truncation parameters, before multiplication by \code{C}.}
+#' \item{differences}{A matrix containing the maximum element-wise
+#' differences between pairs of (auto)covariance estimators,
+#' across the considered lags. Only the upper triangular entries
+#' are computed.}
+#' \item{Gamma_hat}{A list of the selected covariance and autocovariance
+#' estimators, from lag zero to \code{lag}, on the scale used
+#' for the Lepski selection procedure.}
+#' @references Loh, P. L. (2021). Scale calibration for high-dimensional
+#' robust regression. Electronic Journal of Statistics, 15(2), 5933--5994.
+#' @seealso \link{cv_trunc}
+#' @export
+lepski_trunc <- function(data, lag = 1, C = 0.072,
+                         standardise = TRUE) {
+
+  data <- as.matrix(data)
+
+  stopifnot(
+    is.numeric(data),
+    all(is.finite(data)),
+    is.logical(standardise),
+    length(standardise) == 1L,
+    !is.na(standardise)
+  )
+
+  # Obtain the scale of each time series
+
+  if (standardise) {
+
+    scales <- mad_variables(data)
+
+  } else {
+
+    scales <- rep(1, ncol(data))
+
+  }
+
+  if (any(!is.finite(scales) | scales <= 0)) {
+    stop("Invalid scale values for Lepski standardisation")
+  }
+
+  # Standardise the data
+
+  data_scaled <- sweep(data, 2, scales, "/")
+
+  # Apply Lepski's method
+
+  fit <- lepski_tau(
+    data = data_scaled,
+    lag = lag,
+    C = C
+  )
+
+  # Obtain series-specific truncation parameters
+
+  tau_s <- fit$tau * scales
+
+  # Truncate the original data using the selected thresholds
+
+  data_truncated <- data
+
+  for (i in seq_len(ncol(data))) {
+
+    data_truncated[, i] <- pmax(
+      pmin(data[, i], tau_s[i]),
+      -tau_s[i]
+    )
+
+  }
+
+  return(list(
+    data = data_truncated,
+    tau = fit$tau,
+    tau_standardised = tau_s,
+    j_hat = fit$j_hat,
+    tau_grid = fit$tau_grid,
+    R_tau = fit$R_tau,
+    differences = fit$differences,
+    Gamma_hat = fit$Gamma_hat
+  ))
+}
