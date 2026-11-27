@@ -2,7 +2,6 @@
 #' @description Estimates the VAR parameter matrices via \code{l1}-regularised Yule-Walker estimation
 #' and innovation covariance matrix via constrained \code{l1}-minimisation.
 #' @details Further information can be found in Barigozzi, Cho and Owens (2024).
-#' @inheritParams fnets
 #' @param x input time series each column representing a time series variable; it is coerced into a \link[stats]{ts} object
 #' @param center whether to de-mean the input \code{x}
 #' @param method a string specifying the method to be adopted for VAR process estimation; possible values are:
@@ -56,7 +55,7 @@ fnets.var <- function(x,
   p <- dim(x)[1]
   n <- dim(x)[2]
 
-  if(!is.null(lambda)) lambda <- max(0, tol)
+  if(!is.null(lambda)) lambda <- max(0, lambda)
   if(!is.null(n.iter)) n.iter <- posint(n.iter)
   tol <- max(0, tol)
   n.cores <- posint(n.cores)
@@ -116,6 +115,17 @@ fnets.var.internal <- function(xx,
 
   method <- match.arg(method, c("lasso", "ds"))
   tuning <- match.arg(tuning.args$tuning, c("cv", "bic"))
+
+  if(is.null(lambda) && tuning == "cv") {
+    cv.method <- match.arg(
+      tuning.args$cv.method,
+      c("standard", "rolling")
+    )
+
+    if(cv.method == "rolling") {
+      stop("Rolling cross-validation is only supported by fnets() with fm.restricted = TRUE.")
+    }
+  }
 
   if(is.null(lambda)){
     if(tuning == "cv") {
@@ -840,7 +850,14 @@ fnets.glmnet = function(xx,
     )
 
     if(cv.method == "standard"){
-      cvfit = glmnet::cv.glmnet(y = yy, x = xxs, intercept = FALSE, standardize = FALSE, parallel = parallel_g)
+      cvfit = glmnet::cv.glmnet(
+        y = yy,
+        x = xxs,
+        intercept = FALSE,
+        standardize = FALSE,
+        parallel = parallel_g,
+        nfolds = tuning.args$n.folds
+      )
       lambda.min <- cvfit$lambda.min
       glmnf <- cvfit$glmnet.fit
     } else if(cv.method == "rolling"){
@@ -859,7 +876,13 @@ fnets.glmnet = function(xx,
     }
   } else {
     lambda.min = lambda
-    glmnf = glmnet::glmnet(y = yy, x = xxs, lambda = lambda, standardize = FALSE, parallel = parallel_g)
+    glmnf = glmnet::glmnet(
+      y = yy,
+      x = xxs,
+      lambda = lambda,
+      intercept = FALSE,
+      standardize = FALSE
+    )
   }
 
   if(n.cores > 1){

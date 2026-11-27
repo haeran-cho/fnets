@@ -44,6 +44,12 @@
 #'    \item{\code{tuning}}{a string specifying the selection procedure for \code{var.order} and \code{lambda}; possible values are:
 #'    \code{"cv"} for cross validation, and \code{"bic"} for information criterion}
 #'    \item{\code{n.folds}}{ if \code{tuning = "cv"}, positive integer number of folds}
+#'    \item{\code{cv.method}}{cross-validation method when \code{fm.restricted = TRUE};
+#'    either \code{"standard"} (default) for standard K-fold cross-validation or
+#'    \code{"rolling"} for expanding-window rolling cross-validation}
+#'    \item{\code{n.blocks}}{number of consecutive time blocks used for rolling
+#'    cross-validation. The first block is used for initial training and the
+#'    remaining blocks for validation. Defaults to 5}
 #'    \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, it is set to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}} by default
 #'    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #' }
@@ -100,9 +106,10 @@
 #' \donttest{
 #' out <- fnets(data.unrestricted,
 #'   do.threshold = TRUE,
+#'   do.lrpc = TRUE,
 #'   var.args = list(n.cores = 2)
 #' )
-#' pre <- predict(out, common.method = "unrestricted")
+#' pre <- predict(out, fc.restricted = FALSE)
 #' plot(out, type = "granger", display = "network")
 #' plot(out, type = "lrpc", display = "heatmap")
 #' }
@@ -209,7 +216,7 @@ fnets <-
   fm <- fnets.factor.model(t(xx),
                            center = FALSE,
                            fm.restricted = fm.restricted,
-                           q = q,
+                           q = if (is.null(q)) q.method else q,
                            ic.op = ic.op,
                            kern.bw = kern.bw,
                            common.args = common.args)
@@ -303,8 +310,11 @@ fnets <-
   attr(out, "data") <- attr(ive, "data")
 
 
+  # Determine the estimated VAR order
+  d <- nrow(ive$beta) / p
+
   attr(out, "forecast.origin") <- t(
-    (x - mean.x)[, (n - var.order + 1):n, drop = FALSE]
+    (x - mean.x)[, (n - d + 1):n, drop = FALSE]
   )
 
   return(out)
@@ -427,6 +437,7 @@ network <- function (object, ...) UseMethod("network", object)
 #' \donttest{
 #' out <- fnets(data.unrestricted,
 #'   do.threshold = TRUE,
+#'   do.lrpc = TRUE,
 #'   var.args = list(n.cores = 2)
 #' )
 #' net <- network(out, type = "granger")$network
@@ -498,6 +509,7 @@ network.fnets <- function(object,
 #' @param groups an integer vector denoting any group structure of the network vertices
 #' @param group.colours a vector denoting colours corresponding to \code{groups}
 #' @param scale_lim an integer that sets the scale for the heatmap. This is useful when you want to compare two heatmaps.
+#' @param main a character string specifying the title prefix for network and heatmap plots. If \code{NULL}, a default title is generated based on \code{type}.
 #' @param ... additional arguments
 #' @return A plot produced as per the input arguments
 #' @seealso \link[fnets]{fnets}
@@ -505,6 +517,7 @@ network.fnets <- function(object,
 #' \donttest{
 #' out <- fnets(data.unrestricted,
 #'   do.threshold = TRUE,
+#'   do.lrpc = TRUE,
 #'   var.args = list(n.cores = 2)
 #' )
 #' plot(out, type = "granger", display = "network",
@@ -666,11 +679,13 @@ predict.fnets <-
            fc.restricted = TRUE,
            r = c("ic", "er"),
            ...) {
-  if(is.null(newdata)) {
-    newdata <- attr(object, "args")$x
-  } else if(object$q >= 1) {
-    stop("To produce forecasts when a common component is present, estimate a model on the new data. \n")
-  }
+    if(is.null(newdata)) {
+      newdata <- attr(object, "args")$x
+    } else if(object$q >= 1) {
+      stop("To produce forecasts when a common component is present, estimate a model on the new data. \n")
+    } else {
+      attr(object, "forecast.origin") <- NULL
+    }
   newdata <- as.ts(newdata)
 
   n.ahead <- posint(n.ahead)
@@ -679,6 +694,9 @@ predict.fnets <-
     warning("Forecast horizon restricted by number of observations")
   }
   cpre <- common.predict(object, t(newdata), n.ahead, fc.restricted, r)
+
+  n.ahead <- nrow(cpre$fc)
+
   ipre <- idio.predict(object, t(newdata), cpre, n.ahead)
 
   out <- list(

@@ -9,7 +9,8 @@ rolling.cv.glmnet(yy, xxs, n, p, var.order, n.blocks = 5)
 \arguments{
 \item{yy}{Vectorised response used by glmnet. For a VAR(d), this is ordered
 by response coordinate, with time running backwards within each coordinate:
-x_{1,n}, ..., x_{1,d+1}, x_{2,n}, ..., x_{2,d+1}, ..., x_{p,n}, ..., x_{p,d+1}.}
+\eqn{x_{1,n}, \ldots, x_{1,d+1}, x_{2,n}, \ldots, x_{2,d+1},
+\ldots, x_{p,n}, \ldots, x_{p,d+1}}.}
 
 \item{xxs}{Sparse design matrix corresponding to yy.}
 

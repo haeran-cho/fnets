@@ -46,7 +46,7 @@ common.predict <-
       r.method <- NULL
 
     origin <- attr(object, "forecast.origin")
-    x_n <- if (is.null(origin)) NULL else as.numeric(tail(origin, 1))
+    x_n <- if (is.null(origin)) NULL else as.numeric(utils::tail(origin, 1))
 
     pre <- list(is = 0 * t(x), fc = matrix(0, nrow = n.ahead, ncol = p))
     if(attr(object, "factor") == "unrestricted") {
@@ -206,9 +206,12 @@ common.restricted.predict <-
     n <- dim(xx)[2]
     if(is.null(max.r))
       max.r <- max(q, min(50, round(sqrt(min(n, p)))))
-    if(n.ahead >= dim(Gamma_c)[3]) {
-      warning("At most ", (dim(Gamma_c)[3] - 1) / 2, "-step ahead forecast is available!")
-      n.ahead <- (dim(Gamma_c)[3] - 1) / 2
+
+    max.ahead <- (dim(Gamma_c)[3] - 1) / 2
+
+    if(n.ahead > max.ahead) {
+      warning("At most ", max.ahead, "-step ahead forecast is available!")
+      n.ahead <- max.ahead
     }
 
     if(is.null(r)) {
@@ -252,15 +255,15 @@ common.restricted.predict <-
 common.unrestricted.predict <- function(xx, cve, n.ahead = 1) {
   p <- dim(xx)[1]
   n <- dim(xx)[2]
-  trunc.lags <- dim(cve$loadings)[3]
-  if(n.ahead >= trunc.lags + 1) {
+  irf <- cve$loadings
+  u <- cve$factors
+
+  trunc.lags <- dim(irf)[3] - 1
+
+  if(n.ahead > trunc.lags) {
     warning("At most ", trunc.lags, "-step ahead forecast is available!")
     n.ahead <- trunc.lags
   }
-
-  irf <- cve$loadings
-  u <- cve$factors
-  trunc.lags <- dim(irf)[3] - 1
 
   is <- xx * 0
   is[, 1:trunc.lags] <- NA

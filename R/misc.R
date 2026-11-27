@@ -134,7 +134,8 @@ posint <- function(x, min.x = 1){
 #'
 #' @param yy Vectorised response used by glmnet. For a VAR(d), this is ordered
 #'   by response coordinate, with time running backwards within each coordinate:
-#'   x_{1,n}, ..., x_{1,d+1}, x_{2,n}, ..., x_{2,d+1}, ..., x_{p,n}, ..., x_{p,d+1}.
+#'   \eqn{x_{1,n}, \ldots, x_{1,d+1}, x_{2,n}, \ldots, x_{2,d+1},
+#'   \ldots, x_{p,n}, \ldots, x_{p,d+1}}.
 #'
 #' @param xxs Sparse design matrix corresponding to yy.
 #'
@@ -232,7 +233,7 @@ rolling.cv.glmnet <- function(yy,
     )
 
 
-    pred.k <- predict(
+    pred.k <- stats::predict(
       fit.k,
       newx = xxs[test.rows, , drop = FALSE],
       s = lambda.path,

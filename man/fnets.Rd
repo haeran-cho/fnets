@@ -78,6 +78,12 @@ see \link[fnets]{factor.number}.}
    \item{\code{tuning}}{a string specifying the selection procedure for \code{var.order} and \code{lambda}; possible values are:
    \code{"cv"} for cross validation, and \code{"bic"} for information criterion}
    \item{\code{n.folds}}{ if \code{tuning = "cv"}, positive integer number of folds}
+   \item{\code{cv.method}}{cross-validation method when \code{fm.restricted = TRUE};
+   either \code{"standard"} (default) for standard K-fold cross-validation or
+   \code{"rolling"} for expanding-window rolling cross-validation}
+   \item{\code{n.blocks}}{number of consecutive time blocks used for rolling
+   cross-validation. The first block is used for initial training and the
+   remaining blocks for validation. Defaults to 5}
    \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, it is set to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}} by default
    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 }}
@@ -142,9 +148,10 @@ List arguments do not need to be specified with all list components; any missing
 \donttest{
 out <- fnets(data.unrestricted,
   do.threshold = TRUE,
+  do.lrpc = TRUE,
   var.args = list(n.cores = 2)
 )
-pre <- predict(out, common.method = "unrestricted")
+pre <- predict(out, fc.restricted = FALSE)
 plot(out, type = "granger", display = "network")
 plot(out, type = "lrpc", display = "heatmap")
 }
