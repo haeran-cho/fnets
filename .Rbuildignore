@@ -3,3 +3,10 @@
 ^LICENSE\.md$
 ^.*\.github$
 ^.*\.pdf$
+^fnets_runthrough\.R$
+^my_changes\.txt$
+^my_fnets_test\.R$
+^my_notes\.R$
+^my_tests\.R$
+^notes$
+^simul_code_to_replicate\.R$

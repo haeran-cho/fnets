@@ -44,11 +44,32 @@
 #'    \item{\code{tuning}}{a string specifying the selection procedure for \code{var.order} and \code{lambda}; possible values are:
 #'    \code{"cv"} for cross validation, and \code{"bic"} for information criterion}
 #'    \item{\code{n.folds}}{ if \code{tuning = "cv"}, positive integer number of folds}
+#'    \item{\code{cv.method}}{cross-validation method when \code{fm.restricted = TRUE};
+#'    either \code{"standard"} (default) for standard K-fold cross-validation or
+#'    \code{"rolling"} for expanding-window rolling cross-validation}
+#'    \item{\code{n.blocks}}{number of consecutive time blocks used for rolling
+#'    cross-validation. The first block is used for initial training and the
+#'    remaining blocks for validation. Defaults to 5}
 #'    \item{\code{penalty}}{ if \code{tuning = "bic"}, penalty multiplier between 0 and 1; if \code{penalty = NULL}, it is set to \code{1/(1+exp(dim(x)[1])/dim(x)[2]))}} by default
 #'    \item{\code{path.length}}{ positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value}
 #' }
-#' @param robust boolean; whether to truncate the data or not.
-#' @param robust.standardise boolean; whether to scale up the truncation parameter for each series by the MAD of the corresponding series or not.
+#' @param robust boolean; whether to perform element-wise data
+#' truncation prior to factor and VAR parameter estimation.
+#' @param robust.standardise boolean; whether to scale up the
+#' truncation parameter for each series by the MAD of the
+#' corresponding series.
+#' @param robust.args a list specifying the arguments required
+#' for selecting the truncation parameter when \code{robust = TRUE}.
+#' It contains:
+#' \describe{
+#'    \item{\code{tuning}}{a string specifying the method used to
+#'    select the truncation parameter; possible values are
+#'    \code{"cv"} for cross-validation and \code{"lepski"} for
+#'    Lepski's method. By default, \code{"cv"} is used.}
+#'    \item{\code{LepskiC}}{a positive constant used in the
+#'    Lepski selection criterion. Applicable when
+#'    \code{tuning = "lepski"}. The default value is 0.072.}
+#' }
 #'
 #' @return an S3 object of class \code{fnets}, which contains the following fields:
 #' \item{q}{ number of factors}
@@ -69,6 +90,12 @@
 #' \item{var.method}{ input parameter}
 #' \item{do.lrpc}{ input parameter}
 #' \item{kern.bw}{ input parameter}
+#'
+#' When \code{robust = TRUE}, the attribute \code{"truncation"}
+#' contains the selected truncation parameter, the series-specific
+#' truncation parameters on the original scale, and the truncation
+#' parameter selection method.
+#'
 #' @references Ahn, S. C. & Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203--1227.
 #' @references Alessi, L., Barigozzi, M.,  & Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics & Probability Letters, 80(23-24):1806–1813.
 #' @references Avarucci, M., Cavicchioli, M., Forni, M., & Zaffaroni, P. (2022) The main business cycle shock(s): Frequency-band estimation of the number of dynamic factors.
@@ -79,9 +106,10 @@
 #' \donttest{
 #' out <- fnets(data.unrestricted,
 #'   do.threshold = TRUE,
+#'   do.lrpc = TRUE,
 #'   var.args = list(n.cores = 2)
 #' )
-#' pre <- predict(out, common.method = "unrestricted")
+#' pre <- predict(out, fc.restricted = FALSE)
 #' plot(out, type = "granger", display = "network")
 #' plot(out, type = "lrpc", display = "heatmap")
 #' }
@@ -113,12 +141,18 @@ fnets <-
            lrpc.adaptive = FALSE,
            tuning.args = list(
              tuning = c("cv", "bic"),
-             n.folds = 1,
+             cv.method = c("standard", "rolling"),
+             n.folds = 10,
+             n.blocks = 5,
              penalty = NULL,
              path.length = 10
            ),
            robust = FALSE,
-           robust.standardise = TRUE) {
+           robust.standardise = TRUE,
+           robust.args = list(
+             tuning = c("cv", "lepski"),
+             LepskiC = 0.072
+           )) {
 
   x <- t(as.ts(x))
   p <- dim(x)[1]
@@ -127,6 +161,7 @@ fnets <-
   var.args <- check.list.arg(var.args)
   common.args <- check.list.arg(common.args)
   tuning.args <- check.list.arg(tuning.args)
+  robust.args <- check.robust.args(robust.args)
 
   if(!is.numeric(q)) {
     q.method <- match.arg(q, c("ic", "er"))
@@ -138,6 +173,7 @@ fnets <-
 
   var.method <- match.arg(var.method, c("lasso", "ds"))
   tuning <- match.arg(tuning.args$tuning, c("cv", "bic"))
+  robust.tuning <- robust.args$tuning
 
   args <- as.list(environment())
   args$x <- t(args$x)
@@ -145,10 +181,34 @@ fnets <-
   ifelse(center, mean.x <- apply(x, 1, mean), mean.x <- rep(0, p))
   xx <- x - mean.x
 
-  if(robust){
-    trunc_dat = cv_trunc(data = t(xx), cv_lag = var.order, standardise = robust.standardise)
-    xx = t(trunc_dat$data)
-    args$x = t(xx + mean.x)
+  if (robust) {
+
+    if (length(var.order) != 1L) {
+      stop("Data truncation currently requires a single VAR order")
+    }
+
+    if (robust.tuning == "cv") {
+
+      trunc_dat <- cv_trunc(
+        data = t(xx),
+        cv_lag = var.order,
+        standardise = robust.standardise
+      )
+
+    } else if (robust.tuning == "lepski") {
+
+      trunc_dat <- lepski_trunc(
+        data = t(xx),
+        lag = var.order,
+        C = robust.args$LepskiC,
+        standardise = robust.standardise
+      )
+
+    }
+
+    xx <- t(trunc_dat$data)
+    args$x <- t(xx + mean.x)
+
   }
   if(!fm.restricted & is.null(kern.bw))
     kern.bw <-  floor(4 * (n / log(n))^(1/3))
@@ -156,7 +216,7 @@ fnets <-
   fm <- fnets.factor.model(t(xx),
                            center = FALSE,
                            fm.restricted = fm.restricted,
-                           q = q,
+                           q = if (is.null(q)) q.method else q,
                            ic.op = ic.op,
                            kern.bw = kern.bw,
                            common.args = common.args)
@@ -210,8 +270,20 @@ fnets <-
     do.lrpc = do.lrpc,
     kern.bw = kern.bw
   )
-  if(robust){
-    attr(out, "truncation") <- list("tau" = trunc_dat$tau, "standardised_tau" = trunc_dat$tau_standardised)
+  if (robust) {
+
+    attr(out, "truncation") <- list(
+      tau = trunc_dat$tau,
+      standardised_tau = trunc_dat$tau_standardised,
+      tuning = robust.tuning
+    )
+
+    if (robust.tuning == "lepski") {
+
+      attr(out, "truncation")$LepskiC <- robust.args$LepskiC
+
+    }
+
   }
   attr(out, "factor") <- ifelse(fm.restricted, "restricted", "unrestricted")
   attr(out, "args") <- args
@@ -236,6 +308,15 @@ fnets <-
 
   attr(out, "class") <- "fnets"
   attr(out, "data") <- attr(ive, "data")
+
+
+  # Determine the estimated VAR order
+  d <- nrow(ive$beta) / p
+
+  attr(out, "forecast.origin") <- t(
+    (x - mean.x)[, (n - d + 1):n, drop = FALSE]
+  )
+
   return(out)
 
 }
@@ -356,6 +437,7 @@ network <- function (object, ...) UseMethod("network", object)
 #' \donttest{
 #' out <- fnets(data.unrestricted,
 #'   do.threshold = TRUE,
+#'   do.lrpc = TRUE,
 #'   var.args = list(n.cores = 2)
 #' )
 #' net <- network(out, type = "granger")$network
@@ -427,6 +509,7 @@ network.fnets <- function(object,
 #' @param groups an integer vector denoting any group structure of the network vertices
 #' @param group.colours a vector denoting colours corresponding to \code{groups}
 #' @param scale_lim an integer that sets the scale for the heatmap. This is useful when you want to compare two heatmaps.
+#' @param main a character string specifying the title prefix for network and heatmap plots. If \code{NULL}, a default title is generated based on \code{type}.
 #' @param ... additional arguments
 #' @return A plot produced as per the input arguments
 #' @seealso \link[fnets]{fnets}
@@ -434,6 +517,7 @@ network.fnets <- function(object,
 #' \donttest{
 #' out <- fnets(data.unrestricted,
 #'   do.threshold = TRUE,
+#'   do.lrpc = TRUE,
 #'   var.args = list(n.cores = 2)
 #' )
 #' plot(out, type = "granger", display = "network",
@@ -595,11 +679,13 @@ predict.fnets <-
            fc.restricted = TRUE,
            r = c("ic", "er"),
            ...) {
-  if(is.null(newdata)) {
-    newdata <- attr(object, "args")$x
-  } else if(object$q >= 1) {
-    stop("To produce forecasts when a common component is present, estimate a model on the new data. \n")
-  }
+    if(is.null(newdata)) {
+      newdata <- attr(object, "args")$x
+    } else if(object$q >= 1) {
+      stop("To produce forecasts when a common component is present, estimate a model on the new data. \n")
+    } else {
+      attr(object, "forecast.origin") <- NULL
+    }
   newdata <- as.ts(newdata)
 
   n.ahead <- posint(n.ahead)
@@ -608,10 +694,13 @@ predict.fnets <-
     warning("Forecast horizon restricted by number of observations")
   }
   cpre <- common.predict(object, t(newdata), n.ahead, fc.restricted, r)
+
+  n.ahead <- nrow(cpre$fc)
+
   ipre <- idio.predict(object, t(newdata), cpre, n.ahead)
 
   out <- list(
-    forecast = cpre$fc + ipre$fc,
+    forecast = sweep(cpre$fc + ipre$fc, 2, object$mean.x, "+"),
     common.pred = cpre,
     idio.pred = ipre,
     mean.x = object$mean.x

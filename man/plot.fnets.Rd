@@ -43,6 +43,8 @@ when \code{display = "network"} or \code{display = "heatmap"}; possible values a
 
 \item{scale_lim}{an integer that sets the scale for the heatmap. This is useful when you want to compare two heatmaps.}
 
+\item{main}{a character string specifying the title prefix for network and heatmap plots. If \code{NULL}, a default title is generated based on \code{type}.}
+
 \item{...}{additional arguments}
 }
 \value{
@@ -62,6 +64,7 @@ the outcome of CV or IC adopted for selecting the \code{l1}-regularisation param
 \donttest{
 out <- fnets(data.unrestricted,
   do.threshold = TRUE,
+  do.lrpc = TRUE,
   var.args = list(n.cores = 2)
 )
 plot(out, type = "granger", display = "network",

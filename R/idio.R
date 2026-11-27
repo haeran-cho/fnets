@@ -2,7 +2,6 @@
 #' @description Estimates the VAR parameter matrices via \code{l1}-regularised Yule-Walker estimation
 #' and innovation covariance matrix via constrained \code{l1}-minimisation.
 #' @details Further information can be found in Barigozzi, Cho and Owens (2024).
-#' @inheritParams fnets
 #' @param x input time series each column representing a time series variable; it is coerced into a \link[stats]{ts} object
 #' @param center whether to de-mean the input \code{x}
 #' @param method a string specifying the method to be adopted for VAR process estimation; possible values are:
@@ -56,7 +55,7 @@ fnets.var <- function(x,
   p <- dim(x)[1]
   n <- dim(x)[2]
 
-  if(!is.null(lambda)) lambda <- max(0, tol)
+  if(!is.null(lambda)) lambda <- max(0, lambda)
   if(!is.null(n.iter)) n.iter <- posint(n.iter)
   tol <- max(0, tol)
   n.cores <- posint(n.cores)
@@ -116,6 +115,17 @@ fnets.var.internal <- function(xx,
 
   method <- match.arg(method, c("lasso", "ds"))
   tuning <- match.arg(tuning.args$tuning, c("cv", "bic"))
+
+  if(is.null(lambda) && tuning == "cv") {
+    cv.method <- match.arg(
+      tuning.args$cv.method,
+      c("standard", "rolling")
+    )
+
+    if(cv.method == "rolling") {
+      stop("Rolling cross-validation is only supported by fnets() with fm.restricted = TRUE.")
+    }
+  }
 
   if(is.null(lambda)){
     if(tuning == "cv") {
@@ -607,19 +617,35 @@ idio.predict <- function(object, x, cpre, n.ahead = 1) {
   A <- t(beta)
 
   is <- xx - t(cpre$is)
-  if(n.ahead >= 1) {
+
+  # Use original, centred observations for forecast initialisation
+  origin <- attr(object, "forecast.origin")
+
+  is_fc <- is
+
+  if (!is.null(origin)) {
+    idx <- (n - nrow(origin) + 1):n
+    is_fc[, idx] <- t(origin - cpre$is[idx, , drop = FALSE])
+  }
+
+  if (n.ahead >= 1) {
     fc <- matrix(0, nrow = p, ncol = n.ahead)
     for (ii in 1:n.ahead) {
-      for (ll in 1:d)
+      for (ll in 1:d) {
         fc[, ii] <-
-          fc[, ii] + A[, p * (ll - 1) + 1:p] %*% is[, n + ii - ll]
-      is <- cbind(is, fc[, ii])
+          fc[, ii] + A[, p * (ll - 1) + 1:p] %*% is_fc[, n + ii - ll]
+      }
+      is_fc <- cbind(is_fc, fc[, ii])
     }
   } else {
     fc <- NA
   }
 
-  out <- list(is = as.ts(t(is[, 1:n])), fc = as.ts(t(fc)), n.ahead = n.ahead)
+  out <- list(
+    is = as.ts(t(is)),
+    fc = as.ts(t(fc)),
+    n.ahead = n.ahead
+  )
   return(out)
 }
 
@@ -783,7 +809,9 @@ fnets.glmnet = function(xx,
                         var.order = 1,
                         tuning.args = list(
                           tuning = c("cv", "bic"),
-                          n.folds = 1,
+                          cv.method = c("standard", "rolling"),
+                          n.folds = 10,
+                          n.blocks = 5,
                           penalty = NULL,
                           path.length = 10
                         ),
@@ -792,6 +820,11 @@ fnets.glmnet = function(xx,
 
   n <- dim(xx)[1]
   p <- dim(xx)[2]
+
+  cv.method <- match.arg(
+    tuning.args$cv.method,
+    c("standard", "rolling")
+  )
 
   yy = as.vector(xx[n:(var.order + 1),])
   xxs = NULL
@@ -810,18 +843,55 @@ fnets.glmnet = function(xx,
   }
 
   if(is.null(lambda)){
-    glmnf = glmnet::cv.glmnet(y = yy, x = xxs, intercept = FALSE, standardize = FALSE, parallel = parallel_g)
+
+    cv.method <- match.arg(
+      tuning.args$cv.method,
+      c("standard", "rolling")
+    )
+
+    if(cv.method == "standard"){
+      cvfit = glmnet::cv.glmnet(
+        y = yy,
+        x = xxs,
+        intercept = FALSE,
+        standardize = FALSE,
+        parallel = parallel_g,
+        nfolds = tuning.args$n.folds
+      )
+      lambda.min <- cvfit$lambda.min
+      glmnf <- cvfit$glmnet.fit
+    } else if(cv.method == "rolling"){
+
+      cvfit <- rolling.cv.glmnet(
+        yy = yy,
+        xxs = xxs,
+        n = n,
+        p = p,
+        var.order = var.order,
+        n.blocks = tuning.args$n.blocks
+      )
+
+      lambda.min = cvfit$lambda.min
+      glmnf <- cvfit$glmnet.fit
+    }
   } else {
-    glmnf = glmnet::glmnet(y = yy, x = xxs, lambda = lambda, standardize = FALSE, parallel = parallel_g)
+    lambda.min = lambda
+    glmnf = glmnet::glmnet(
+      y = yy,
+      x = xxs,
+      lambda = lambda,
+      intercept = FALSE,
+      standardize = FALSE
+    )
   }
 
   if(n.cores > 1){
     parallel::stopCluster(cl)
   }
 
-    out <- list(beta = t(matrix(glmnet::coef.glmnet(glmnf, s = glmnf$lambda.min)[-1], nrow = p, ncol = p*var.order, byrow = TRUE)),
+    out <- list(beta = t(matrix(glmnet::coef.glmnet(glmnf, s = lambda.min)[-1], nrow = p, ncol = p*var.order, byrow = TRUE)),
               Gamma = NULL,
-              lambda = glmnf$lambda.min)
+              lambda = lambda.min)
 }
 
 

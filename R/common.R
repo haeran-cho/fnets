@@ -45,6 +45,9 @@ common.predict <-
     } else
       r.method <- NULL
 
+    origin <- attr(object, "forecast.origin")
+    x_n <- if (is.null(origin)) NULL else as.numeric(utils::tail(origin, 1))
+
     pre <- list(is = 0 * t(x), fc = matrix(0, nrow = n.ahead, ncol = p))
     if(attr(object, "factor") == "unrestricted") {
       if(object$q < 1) {
@@ -56,6 +59,7 @@ common.predict <-
           pre <-
             common.restricted.predict(
               xx = xx,
+              x_n = x_n,
               Gamma_x = object$acv$Gamma_x,
               Gamma_c = object$acv$Gamma_c,
               q = object$q,
@@ -80,6 +84,7 @@ common.predict <-
       pre <-
         common.restricted.predict(
           xx = xx,
+          x_n = x_n,
           Gamma_x = object$acv$Gamma_x,
           Gamma_c = object$acv$Gamma_c,
           q = object$q,
@@ -188,6 +193,7 @@ common.irf.estimation <-
 #' @importFrom stats as.ts
 common.restricted.predict <-
   function(xx,
+           x_n = NULL,
            Gamma_x,
            Gamma_c,
            q,
@@ -200,9 +206,12 @@ common.restricted.predict <-
     n <- dim(xx)[2]
     if(is.null(max.r))
       max.r <- max(q, min(50, round(sqrt(min(n, p)))))
-    if(n.ahead >= dim(Gamma_c)[3]) {
-      warning("At most ", (dim(Gamma_c)[3] - 1) / 2, "-step ahead forecast is available!")
-      n.ahead <- (dim(Gamma_c)[3] - 1) / 2
+
+    max.ahead <- (dim(Gamma_c)[3] - 1) / 2
+
+    if(n.ahead > max.ahead) {
+      warning("At most ", max.ahead, "-step ahead forecast is available!")
+      n.ahead <- max.ahead
     }
 
     if(is.null(r)) {
@@ -221,10 +230,15 @@ common.restricted.predict <-
     is <- sv$u[, 1:r, drop = FALSE] %*% t(sv$u[, 1:r, drop = FALSE]) %*% xx
     if(n.ahead >= 1) {
       fc <- matrix(0, nrow = p, ncol = n.ahead)
+      if (is.null(x_n)){ x_n <- xx[, n]}
+
       proj.x <-
-        t(t(sv$u[, 1:r, drop = FALSE]) / sv$d[1:r]) %*% t(sv$u[, 1:r, drop = FALSE]) %*% xx[, n]
-      for (hh in 1:n.ahead)
+        t(t(sv$u[, 1:r, drop = FALSE]) / sv$d[1:r]) %*%
+        t(sv$u[, 1:r, drop = FALSE]) %*% x_n
+
+      for (hh in 1:n.ahead){
         fc[, hh] <- t(Gamma_c[, , hh + 1]) %*% proj.x
+      }
     } else {
       fc <- NA
     }
@@ -241,15 +255,15 @@ common.restricted.predict <-
 common.unrestricted.predict <- function(xx, cve, n.ahead = 1) {
   p <- dim(xx)[1]
   n <- dim(xx)[2]
-  trunc.lags <- dim(cve$loadings)[3]
-  if(n.ahead >= trunc.lags + 1) {
+  irf <- cve$loadings
+  u <- cve$factors
+
+  trunc.lags <- dim(irf)[3] - 1
+
+  if(n.ahead > trunc.lags) {
     warning("At most ", trunc.lags, "-step ahead forecast is available!")
     n.ahead <- trunc.lags
   }
-
-  irf <- cve$loadings
-  u <- cve$factors
-  trunc.lags <- dim(irf)[3] - 1
 
   is <- xx * 0
   is[, 1:trunc.lags] <- NA

@@ -57,6 +57,11 @@ sim.unrestricted <- function(n, p, q = 2, heavy = FALSE) {
 #' @importFrom stats rnorm runif rt as.ts
 #' @export
 sim.restricted <- function(n, p, q = 2, heavy = FALSE, df = 5, lags = 1) {
+
+  if (heavy && df <= 2) {
+    stop("df must be greater than 2 for unit-variance Student-t innovations")
+  }
+
   n <- posint(n)
   p <- posint(p)
   q <- posint(q)
@@ -64,7 +69,7 @@ sim.restricted <- function(n, p, q = 2, heavy = FALSE, df = 5, lags = 1) {
   r <- q * (lags + 1)
   burnin <- 100
   ifelse(!heavy, uu <- matrix(rnorm((n + burnin) * q), nrow = q),
-    uu <- matrix(rt((n + burnin) * q, df = df), nrow = q) * sqrt(df-2 / df))
+    uu <- matrix(rt((n + burnin) * q, df = df), nrow = q) * sqrt((df - 2) / df))
   D0 <- matrix(runif(q^2, 0, .3), nrow = q)
   diag(D0) <- runif(q, .5, .8)
   D <- 0.7 * D0 / norm(D0, type = "2")
@@ -106,6 +111,11 @@ sim.var <- function(n,
                     Gamma = diag(1, p),
                     heavy = FALSE,
                     df = 5) {
+
+  if (heavy && df <= 2) {
+    stop("df must be greater than 2 for unit-variance Student-t innovations")
+  }
+
   n <- posint(n)
   p <- posint(p)
   burnin <- 100
@@ -114,7 +124,7 @@ sim.var <- function(n,
   ifelse(!heavy,
     ifelse(identical(Gamma, diag(1, p)), xi <- matrix(rnorm((n + burnin) * p), nrow = p),
            xi <- t(MASS::mvrnorm(n + burnin, mu = rep(0, p), Sigma = Gamma))),
-    xi <- matrix(rt((n + burnin) * p, df = df), nrow = p) * sqrt(df-2 / df))
+    xi <- matrix(rt((n + burnin) * p, df = df), nrow = p) * sqrt((df - 2) / df))
 
   A <- matrix(0, p, p)
   index <- sample(c(0, 1), p^2, TRUE, prob = c(1 - prob, prob))

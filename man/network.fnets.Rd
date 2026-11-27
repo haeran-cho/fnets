@@ -51,6 +51,7 @@ When plotting the network, note that the edge weights may be negative since they
 \donttest{
 out <- fnets(data.unrestricted,
   do.threshold = TRUE,
+  do.lrpc = TRUE,
   var.args = list(n.cores = 2)
 )
 net <- network(out, type = "granger")$network
