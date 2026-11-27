@@ -5,7 +5,8 @@ Version: 0.2.0
 Authors@R: c(
     person("Matteo", "Barigozzi", email = "matteo.barigozzi@unibo.it", role = "aut"),
     person("Haeran", "Cho", email = "haeran.cho@bristol.ac.uk", role = c("cre", "aut")),
-    person("Dom", "Owens", email = "dom.owens@bristol.ac.uk", role = "aut"))
+    person("Dom", "Owens", email = "dom.owens@bristol.ac.uk", role = "aut"),
+    person("Dylan", "Dijk", email = "dylan.dijk@bristol.ac.uk", role = "aut"))
 Maintainer: Haeran Cho <haeran.cho@bristol.ac.uk>
 BugReports: https://github.com/haeran-cho/fnets/issues
 URL: https://github.com/haeran-cho/fnets/
